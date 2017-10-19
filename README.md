@@ -1,4 +1,4 @@
-[![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2) ![Total downloads](http://cranlogs.r-pkg.org/badges/grand-total/ANN2?color=green) ![](http://cranlogs.r-pkg.org/badges/last-week/ANN2?color=green)
+[![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2) [![](http://cranlogs.r-pkg.org/badges/last-month/ANN2?color=green)](https://CRAN.R-project.org/package=ANN2)
 
 # ANN2
 Artificial Neural Networks package for R 
