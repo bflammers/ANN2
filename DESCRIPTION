@@ -1,19 +1,19 @@
 Package: ANN2
 Type: Package
 Title: Artificial Neural Networks for Anomaly Detection
-Version: 1.0
-Date: 2017-10-07
+Version: 1.1
+Date: 2017-10-23
 Author: Bart Lammers
 Maintainer: Bart Lammers <bart.f.lammers@gmail.com>
 Description: Training of general classification and regression neural networks using 
-    gradient descent. Special features include a function for training autoencoders 
-    as well as an implementation of replicator neural networks, for details see 
-    Hawkins et al. (2012) <doi:10.1007/3-540-46145-0_17>. Multiple activation and 
-    cost functions (including Huber and pseudo-Huber) are included, as well as L1 
+    gradient descent. Special features include a function for training replicator 
+    neural networks and a function for training autoencoders. Multiple activation and 
+    cost functions (including Huber and pseudo-Huber) are supported, as well as L1 
     and L2 regularization, momentum, early stopping and the possibility to specify 
     a learning rate schedule. The package contains a vectorized gradient descent 
     implementation which facilitates faster training through batch learning.
 License: GPL (>= 3)
+URL: https://github.com/bflammers/ANN2
 Encoding: UTF-8
 LazyData: true
 Imports: Rcpp (>= 0.12.12), robustbase (>= 0.92), stats (>= 3.3.2), graphics (>= 3.3.2)

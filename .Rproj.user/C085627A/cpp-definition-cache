@@ -1,0 +1,197 @@
+[
+    {
+        "definitions" : [
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 5,
+                "name" : "repVec(arma::vec, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@repVec#$@N@arma@C@Col>#d#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 13,
+                "name" : "huberLoss(arma::mat, arma::mat, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@huberLoss#$@N@arma@C@Mat>#d#S0_#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 21,
+                "name" : "huberGradLoss(arma::mat, arma::mat, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@huberGradLoss#$@N@arma@C@Mat>#d#S0_#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 30,
+                "name" : "stepFun(arma::mat, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@stepFun#$@N@arma@C@Mat>#d#I#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 42,
+                "name" : "stepGradFun(arma::mat, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@stepGradFun#$@N@arma@C@Mat>#d#I#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 53,
+                "name" : "colSoftMax(arma::mat)",
+                "parent_name" : "",
+                "usr" : "c:@F@colSoftMax#$@N@arma@C@Mat>#d#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 63,
+                "name" : "sample_index(const int &)",
+                "parent_name" : "",
+                "usr" : "c:@F@sample_index#&1I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 71,
+                "name" : "lossFunction(arma::mat, arma::mat, Rcpp::String, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@lossFunction#$@N@arma@C@Mat>#d#S0_#$@N@Rcpp@C@String#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 90,
+                "name" : "lossGradFunction(arma::mat, arma::mat, Rcpp::String, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@lossGradFunction#$@N@arma@C@Mat>#d#S0_#$@N@Rcpp@C@String#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 104,
+                "name" : "activFunction(arma::mat, Rcpp::String, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@activFunction#$@N@arma@C@Mat>#d#$@N@Rcpp@C@String#I#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 121,
+                "name" : "activGradFunction(arma::mat, Rcpp::String, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@activGradFunction#$@N@arma@C@Mat>#d#$@N@Rcpp@C@String#I#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 136,
+                "name" : "scaleC(arma::mat)",
+                "parent_name" : "",
+                "usr" : "c:@F@scaleC#$@N@arma@C@Mat>#d#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 145,
+                "name" : "reScaleC(arma::mat, arma::vec, arma::vec)",
+                "parent_name" : "",
+                "usr" : "c:@F@reScaleC#$@N@arma@C@Mat>#d#$@N@arma@C@Col>#d#S1_#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 154,
+                "name" : "forwardPass(Rcpp::List, arma::mat, Rcpp::CharacterVector, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@forwardPass#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#$@N@arma@C@Mat>#d#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#I#I#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 174,
+                "name" : "backwardPass(Rcpp::List, Rcpp::List, arma::mat, arma::mat, Rcpp::CharacterVector, Rcpp::String, double, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@backwardPass#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S0_#$@N@arma@C@Mat>#d#S1_#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@String#d#I#I#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 200,
+                "name" : "updateParams(Rcpp::List, Rcpp::List, double, double, double, double)",
+                "parent_name" : "",
+                "usr" : "c:@F@updateParams#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S0_#d#d#d#d#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 224,
+                "name" : "createNN(Rcpp::List, bool, bool, arma::vec, arma::vec, Rcpp::CharacterVector, Rcpp::CharacterVector, int, arma::mat, bool, bool, Rcpp::List, Rcpp::List, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@createNN#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#b#b#$@N@arma@C@Col>#d#S1_#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#S2_#I#$@N@arma@C@Mat>#d#b#b#S0_#S0_#I#I#"
+            },
+            {
+                "column" : 11,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 265,
+                "name" : "predictC(Rcpp::List, arma::mat, bool)",
+                "parent_name" : "",
+                "usr" : "c:@F@predictC#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#$@N@arma@C@Mat>#d#b#"
+            },
+            {
+                "column" : 8,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 296,
+                "name" : "checkLoss(arma::mat, arma::mat, Rcpp::List, bool, Rcpp::CharacterVector, Rcpp::String, double, int, int)",
+                "parent_name" : "",
+                "usr" : "c:@F@checkLoss#$@N@arma@C@Mat>#d#S0_#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#b#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#$@N@Rcpp@C@String#d#I#I#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 311,
+                "name" : "checkValidLoss(arma::mat, arma::mat, Rcpp::List, arma::mat, bool, Rcpp::CharacterVector, bool, int, double, bool, arma::vec, arma::vec, double, int, int, int, double, Rcpp::String)",
+                "parent_name" : "",
+                "usr" : "c:@F@checkValidLoss#$@N@arma@C@Mat>#d#S0_#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#S0_#b#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#b#I#d#b#$@N@arma@C@Col>#d#S3_#d#I#I#I#d#$@N@Rcpp@C@String#"
+            },
+            {
+                "column" : 12,
+                "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+                "kind" : 6,
+                "line" : 354,
+                "name" : "stochGD(Rcpp::List, int, bool, arma::vec, arma::vec, Rcpp::CharacterVector, Rcpp::CharacterVector, Rcpp::String, double, int, int, int, int, double, double, double, double, bool, int, double, bool, arma::vec, arma::vec, Rcpp::List, Rcpp::List, Rcpp::List, bool, bool, bool, bool)",
+                "parent_name" : "",
+                "usr" : "c:@F@stochGD#$@N@Rcpp@C@Vector>#VI19#@N@Rcpp@CT>1#T@PreserveStorage#I#b#$@N@arma@C@Col>#d#S1_#$@N@Rcpp@C@Vector>#VI16#@N@Rcpp@CT>1#T@PreserveStorage#S2_#$@N@Rcpp@C@String#d#I#I#I#I#d#d#d#d#b#I#d#b#S1_#S1_#S0_#S0_#S0_#b#b#b#b#"
+            }
+        ],
+        "file" : "C:/Users/bartf/Documents/GitHub/ANN2/src/rcpp-nn.cpp",
+        "file_last_write" : 1508765963
+    }
+]

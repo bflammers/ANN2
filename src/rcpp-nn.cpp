@@ -360,9 +360,10 @@ Rcpp::List stochGD(Rcpp::List dataList, int nObs, bool standardize, arma::vec y_
   arma::mat Xperm(size(X)), yperm(size(y)), descentDetails(maxEpochs,4); descentDetails.fill(0);
   arma::vec  epochLossVec(nObs);
   arma::uvec randPerm(nObs);
-  int nBatch   = ceil(nObs/batchSize);
+  int nBatch   = (int)std::ceil(double(nObs)/double(batchSize));
   int nEpochs  = maxEpochs;
   bool doBreak = FALSE;
+  
 
   for(int iEpoch = 0; iEpoch!=maxEpochs; iEpoch++){
     randPerm = sample_index(nObs);
