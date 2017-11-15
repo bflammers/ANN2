@@ -32,20 +32,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// lossFunction
-arma::vec lossFunction(arma::mat y, arma::mat y_fit, Rcpp::String lossType, double dHuber);
-RcppExport SEXP _ANN2_lossFunction(SEXP ySEXP, SEXP y_fitSEXP, SEXP lossTypeSEXP, SEXP dHuberSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y(ySEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type y_fit(y_fitSEXP);
-    Rcpp::traits::input_parameter< Rcpp::String >::type lossType(lossTypeSEXP);
-    Rcpp::traits::input_parameter< double >::type dHuber(dHuberSEXP);
-    rcpp_result_gen = Rcpp::wrap(lossFunction(y, y_fit, lossType, dHuber));
-    return rcpp_result_gen;
-END_RCPP
-}
 // predictC
 arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize);
 RcppExport SEXP _ANN2_predictC(SEXP NNSEXP, SEXP newdataSEXP, SEXP standardizeSEXP) {
@@ -60,17 +46,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // stochGD
-Rcpp::List stochGD(Rcpp::List dataList, int nObs, bool standardize, arma::vec y_center, arma::vec y_scale, Rcpp::CharacterVector y_names, Rcpp::CharacterVector activTypes, Rcpp::String lossType, double dHuber, int nSteps, int smoothSteps, int batchSize, int maxEpochs, double learnRate, double momentum, double L1, double L2, bool earlyStop, int earlyStopEpochs, double earlyStopTol, bool lrSched, arma::vec lrSchedEpochs, arma::vec lrSchedLearnRates, Rcpp::List fpOut, Rcpp::List bpOut, Rcpp::List upOut, bool validLoss, bool verbose, bool regression, bool plotExample);
-RcppExport SEXP _ANN2_stochGD(SEXP dataListSEXP, SEXP nObsSEXP, SEXP standardizeSEXP, SEXP y_centerSEXP, SEXP y_scaleSEXP, SEXP y_namesSEXP, SEXP activTypesSEXP, SEXP lossTypeSEXP, SEXP dHuberSEXP, SEXP nStepsSEXP, SEXP smoothStepsSEXP, SEXP batchSizeSEXP, SEXP maxEpochsSEXP, SEXP learnRateSEXP, SEXP momentumSEXP, SEXP L1SEXP, SEXP L2SEXP, SEXP earlyStopSEXP, SEXP earlyStopEpochsSEXP, SEXP earlyStopTolSEXP, SEXP lrSchedSEXP, SEXP lrSchedEpochsSEXP, SEXP lrSchedLearnRatesSEXP, SEXP fpOutSEXP, SEXP bpOutSEXP, SEXP upOutSEXP, SEXP validLossSEXP, SEXP verboseSEXP, SEXP regressionSEXP, SEXP plotExampleSEXP) {
+Rcpp::List stochGD(Rcpp::List dataList, int nTrain, bool standardize, Rcpp::CharacterVector activTypes, Rcpp::String lossType, double dHuber, int nSteps, int smoothSteps, int batchSize, int maxEpochs, double learnRate, double momentum, double L1, double L2, bool earlyStop, int earlyStopEpochs, double earlyStopTol, bool lrSched, arma::vec lrSchedEpochs, arma::vec lrSchedLearnRates, Rcpp::List fpOut, Rcpp::List bpOut, Rcpp::List upOut, bool validLoss, bool verbose, bool regression, bool plotExample);
+RcppExport SEXP _ANN2_stochGD(SEXP dataListSEXP, SEXP nTrainSEXP, SEXP standardizeSEXP, SEXP activTypesSEXP, SEXP lossTypeSEXP, SEXP dHuberSEXP, SEXP nStepsSEXP, SEXP smoothStepsSEXP, SEXP batchSizeSEXP, SEXP maxEpochsSEXP, SEXP learnRateSEXP, SEXP momentumSEXP, SEXP L1SEXP, SEXP L2SEXP, SEXP earlyStopSEXP, SEXP earlyStopEpochsSEXP, SEXP earlyStopTolSEXP, SEXP lrSchedSEXP, SEXP lrSchedEpochsSEXP, SEXP lrSchedLearnRatesSEXP, SEXP fpOutSEXP, SEXP bpOutSEXP, SEXP upOutSEXP, SEXP validLossSEXP, SEXP verboseSEXP, SEXP regressionSEXP, SEXP plotExampleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type dataList(dataListSEXP);
-    Rcpp::traits::input_parameter< int >::type nObs(nObsSEXP);
+    Rcpp::traits::input_parameter< int >::type nTrain(nTrainSEXP);
     Rcpp::traits::input_parameter< bool >::type standardize(standardizeSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_center(y_centerSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type y_scale(y_scaleSEXP);
-    Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type y_names(y_namesSEXP);
     Rcpp::traits::input_parameter< Rcpp::CharacterVector >::type activTypes(activTypesSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type lossType(lossTypeSEXP);
     Rcpp::traits::input_parameter< double >::type dHuber(dHuberSEXP);
@@ -95,7 +78,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< bool >::type verbose(verboseSEXP);
     Rcpp::traits::input_parameter< bool >::type regression(regressionSEXP);
     Rcpp::traits::input_parameter< bool >::type plotExample(plotExampleSEXP);
-    rcpp_result_gen = Rcpp::wrap(stochGD(dataList, nObs, standardize, y_center, y_scale, y_names, activTypes, lossType, dHuber, nSteps, smoothSteps, batchSize, maxEpochs, learnRate, momentum, L1, L2, earlyStop, earlyStopEpochs, earlyStopTol, lrSched, lrSchedEpochs, lrSchedLearnRates, fpOut, bpOut, upOut, validLoss, verbose, regression, plotExample));
+    rcpp_result_gen = Rcpp::wrap(stochGD(dataList, nTrain, standardize, activTypes, lossType, dHuber, nSteps, smoothSteps, batchSize, maxEpochs, learnRate, momentum, L1, L2, earlyStop, earlyStopEpochs, earlyStopTol, lrSched, lrSchedEpochs, lrSchedLearnRates, fpOut, bpOut, upOut, validLoss, verbose, regression, plotExample));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -103,9 +86,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_ANN2_stepFun", (DL_FUNC) &_ANN2_stepFun, 3},
     {"_ANN2_stepGradFun", (DL_FUNC) &_ANN2_stepGradFun, 3},
-    {"_ANN2_lossFunction", (DL_FUNC) &_ANN2_lossFunction, 4},
     {"_ANN2_predictC", (DL_FUNC) &_ANN2_predictC, 3},
-    {"_ANN2_stochGD", (DL_FUNC) &_ANN2_stochGD, 30},
+    {"_ANN2_stochGD", (DL_FUNC) &_ANN2_stochGD, 27},
     {NULL, NULL, 0}
 };
 

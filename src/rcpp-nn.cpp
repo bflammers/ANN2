@@ -67,10 +67,9 @@ arma::uvec sample_index(const int &size){
 }
 
 // Loss functions
-// [[Rcpp::export]]
 arma::vec lossFunction(arma::mat y, arma::mat y_fit, Rcpp::String lossType, double dHuber){
-  int nObs = y.n_rows;
-  arma::vec result(nObs);
+  int nTrain = y.n_rows;
+  arma::vec result(nTrain);
   if(lossType == "log"){
     result    = -log(y_fit.elem(find(y.t() == 1)));
     result.elem( find_nonfinite(result) ).fill(1e100); // Machine tolerance largest number? R_PosInf
@@ -117,7 +116,7 @@ arma::mat activFunction(arma::mat x, Rcpp::String activType, int nSteps, int smo
   return result;
 }
 
-// Gradients of activation functions
+// Gradients of activation 
 arma::mat activGradFunction(arma::mat x, Rcpp::String activType, int nSteps, int smoothSteps){
   arma::mat result(x.n_rows, x.n_cols); result.zeros();
   if(activType == "tanh")           result = 1.15*(1-pow(tanh(2*x/3), 2));
@@ -133,11 +132,11 @@ arma::mat activGradFunction(arma::mat x, Rcpp::String activType, int nSteps, int
   return result;
 }
 
-arma::mat scaleC(arma::mat X){
+arma::mat scaleC(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
   int nCol = X.n_cols;
   arma::mat scaledX(size(X));
   for(int i = 0; i != nCol; i ++){
-    scaledX.col(i) = (X.col(i)-mean(X.col(i)))/stddev(X.col(i), 0);
+    scaledX.col(i) = (X.col(i) -  Xcenter[i]) / Xscale[i];
   }
   return scaledX;
 }
@@ -155,13 +154,13 @@ Rcpp::List forwardPass(Rcpp::List upOut, arma::mat Xbatch, Rcpp::CharacterVector
   arma::field<arma::vec> biasVecs    = upOut["biasVecs"];
   arma::field<arma::mat> weightMats  = upOut["weightMats"];
 
-  int nLayers = biasVecs.size(), nObs = Xbatch.n_rows;
+  int nLayers = biasVecs.size(), nTrain = Xbatch.n_rows;
   arma::mat prevActivation = Xbatch.t();
   arma::field<arma::mat> inputLayers(nLayers), activLayers(nLayers);
 
   for(int i = 0; i!=nLayers; i++){
 
-    inputLayers[i] = weightMats[i] * prevActivation + repVec(biasVecs[i], nObs);
+    inputLayers[i] = weightMats[i] * prevActivation + repVec(biasVecs[i], nTrain);
     activLayers[i] = prevActivation = activFunction(inputLayers[i], activTypes[i], nSteps, smoothSteps);
   }
 
@@ -183,7 +182,7 @@ Rcpp::List backwardPass(Rcpp::List upOut, Rcpp::List fpOut, arma::mat c_X, arma:
   arma::field<arma::mat> errorLayers(nLayers), weightGradMats(nLayers);
   arma::mat lossGradVec  = lossGradFunction(c_y, activLayers[nLayers-1], lossType, dHuber);
   errorLayers[nLayers-1] = lossGradVec % activGradFunction(inputLayers[nLayers-1], activTypes(nLayers-1), nSteps, smoothSteps);
-
+  
   for(int i = nLayers-2; i!=-1; i--){
     weightGradMats[i+1] = errorLayers[i+1] * activLayers[i].t();
     errorLayers[i]      = weightMats[i+1].t() * errorLayers[i+1] % activGradFunction(inputLayers[i], activTypes(i), nSteps, smoothSteps);
@@ -222,8 +221,9 @@ Rcpp::List updateParams(Rcpp::List upOut, Rcpp::List bpOut, double momentum, dou
 }
 
 Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::vec y_center, arma::vec y_scale,
-              Rcpp::CharacterVector y_names, Rcpp::CharacterVector activTypes, int nEpochs, arma::mat descentDetails,
-              bool validLoss, bool plotExample, Rcpp::List fpOut, Rcpp::List bpOut, int nSteps, int smoothSteps){
+                    arma::vec X_center, arma::vec X_scale, Rcpp::CharacterVector y_names, Rcpp::CharacterVector activTypes, 
+                    int nEpochs, arma::mat descentDetails, bool validLoss, bool plotExample, Rcpp::List fpOut, 
+                    Rcpp::List bpOut, int nSteps, int smoothSteps){
   Rcpp::List NN_pred =  Rcpp::List::create(
     Rcpp::Named("biasVecs")       = upOut["biasVecs"],
     Rcpp::Named("weightMats")     = upOut["weightMats"],
@@ -234,6 +234,8 @@ Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::v
     Rcpp::Named("standardize")    = standardize,
     Rcpp::Named("y_center")       = y_center,
     Rcpp::Named("y_scale")        = y_scale,
+    Rcpp::Named("X_center")       = X_center,
+    Rcpp::Named("X_scale")        = X_scale,
     Rcpp::Named("y_names")        = y_names
   );
   Rcpp::List NN_plot = Rcpp::List::create(
@@ -270,15 +272,20 @@ arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize) {
   int nSteps                        = NN["nSteps"];
   int smoothSteps                   = NN["smoothSteps"];
   arma::mat X(size(newdata));
-
-  if(standardize) X = scaleC(newdata); else X = newdata;
+  if(standardize) {
+    arma::vec X_center = NN["X_center"];
+    arma::vec X_scale  = NN["X_scale"];
+    X = scaleC(newdata, X_center, X_scale);
+  } else {
+    X = newdata;
+  }
 
   int nLayers = biasVecs.size();
-  int nObs    = X.n_rows;
+  int nTrain    = X.n_rows;
   arma::mat prevActivation = X.t();
 
   for(int i = 0; i!=nLayers; i++){
-    arma::mat inputLayer = weightMats[i] * prevActivation + repVec(biasVecs[i], nObs);
+    arma::mat inputLayer = weightMats[i] * prevActivation + repVec(biasVecs[i], nTrain);
     prevActivation = activFunction(inputLayer, activTypes[i], nSteps, smoothSteps);
   }
 
@@ -304,8 +311,8 @@ double checkLoss(arma::mat X, arma::mat y, Rcpp::List upOut, bool regression, Rc
     Rcpp::Named("smoothSteps") = smoothSteps
   );
   arma::mat Xpred   = predictC(NN, X, FALSE);
-  arma::vec valLoss = lossFunction(y, Xpred.t(), lossType, dHuber);
-  return mean(valLoss);
+  arma::vec XLoss = lossFunction(y, Xpred.t(), lossType, dHuber);
+  return mean(XLoss);
 }
 
 Rcpp::List checkValidLoss(arma::mat X_val, arma::mat y_val, Rcpp::List upOut, arma::mat descentDetails,
@@ -351,38 +358,40 @@ Rcpp::List checkValidLoss(arma::mat X_val, arma::mat y_val, Rcpp::List upOut, ar
 }
 
 // [[Rcpp::export]]
-Rcpp::List stochGD(Rcpp::List dataList, int nObs, bool standardize, arma::vec y_center, arma::vec y_scale, Rcpp::CharacterVector y_names,
-             Rcpp::CharacterVector activTypes, Rcpp::String lossType, double dHuber, int nSteps, int smoothSteps, int batchSize,
-            int maxEpochs, double learnRate, double momentum, double L1, double L2, bool earlyStop, int earlyStopEpochs,
-            double earlyStopTol, bool lrSched, arma::vec lrSchedEpochs, arma::vec lrSchedLearnRates, Rcpp::List fpOut,
-            Rcpp::List bpOut, Rcpp::List upOut, bool validLoss, bool verbose, bool regression, bool plotExample){
+Rcpp::List stochGD(Rcpp::List dataList, int nTrain, bool standardize, Rcpp::CharacterVector activTypes, 
+                   Rcpp::String lossType, double dHuber, int nSteps, int smoothSteps, int batchSize, int maxEpochs, 
+                   double learnRate, double momentum, double L1, double L2, bool earlyStop, int earlyStopEpochs,
+                   double earlyStopTol, bool lrSched, arma::vec lrSchedEpochs, arma::vec lrSchedLearnRates, Rcpp::List fpOut,
+                   Rcpp::List bpOut, Rcpp::List upOut, bool validLoss, bool verbose, bool regression, bool plotExample){
   arma::mat X = dataList["X_train"], y = dataList["y_train"], X_val = dataList["X_val"], y_val = dataList["y_val"];
+  arma::vec y_center = dataList["y_center"], y_scale= dataList["y_scale"];
+  arma::vec X_center = dataList["X_center"], X_scale= dataList["X_scale"]; 
+  Rcpp::CharacterVector y_names = dataList["y_names"];
   arma::mat Xperm(size(X)), yperm(size(y)), descentDetails(maxEpochs,4); descentDetails.fill(0);
-  arma::vec  epochLossVec(nObs);
-  arma::uvec randPerm(nObs);
-  int nBatch   = (int)std::ceil(double(nObs)/double(batchSize));
+  arma::vec  epochLossVec(nTrain);
+  arma::uvec randPerm(nTrain);
+  int nBatch   = ceil(nTrain/batchSize);
   int nEpochs  = maxEpochs;
   bool doBreak = FALSE;
   
-
   for(int iEpoch = 0; iEpoch!=maxEpochs; iEpoch++){
-    randPerm = sample_index(nObs);
+    randPerm = sample_index(nTrain);
     Xperm    = X.rows(randPerm);
     yperm    = y.rows(randPerm);
     for(int iBatch = 0; iBatch!=nBatch; iBatch++){
       int firstRow = iBatch * batchSize;
-      int lastRow  = std::min(firstRow + batchSize -1 , nObs-1);
+      int lastRow  = std::min(firstRow + batchSize -1 , nTrain-1);
 
       arma::mat Xbatch = Xperm.rows(firstRow, lastRow);
       arma::mat ybatch = yperm.rows(firstRow, lastRow);
-
+      
       fpOut = forwardPass(upOut, Xbatch, activTypes, nSteps, smoothSteps);
       bpOut = backwardPass(upOut, fpOut, Xbatch, ybatch, activTypes, lossType, dHuber, nSteps, smoothSteps);
       upOut = updateParams(upOut, bpOut, momentum, L1, L2, learnRate);
+      
     }
-
+    
     descentDetails(iEpoch,0) = checkLoss(X, y, upOut, regression, activTypes, lossType, dHuber, nSteps, smoothSteps);
-
     if(validLoss){
       Rcpp::List validLossList = checkValidLoss(X_val, y_val, upOut, descentDetails, regression, activTypes, earlyStop,
                                  earlyStopEpochs, earlyStopTol, lrSched, lrSchedEpochs, lrSchedLearnRates,
@@ -402,9 +411,11 @@ Rcpp::List stochGD(Rcpp::List dataList, int nObs, bool standardize, arma::vec y_
     }
     Rcpp::checkUserInterrupt();
   }
-
-  Rcpp::List NN = createNN(upOut, regression, standardize, y_center, y_scale, y_names , activTypes, nEpochs,
-                     descentDetails, validLoss, plotExample, fpOut, upOut, nSteps, smoothSteps);
+  if (!plotExample) {
+    Rcpp::Rcout << std::endl;
+  }
+  Rcpp::List NN = createNN(upOut, regression, standardize, y_center, y_scale, X_center, X_scale, y_names, 
+                           activTypes, nEpochs, descentDetails, validLoss, plotExample, fpOut, upOut, nSteps, smoothSteps);
   return NN;
 }
 

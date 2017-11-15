@@ -1,6 +1,6 @@
 checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, rampLayers, rectifierLayers,
                             sigmoidLayers, maxEpochs, batchSize, momentum, L1, L2, validLoss, validProp, earlyStop,
-                            earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nObs, nSteps, smoothSteps) {
+                            earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nTrain, nSteps, smoothSteps) {
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
 
   ## ERRORS
@@ -9,8 +9,8 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   }
   if ((lossFunction %in% c("huber", "pseudo-huber")) && dHuber <= 0)
     stop("dHuber should be positive and non-zero.")
-  if (nObs < batchSize)
-    stop(paste0("Batchsize should be between zero and number of observations in trainset: ", nObs))
+  if (nTrain < batchSize)
+    stop(paste0("Batchsize should be between zero and number of observations in trainset: ", nTrain))
   if (momentum >= 1 || momentum < 0)
     stop("Momentum should be smaller than one and larger than or equal to zero.")
   if (L1 < 0 || L2 < 0)
@@ -79,20 +79,20 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   }
 
   ## WARNINGS
-  if (validLoss && validProp == 0)
-    warning("Cannot evaluate validation loss with validProp equal to zero.")
-  if (validProp == 0 && (earlyStop || lrSched)) {
-    warning("Cannot do ", paste0(c("early stopping", "learning rate schedule")[c(earlyStop,
-             lrSched)], collapse = " & "), " with validProp = 0")
+  if (validLoss && validProp == 0) {
+      warning("Cannot evaluate validation loss with validProp equal to zero.")
   }
-  if (earlyStop && (earlyStopEpochs > maxEpochs))
+  if (earlyStop && (earlyStopEpochs > maxEpochs)) {
     warning("Cannot do early stopping when earlyStopEpochs > maxEpochs")
-  if (lrSched && (lrSchedEpochs > maxEpochs))
+  }
+  if (lrSched && (lrSchedEpochs > maxEpochs)) {
     warning("Cannot do learning rate schedule when lrSchedEpochs > maxEpochs")
+  }
 }
 
+
 init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
-                 rectifierLayers, sigmoidLayers, nColX, nColy, verbose) {
+                 rectifierLayers, sigmoidLayers, nColX, nColY, verbose) {
 
   # Define structure of network
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
@@ -101,20 +101,20 @@ init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
     n_Hid_Out <- n_Hidden + 1L
     seqHidden <- seq.int(1L, n_Hidden)
     seqHid_Out <- seq.int(1L, n_Hid_Out)
-    strucLayers <- c(nColX, nColy)
+    strucLayers <- c(nColX, nColY)
     strucWeights <- strucLayers[seqHid_Out] * strucLayers[seqHid_Out + 1L]
     activTypes <- ifelse(regression, "linear", "softMax")
     if (verbose) {
       # Overview layers
       cat("Neural Network: \n Input layer:   ", nColX, "nodes \n", "Output layer:  ",
-          nColy, "nodes -", activTypes, "(", lossFunction, "loss ) \n")
+          nColY, "nodes -", activTypes, "(", lossFunction, "loss ) \n")
     }
   } else {
     n_Hidden <- length(hiddenLayers)
     n_Hid_Out <- n_Hidden + 1L
     seqHidden <- seq.int(1L, n_Hidden)
     seqHid_Out <- seq.int(1L, n_Hid_Out)
-    strucLayers <- c(nColX, hiddenLayers, nColy)
+    strucLayers <- c(nColX, hiddenLayers, nColY)
     strucWeights <- strucLayers[seqHid_Out] * strucLayers[seqHid_Out + 1L]
     activTypes <- rep("tanh", n_Hidden)
     activTypes[seqHidden %in% sigmoidLayers]   <- "sigmoid"
@@ -128,7 +128,7 @@ init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
     overviewNetwork <-  paste0("Neural Network: \n Input layer: ", strrep(" ", 6 - nchar(nColX)), nColX, " nodes\n",
           paste0(" hidden layer ", seqHidden, ": ", strrep(" ", 3 - nchar(hiddenLayers)), hiddenLayers,
                  " nodes - ", activTypes[-n_Hid_Out], "\n", collapse = ""), " Output layer: ",
-          strrep(" ", 5- nchar(nColX)), nColy, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, "loss) \n")
+          strrep(" ", 5- nchar(nColX)), nColY, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, "loss) \n")
     if (verbose) cat(overviewNetwork)
   }
 
@@ -149,28 +149,87 @@ init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
 
 }
 
-splitData <- function(X, y, X_vec, y_vec, nColX, nColy, nObs, nObsTot, nVal) {
+prepData <- function(X, y, X_vec, y_vec, nColX, nColY, standardize, autoencoder, 
+                     regression, nTot, nTrain, nVal) {
+  # Standardize
+  if (autoencoder) {
+    if (standardize) {
+      sX <- sY <- scale(X, center = TRUE, scale = TRUE)
+      y_center <- X_center <- attr(sX, "scaled:center")
+      y_scale  <- X_scale  <- attr(sX, "scaled:scale") 
+    } else {
+      sX <- sY <- X
+      y_center <- X_center <- 0
+      y_scale  <- X_scale  <- 1
+    }
+    y_names <- colnames(X)
+  } else {
+    if (regression) {
+      if (standardize) {
+        # X
+        sX       <- scale(X, center = TRUE, scale = TRUE)
+        X_center <- attr(sX, "scaled:center")
+        X_scale  <- attr(sX, "scaled:scale") 
+        # Y
+        sY       <- scale(y, center = TRUE, scale = TRUE)
+        y_center <- attr(sY, "scaled:center")
+        y_scale  <- attr(sY, "scaled:scale") 
+      } else {
+        sX       <- X
+        sY       <- y
+        y_center <- X_center <- 0
+        y_scale  <- X_scale  <- 1
+      }
+      y_names <- colnames(y)
+    } else {
+      # Classification
+      if (is.factor(y)) {
+        y <- as.vector.factor(y)
+      }
+      y_names  <- sort(unique(y))
+      sY       <- t(sapply(y, function(c_y) ifelse(c_y == y_names, 1L, 0L)))
+      y_vec    <- FALSE
+      y_center <- 0
+      y_scale  <- 1
+      if (standardize) {
+        # X
+        sX       <- scale(X, center = TRUE, scale = TRUE)
+        X_center <- attr(sX, "scaled:center")
+        X_scale  <- attr(sX, "scaled:scale") 
+      } else {
+        sX       <- X
+        X_center <- 0
+        X_scale  <- 1
+      }
+    }
+  }
+  
+  if (is.null(y_names)) {
+    y_names <- paste0("y", seq.int(1, nColY))
+  }
   # Make validationset and trainset
-  seqObs   <- seq.int(1, nObsTot)
-  trainInd <- sample(seqObs, size = nObs)
+  seqObs   <- seq.int(1, nTot)
+  trainInd <- sample(seqObs, size = nTrain)
   valInd   <- setdiff(seqObs, trainInd)
-
+  
   if (X_vec) {
-    X_val   <- matrix(X[valInd],   nrow = nVal, ncol = nColX)
-    X_train <- matrix(X[trainInd], nrow = nObs, ncol = nColX)
+    X_val   <- matrix(sX[valInd],   nrow = nVal, ncol = nColX)
+    X_train <- matrix(sX[trainInd], nrow = nTrain, ncol = nColX)
   } else {
-    X_val   <- matrix(X[valInd, ],   nrow = nVal, ncol = nColX)
-    X_train <- matrix(X[trainInd, ], nrow = nObs, ncol = nColX)
+    X_val   <- matrix(sX[valInd, ],   nrow = nVal, ncol = nColX)
+    X_train <- matrix(sX[trainInd, ], nrow = nTrain, ncol = nColX)
   }
-
+  
   if (y_vec) {
-    y_val   <- matrix(y[valInd],   nrow = nVal, ncol = nColy)
-    y_train <- matrix(y[trainInd], nrow = nObs, ncol = nColy)
+    y_val   <- matrix(sY[valInd],   nrow = nVal, ncol = nColY)
+    y_train <- matrix(sY[trainInd], nrow = nTrain, ncol = nColY)
   } else {
-    y_val   <- matrix(y[valInd, ],   nrow = nVal, ncol = nColy)
-    y_train <- matrix(y[trainInd, ], nrow = nObs, ncol = nColy)
+    y_val   <- matrix(sY[valInd, ],   nrow = nVal, ncol = nColY)
+    y_train <- matrix(sY[trainInd, ], nrow = nTrain, ncol = nColY)
   }
-  return(list(X_train = X_train, y_train = y_train, X_val = X_val, y_val = y_val))
+  return(list(X_train = X_train, y_train = y_train, X_val = X_val, y_val = y_val, 
+              X_center = X_center, X_scale = X_scale, y_center = y_center, y_scale = y_scale, 
+              y_names = y_names, trainInd = trainInd, valInd = valInd))
 }
 
 plot_classif <- function(NN, X, y, epoch = "", standardize, example_type) {

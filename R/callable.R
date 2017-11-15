@@ -89,7 +89,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                           momentum = 0.2, L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, validProp = 0.2, verbose = TRUE,
                           earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
                           lrSchedLearnRates = 1e-05, lrSchedEpochs = 400) {
-
+  
   NN_call <- match.call()
   X_vec <- is.vector(X)
   y_vec <- is.vector(y)
@@ -99,7 +99,8 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
     if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
       stop("y should be numeric")
     if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
-      warning("Loss functions \"huber\", \"pseudo-huber\", \"quadratic\" and \"absolute\" recommended for regression.\n")
+      lossFunction <- "quadratic"
+      warning("Regression: using \"quadratic\" loss function \n")
     }
   } else {
     if (!(is.vector(y) || is.factor(y)))
@@ -109,64 +110,40 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
     if (length(unique(y)) <= 1)
       stop(paste0("Dependent variable y contains less than two classes."))
   }
-  if (standardize)
-    X <- scale(X, center = TRUE, scale = TRUE)
-  nColX <- ifelse(X_vec, 1, ncol(X))
-  if (!validLoss)
+  
+  if (!validLoss) {
     validProp <- 0
-  nObsTot <- ifelse(X_vec, length(X), nrow(X))
-  nObs    <- ceiling(nObsTot * (1 - validProp))
-  nVal    <- nObsTot - nObs
-
+  }
+  nColX  <- ifelse(X_vec, 1, ncol(X))
+  nColY  <- ifelse(regression, ifelse(y_vec, 1, ncol(y)), length(unique(y)))
+  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  nTrain <- ceiling(nTot * (1 - validProp))
+  nVal   <- nTot - nTrain
+  
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
                   rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
-                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nObs = nObs,
+                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
                   nSteps = 0, smoothSteps = 0)
-
-  if (regression) {
-    if (standardize) {
-      y_train <- scale(y, center = TRUE, scale = TRUE)
-      y_center <- attr(y_train, "scaled:center")
-      y_scale <- attr(y_train, "scaled:scale")
-    } else {
-      y_train <- y
-      y_center <- 0
-      y_scale <- 1
-    }
-    nColy <- ifelse(y_vec, 1, ncol(y))
-    y_names <- colnames(y)
-    if (is.null(y_names))
-      y_names <- paste0("y", seq.int(1, nColy))
-  } else {
-    if (is.factor(y))
-      y <- as.vector.factor(y)
-    y_names <- sort(unique(y))
-    y_train <- t(sapply(y, function(c_y) ifelse(c_y == y_names, 1L, 0L)))
-    y_center <- 0
-    y_scale <- 1
-    y_vec <- FALSE
-    nColy <- ncol(y_train)
-  }
-
-  dataList <- splitData(X = X, y = y_train, X_vec = X_vec, y_vec = y_vec, nColX = nColX,
-                        nColy = nColy, nObs = nObs, nObsTot = nObsTot, nVal = nVal)
-
+  
+  dataList <- prepData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
+                       standardize = standardize, autoencoder = FALSE, regression = regression,
+                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColy = nColy, verbose = verbose)
-
-  NNfit <- stochGD(dataList = dataList, nObs = nObs, standardize = standardize, y_center = y_center,
-                    y_scale = y_scale, y_names = y_names, activTypes = startVal$activTypes, lossType = lossFunction,
-                    dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize,
-                    maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
-                    earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
-                    lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
-                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
-                    verbose = verbose, regression = regression, plotExample = FALSE)
-
-  NN <- list(X_train = dataList$X_train, y_train = dataList$y_train, X_val = dataList$X_val,
+                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
+  
+  NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, activTypes = startVal$activTypes, 
+                   lossType = lossFunction, dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize,
+                   maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
+                   earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
+                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
+                   fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
+                   verbose = verbose, regression = regression, plotExample = FALSE)
+  
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              y_val   = dataList$y_val, pred = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = FALSE)
   class(NN) <- "ANN"
@@ -227,9 +204,6 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
 #' drawn from full training set. Use function \code{plot} to assess convergence.
 #' @param validProp proportion of training data to use for validation
-#' @param recValOnly logical indicating if only the validation set should be used
-#' in determining the robust covariance matrix. This covariance matrix can later
-#' be used to determine the Mahalanobis distances of reconstruction errors for new data.
 #' @param verbose logical indicating if additional information (such as lifesign)
 #' should be printed to console during training.
 #' @param earlyStop logical indicating if early stopping should be used based on
@@ -261,13 +235,13 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
 #' @export
 replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1, stepLayers = 2,
-                       nSteps = 5, smoothSteps = 50, rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
+                       nSteps = 5, smoothSteps = 25, rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
                        standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000, batchSize = 32, momentum = 0.2,
-                       L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, recValOnly = FALSE, validProp = 0.2, verbose = TRUE,
-                       earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = NA,
+                       L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
+                       earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = NA,
                        lrSchedLearnRates = NA) {
   NN_call <- match.call()
-  X_vec <- is.vector(X)
+  X_vec <- y_vec <- is.vector(X)
   if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
     stop("X should be numeric")
   if (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
@@ -275,59 +249,45 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
   if ((all(is.na(rampLayers)) || is.null(rampLayers)) && (all(is.na(stepLayers)) || is.null(stepLayers))){
     stop("Replicator NN should have one layer with step function activation or ramp activation")
   }
-
-  nColX <- nColy <- ifelse(X_vec, 1, ncol(X))
-  nObsTot <- ifelse(X_vec, length(X), nrow(X))
-  nObs <- ceiling(nObsTot * (1 - validProp))
-  nVal <- nObsTot - nObs
-
+  
+  nColX  <- nColY <- ifelse(X_vec, 1, ncol(X))
+  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  nTrain <- ceiling(nTot * (1 - validProp))
+  nVal   <- nTot - nTrain
+  
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = stepLayers,
                   rampLayers = rampLayers, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
-                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nObs = nObs,
+                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
                   nSteps = nSteps, smoothSteps = smoothSteps)
-
+  
   if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
     warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
     lossFunction <- "pseudo-huber"
   }
-
-  if (standardize) {
-    X <- scale(X, center = TRUE, scale = TRUE)
-    y_center <- attr(X, "scaled:center")
-    y_scale <- attr(X, "scaled:scale")
-  } else {
-    y_center <- 0
-    y_scale <- 1
-  }
-  y <- X
-  y_vec <- X_vec
-  y_names <- colnames(X)
-  if (is.null(y_names))
-    y_names <- paste0("y", seq.int(1, nColy))
-
-  dataList <- splitData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColy = nColy,
-                        nObs = nObs, nObsTot = nObsTot, nVal = nVal)
-
+  
+  dataList <- prepData(X = X, y = NA, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
+                       standardize = standardize, autoencoder = TRUE, regression = TRUE,
+                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
                    stepLayers = stepLayers, rampLayers = rampLayers, rectifierLayers = rectifierLayers,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColy = nColy, verbose = verbose)
-
-  NNfit <- stochGD(dataList = dataList, nObs = nObs, standardize = standardize, y_center = y_center,
-                    y_scale = y_scale, y_names = y_names, activTypes = startVal$activTypes, lossType = lossFunction,
-                    dHuber = dHuber, nSteps = nSteps, smoothSteps = smoothSteps, batchSize = batchSize,
-                    maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
-                    earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
-                    lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
-                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
-                    verbose = verbose, regression = TRUE, plotExample = FALSE)
-
-  if (recValOnly) rX <- dataList$X_val else rX <- X
-  errX <- rX - predictC(NNfit$NN_pred, rX, FALSE)
+                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
+  
+  NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, activTypes = startVal$activTypes, 
+                   lossType = lossFunction, dHuber = dHuber, nSteps = nSteps, smoothSteps = smoothSteps, 
+                   batchSize = batchSize, maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, 
+                   L2 = L2, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
+                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
+                   fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
+                   verbose = verbose, regression = TRUE, plotExample = FALSE)
+  
+  
+  errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
   MCD  <- robustbase::covMcd(errX)
-
-  NN <- list(X_train = dataList$X_train, X_val = dataList$X_val,
+  
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
              rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize))
@@ -378,9 +338,6 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
 #' drawn from full training set. Use function \code{plot} to assess convergence.
 #' @param validProp proportion of training data to use for validation
-#' @param recValOnly logical indicating if only the validation set should be used
-#' in determining the robust covariance matrix. This covariance matrix can later
-#' be used to determine the Mahalanobis distances of reconstruction errors for new data.
 #' @param verbose logical indicating if additional information (such as lifesign)
 #' should be printed to console during training.
 #' @param earlyStop logical indicating if early stopping should be used based on
@@ -413,69 +370,54 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' @export
 autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1,
                         rectifierLayers = NA, sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000,
-                        batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, recValOnly = FALSE,
+                        batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, 
                         validProp = 0.2, verbose = TRUE, earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
                         lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA) {
   NN_call <- match.call()
-  X_vec <- is.vector(X)
+  X_vec <- y_vec <- is.vector(X)
   if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
     stop("X should be numeric")
   if (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
     stop("Autoencoder should have at least one hidden layer")
-
-  nColX <- nColy <- ifelse(X_vec, 1, ncol(X))
-  nObsTot <- ifelse(X_vec, length(X), nrow(X))
-  nObs <- ceiling(nObsTot * (1 - validProp))
-  nVal <- nObsTot - nObs
-
+  
+  nColX  <- nColY <- ifelse(X_vec, 1, ncol(X))
+  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  nTrain <- ceiling(nTot * (1 - validProp))
+  nVal   <- nTot - nTrain
+  
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
                   rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
-                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nObs = nObs,
+                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
                   nSteps = 1, smoothSteps = 1)
-
+  
   if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
     warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
     lossFunction <- "pseudo-huber"
   }
-
-  if (standardize) {
-    X <- scale(X, center = TRUE, scale = TRUE)
-    y_center <- attr(X, "scaled:center")
-    y_scale <- attr(X, "scaled:scale")
-  } else {
-    y_center <- 0
-    y_scale <- 1
-  }
-  y <- X
-  y_vec <- X_vec
-  y_names <- colnames(X)
-  if (is.null(y_names))
-    y_names <- paste0("y", seq.int(1, nColy))
-
-  dataList <- splitData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColy = nColy,
-                        nObs = nObs, nObsTot = nObsTot, nVal = nVal)
-
+  
+  dataList <- prepData(X = X, y = NA, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
+                       standardize = standardize, autoencoder = TRUE, regression = TRUE,
+                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColy = nColy, verbose = verbose)
-
-  NNfit <- stochGD(dataList = dataList, nObs = nObs, standardize = standardize, y_center = y_center,
-                    y_scale = y_scale, y_names = y_names, activTypes = startVal$activTypes, lossType = lossFunction,
-                    dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize,
-                    maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
-                    earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
-                    lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
-                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
-                    verbose = verbose, regression = TRUE, plotExample = FALSE)
-
-  if (recValOnly)
-    rX <- dataList$X_val else rX <- X
-  errX <- rX - predictC(NNfit$NN_pred, rX, FALSE)
-  MCD <- robustbase::covMcd(errX)
-
-  NN <- list(X_train = dataList$X_train, X_val = dataList$X_val,
+                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
+  
+  NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, 
+                   activTypes = startVal$activTypes, lossType = lossFunction,
+                   dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize,
+                   maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
+                   earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
+                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
+                   fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
+                   verbose = verbose, regression = TRUE, plotExample = FALSE)
+  
+  errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
+  MCD  <- robustbase::covMcd(errX)
+  
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
              rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize))
@@ -533,7 +475,7 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
   XYdata <- genrResponse(example_n, example_type, example_sdnoise)
   X <- XYdata$X
   y <- XYdata$y
-
+  
   if (regression) {
     if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
       stop("Use loss functions \"huber\", \"pseudo-huber\", \"quadratic\" and \"absolute\" for regression.\n")
@@ -544,45 +486,28 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
   }
   X_vec <- is.vector(X)
   y_vec <- is.vector(y)
-  if (standardize)
-    X <- scale(X, center = TRUE, scale = TRUE)
-  nColX <- ifelse(X_vec, 1, ncol(X))
-  nObs <- nObsTot <- ifelse(X_vec, length(X), nrow(X))
-  nVal <- 0
-
-  if (regression) {
-    if (standardize) {
-      y_train <- scale(y, center = TRUE, scale = TRUE)
-      y_center <- attr(y_train, "scaled:center")
-      y_scale <- attr(y_train, "scaled:scale")
-    } else {
-      y_train <- y
-      y_center <- 0
-      y_scale <- 1
-    }
-    nColy <- ifelse(y_vec, 1, ncol(y))
-    y_names <- colnames(y)
-    if (is.null(y_names))
-      y_names <- paste0("y", seq.int(1, nColy))
-  } else {
-    if (is.factor(y))
-      y <- as.vector.factor(y)
-    y_names <- sort(unique(y))
-    y_train <- t(sapply(y, function(c_y) ifelse(c_y == y_names, 1L, 0L)))
-    y_center <- 0
-    y_scale <- 1
-    y_vec <- FALSE
-    nColy <- ncol(y_train)
-  }
-
-  dataList <- splitData(X = X, y = y_train, X_vec = X_vec, y_vec = y_vec, nColX = nColX,
-                        nColy = nColy, nObs = nObs, nObsTot = nObsTot, nVal = nVal)
-
-
+  
+  nColX  <- ifelse(X_vec, 1, ncol(X))
+  nColY  <- ifelse(regression, ifelse(y_vec, 1, ncol(y)), length(unique(y)))
+  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  nTrain <- nTot 
+  nVal   <- 0
+  
+  checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
+                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
+                  maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
+                  validLoss = FALSE, validProp = 0, earlyStop = FALSE, earlyStopEpochs = 0,
+                  lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, nTrain = nTrain,
+                  nSteps = 0, smoothSteps = 0)
+  
+  dataList <- prepData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
+                       standardize = standardize, autoencoder = FALSE, regression = regression,
+                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColy = nColy, verbose = FALSE)
-
+                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = FALSE)
+  
   fpOut <- bpOut <- list(NA)
   upOut <- startVal$upOut
   exMaxEpochs <- ceiling(maxEpochs/example_nframes)
@@ -591,18 +516,18 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
     cur_maxEpoch <- min(exMaxEpochs, maxEpochs - exMaxEpochs * (i - 1))
     if (cur_maxEpoch <= 0)
       (break)()
-    NNfit <- stochGD(dataList = dataList, nObs = nObs, standardize = standardize, y_center = y_center,
-                      y_scale = y_scale, y_names = y_names, activTypes = startVal$activTypes, lossType = lossFunction,
-                      dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize, maxEpochs = cur_maxEpoch, learnRate = learnRate,
-                      momentum = momentum, L1 = L1, L2 = L2, earlyStop = FALSE, earlyStopEpochs = 0,
-                      earlyStopTol = 0, lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, fpOut = fpOut,
-                      bpOut = bpOut, upOut = upOut, validLoss = FALSE, verbose = FALSE, regression = regression,
-                      plotExample = TRUE)
-
+    NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize,
+                     activTypes = startVal$activTypes, lossType = lossFunction, dHuber = dHuber, 
+                     nSteps = 0, smoothSteps = 0, batchSize = batchSize, maxEpochs = cur_maxEpoch, learnRate = learnRate,
+                     momentum = momentum, L1 = L1, L2 = L2, earlyStop = FALSE, earlyStopEpochs = 0,
+                     earlyStopTol = 0, lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, fpOut = fpOut,
+                     bpOut = bpOut, upOut = upOut, validLoss = FALSE, verbose = FALSE, regression = regression,
+                     plotExample = TRUE)
+    
     fpOut <- NNfit$NN_example$fpOut
     bpOut <- NNfit$NN_example$bpOut
     upOut <- NNfit$NN_example$upOut
-
+    
     if (regression) {
       plot_regress(NNfit$NN_pred, XYdata$X, XYdata$y, epoch = min(cur_epoch, maxEpochs),
                    standardize = standardize)

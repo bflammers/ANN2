@@ -5,13 +5,13 @@
 \title{Train a Replicator Neural Network}
 \usage{
 replicator(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber",
-  dHuber = 1, stepLayers = 2, nSteps = 5, smoothSteps = 50,
+  dHuber = 1, stepLayers = 2, nSteps = 5, smoothSteps = 25,
   rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
   standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000,
   batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04,
-  validLoss = TRUE, recValOnly = FALSE, validProp = 0.2, verbose = TRUE,
-  earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
-  lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA)
+  validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
+  earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
+  lrSchedEpochs = NA, lrSchedLearnRates = NA)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
@@ -71,10 +71,6 @@ used. Set to zero for no momentum, otherwise a value between zero and one.}
 \item{validLoss}{logical indicating if loss should be monitored during training.
 If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
 drawn from full training set. Use function \code{plot} to assess convergence.}
-
-\item{recValOnly}{logical indicating if only the validation set should be used
-in determining the robust covariance matrix. This covariance matrix can later
-be used to determine the Mahalanobis distances of reconstruction errors for new data.}
 
 \item{validProp}{proportion of training data to use for validation}
 
