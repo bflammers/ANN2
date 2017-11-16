@@ -2,7 +2,7 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
                             sigmoidLayers, maxEpochs, batchSize, momentum, L1, L2, validLoss, validProp, earlyStop,
                             earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nTrain, nSteps, smoothSteps) {
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
-
+  
   ## ERRORS
   if (!(lossFunction %in% c("log", "huber", "pseudo-huber", "quadratic", "absolute"))) {
     stop("Loss function not one of \"log\", \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\".")
@@ -40,22 +40,22 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   }
   if (!noHiddenLayers && !all(hiddenLayers > 0))
     stop("All elements of hiddenLayers should be non-zero and positive.")
-
+  
   noStepLayers <- (all(is.na(stepLayers)) || is.null(stepLayers))
   noRampLayers <- (all(is.na(rampLayers)) || is.null(rampLayers))
   noRectLayers <- (all(is.na(rectifierLayers)) || is.null(rectifierLayers))
   noSigmLayers <- (all(is.na(sigmoidLayers)) || is.null(sigmoidLayers))
   allLayers    <- !c(noStepLayers, noRampLayers, noRectLayers, noSigmLayers)
-
+  
   if(!noStepLayers){
     if(nSteps<0) stop("nSteps cannot be negative")
     if(smoothSteps<=0) stop("smoothSteps cannot be non-positive")
   }
-
+  
   if (noHiddenLayers) {
     if(any(allLayers)){
       stop("Cannot use ", paste0(c("step", "ramp", "rectifier",
-            "sigmoid")[allLayers], collapse = ", "), " layers with no hidden layers")
+                                   "sigmoid")[allLayers], collapse = ", "), " layers with no hidden layers")
     }
   } else {
     seqLayers <- seq.int(1, length(hiddenLayers))
@@ -67,7 +67,7 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
       stop("Cannot set hidden layer to rectifier layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
     if (!noSigmLayers && any(!(sigmoidLayers %in% seqLayers)))
       stop("Cannot set hidden layer to sigmoid layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
-
+    
     activList <- list(stepLayers, rampLayers, rectifierLayers, sigmoidLayers)
     activList[is.na(activList)] <- NULL
     if(length(activList)>0){
@@ -77,10 +77,10 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
       }
     }
   }
-
+  
   ## WARNINGS
   if (validLoss && validProp == 0) {
-      warning("Cannot evaluate validation loss with validProp equal to zero.")
+    warning("Cannot evaluate validation loss with validProp equal to zero.")
   }
   if (earlyStop && (earlyStopEpochs > maxEpochs)) {
     warning("Cannot do early stopping when earlyStopEpochs > maxEpochs")
@@ -93,7 +93,7 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
 
 init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
                  rectifierLayers, sigmoidLayers, nColX, nColY, verbose) {
-
+  
   # Define structure of network
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
   if (noHiddenLayers) {
@@ -122,85 +122,67 @@ init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
     activTypes[seqHidden %in% rampLayers]      <- "ramp"
     activTypes[seqHidden %in% stepLayers]      <- "step"
     activTypes <- c(activTypes, ifelse(regression, "linear", "softMax"))
-
-
-      # Overview layers
+    
+    
+    # Overview layers
     overviewNetwork <-  paste0("Neural Network: \n Input layer: ", strrep(" ", 6 - nchar(nColX)), nColX, " nodes\n",
-          paste0(" hidden layer ", seqHidden, ": ", strrep(" ", 3 - nchar(hiddenLayers)), hiddenLayers,
-                 " nodes - ", activTypes[-n_Hid_Out], "\n", collapse = ""), " Output layer: ",
-          strrep(" ", 5- nchar(nColX)), nColY, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, "loss) \n")
+                               paste0(" hidden layer ", seqHidden, ": ", strrep(" ", 3 - nchar(hiddenLayers)), hiddenLayers,
+                                      " nodes - ", activTypes[-n_Hid_Out], "\n", collapse = ""), " Output layer: ",
+                               strrep(" ", 5- nchar(nColX)), nColY, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, "loss) \n")
     if (verbose) cat(overviewNetwork)
   }
-
+  
   # Initialize weights, biases, momentums, etc...
   biasVecs <- sapply(strucLayers[-1L], function(n_nodes) stats::runif(n_nodes, -0.2, 0.2), simplify = FALSE)
   biasMomVecs <- sapply(strucLayers[-1L], function(n_nodes) rep(0, n_nodes), simplify = FALSE)
   weightMats <- sapply(seq.int(1L, n_Hidden + 1L), function(w) {
     matrix(stats::rnorm(strucWeights[w], sd = sqrt(2/strucLayers[w])), nrow = strucLayers[w +
-           1L], ncol = strucLayers[w])
+                                                                                            1L], ncol = strucLayers[w])
   }, simplify = FALSE)
   weightMomMats <- weightGradMats <- sapply(seq.int(1L, n_Hidden + 1L), function(w) {
     matrix(0, nrow = strucLayers[w + 1L], ncol = strucLayers[w])
   }, simplify = FALSE)
-
+  
   return(list(activTypes = activTypes, overview = overviewNetwork,
               upOut = list(weightMats = weightMats, weightMomMats = weightMomMats,
                            biasVecs = biasVecs, biasMomVecs = biasMomVecs)))
-
+  
 }
 
-prepData <- function(X, y, X_vec, y_vec, nColX, nColY, standardize, autoencoder, 
-                     regression, nTot, nTrain, nVal) {
-  # Standardize
-  if (autoencoder) {
+prepData <- function(X, y, nColX, nColY, standardize, regression, nTot, nTrain, nVal) {
+  if (regression) {
     if (standardize) {
-      sX <- sY <- scale(X, center = TRUE, scale = TRUE)
-      y_center <- X_center <- attr(sX, "scaled:center")
-      y_scale  <- X_scale  <- attr(sX, "scaled:scale") 
+      # X
+      sX       <- scale(X, center = TRUE, scale = TRUE)
+      X_center <- attr(sX, "scaled:center")
+      X_scale  <- attr(sX, "scaled:scale") 
+      # Y
+      sY       <- scale(y, center = TRUE, scale = TRUE)
+      y_center <- attr(sY, "scaled:center")
+      y_scale  <- attr(sY, "scaled:scale") 
     } else {
-      sX <- sY <- X
+      sX       <- X
+      sY       <- y
       y_center <- X_center <- 0
       y_scale  <- X_scale  <- 1
     }
-    y_names <- colnames(X)
+    y_names <- colnames(y)
   } else {
-    if (regression) {
-      if (standardize) {
-        # X
-        sX       <- scale(X, center = TRUE, scale = TRUE)
-        X_center <- attr(sX, "scaled:center")
-        X_scale  <- attr(sX, "scaled:scale") 
-        # Y
-        sY       <- scale(y, center = TRUE, scale = TRUE)
-        y_center <- attr(sY, "scaled:center")
-        y_scale  <- attr(sY, "scaled:scale") 
-      } else {
-        sX       <- X
-        sY       <- y
-        y_center <- X_center <- 0
-        y_scale  <- X_scale  <- 1
-      }
-      y_names <- colnames(y)
+    # Classification
+    y_names  <- sort(unique(y))
+    sY       <- t(sapply(y, function(c_y) ifelse(c_y == y_names, 1L, 0L)))
+    y_vec    <- FALSE
+    y_center <- 0
+    y_scale  <- 1
+    if (standardize) {
+      # X
+      sX       <- scale(X, center = TRUE, scale = TRUE)
+      X_center <- attr(sX, "scaled:center")
+      X_scale  <- attr(sX, "scaled:scale") 
     } else {
-      # Classification
-      if (is.factor(y)) {
-        y <- as.vector.factor(y)
-      }
-      y_names  <- sort(unique(y))
-      sY       <- t(sapply(y, function(c_y) ifelse(c_y == y_names, 1L, 0L)))
-      y_vec    <- FALSE
-      y_center <- 0
-      y_scale  <- 1
-      if (standardize) {
-        # X
-        sX       <- scale(X, center = TRUE, scale = TRUE)
-        X_center <- attr(sX, "scaled:center")
-        X_scale  <- attr(sX, "scaled:scale") 
-      } else {
-        sX       <- X
-        X_center <- 0
-        X_scale  <- 1
-      }
+      sX       <- X
+      X_center <- 0
+      X_scale  <- 1
     }
   }
   
@@ -212,21 +194,11 @@ prepData <- function(X, y, X_vec, y_vec, nColX, nColY, standardize, autoencoder,
   trainInd <- sample(seqObs, size = nTrain)
   valInd   <- setdiff(seqObs, trainInd)
   
-  if (X_vec) {
-    X_val   <- matrix(sX[valInd],   nrow = nVal, ncol = nColX)
-    X_train <- matrix(sX[trainInd], nrow = nTrain, ncol = nColX)
-  } else {
-    X_val   <- matrix(sX[valInd, ],   nrow = nVal, ncol = nColX)
-    X_train <- matrix(sX[trainInd, ], nrow = nTrain, ncol = nColX)
-  }
+  X_val   <- matrix(sX[valInd, ],   nrow = nVal,   ncol = nColX)
+  X_train <- matrix(sX[trainInd, ], nrow = nTrain, ncol = nColX)
+  y_val   <- matrix(sY[valInd, ],   nrow = nVal,   ncol = nColY)
+  y_train <- matrix(sY[trainInd, ], nrow = nTrain, ncol = nColY)
   
-  if (y_vec) {
-    y_val   <- matrix(sY[valInd],   nrow = nVal, ncol = nColY)
-    y_train <- matrix(sY[trainInd], nrow = nTrain, ncol = nColY)
-  } else {
-    y_val   <- matrix(sY[valInd, ],   nrow = nVal, ncol = nColY)
-    y_train <- matrix(sY[trainInd, ], nrow = nTrain, ncol = nColY)
-  }
   return(list(X_train = X_train, y_train = y_train, X_val = X_val, y_val = y_val, 
               X_center = X_center, X_scale = X_scale, y_center = y_center, y_scale = y_scale, 
               y_names = y_names, trainInd = trainInd, valInd = valInd))
@@ -295,7 +267,7 @@ genrResponse <- function(n, type, sd.noise) {
   } else if (type == "polynomial") {
     X <- matrix(stats::runif(2 * n, -3, 7), ncol = 2, nrow = n)
     y <- 2/3 * X[, 1]^2 - 1/9 * X[, 1]^3 > (X[, 2] + 
-        stats::rnorm(nrow(X), sd = sd.noise))
+                                              stats::rnorm(nrow(X), sd = sd.noise))
   } else if (type == "nested") {
     X <- matrix(stats::runif(2 * n, -4, 8), ncol = 2, nrow = n)
     loc <- c(2, 2)

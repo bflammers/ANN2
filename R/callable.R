@@ -91,34 +91,39 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                           lrSchedLearnRates = 1e-05, lrSchedEpochs = 400) {
   
   NN_call <- match.call()
-  X_vec <- is.vector(X)
-  y_vec <- is.vector(y)
+  X       <- as.matrix(X)
+  y       <- as.matrix(y)
   if (regression) {
-    if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
+    if (!all(apply(X, 2, is.numeric))) {
       stop("X should be numeric")
-    if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
+    }
+    if (!all(apply(y, 2, is.numeric))) {
       stop("y should be numeric")
+    }
     if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
       lossFunction <- "quadratic"
       warning("Regression: using \"quadratic\" loss function \n")
     }
   } else {
-    if (!(is.vector(y) || is.factor(y)))
-      stop("Classification: y should be a vector or factor containing classes.")
-    if (lossFunction != "log")
+    if (ncol(y)!=1) {
+      stop("Classification: y should be a vector or one-column matrix containing classes.")
+    }
+    if (lossFunction != "log") {
       warning("Log loss recommended for classification.")
-    if (length(unique(y)) <= 1)
-      stop(paste0("Dependent variable y contains less than two classes."))
+    }
+    if (length(unique(y)) <= 1) {
+      stop("Dependent variable y contains less than two classes.")
+    }
   }
   
   if (!validLoss) {
     validProp <- 0
   }
-  nColX  <- ifelse(X_vec, 1, ncol(X))
-  nColY  <- ifelse(regression, ifelse(y_vec, 1, ncol(y)), length(unique(y)))
-  nTot   <- ifelse(X_vec, length(X), nrow(X))
-  nTrain <- ceiling(nTot * (1 - validProp))
-  nVal   <- nTot - nTrain
+  nColX   <- ncol(X)
+  nColY   <- ifelse(regression, ncol(y), length(unique(y)))
+  nTot    <- nrow(X)
+  nTrain  <- ceiling(nTot * (1 - validProp))
+  nVal    <- nTot - nTrain
   
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
                   rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
@@ -127,9 +132,8 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
                   nSteps = 0, smoothSteps = 0)
   
-  dataList <- prepData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
-                       standardize = standardize, autoencoder = FALSE, regression = regression,
-                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
+                       regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
@@ -241,17 +245,21 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
                        earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = NA,
                        lrSchedLearnRates = NA) {
   NN_call <- match.call()
-  X_vec <- y_vec <- is.vector(X)
-  if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
+  X <- y <- as.matrix(X)
+  if (!all(apply(X, 2, is.numeric))){
     stop("X should be numeric")
-  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
+  }
+  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers)) {
     stop("Replicator NN should have at least one hidden layer")
+  }
   if ((all(is.na(rampLayers)) || is.null(rampLayers)) && (all(is.na(stepLayers)) || is.null(stepLayers))){
     stop("Replicator NN should have one layer with step function activation or ramp activation")
   }
-  
-  nColX  <- nColY <- ifelse(X_vec, 1, ncol(X))
-  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  if (!validLoss) {
+    validProp <- 0
+  }
+  nColX  <- nColY <- ncol(X)
+  nTot   <- nrow(X)
   nTrain <- ceiling(nTot * (1 - validProp))
   nVal   <- nTot - nTrain
   
@@ -267,9 +275,8 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
     lossFunction <- "pseudo-huber"
   }
   
-  dataList <- prepData(X = X, y = NA, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
-                       standardize = standardize, autoencoder = TRUE, regression = TRUE,
-                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
+                       regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
                    stepLayers = stepLayers, rampLayers = rampLayers, rectifierLayers = rectifierLayers,
@@ -374,14 +381,19 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
                         validProp = 0.2, verbose = TRUE, earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
                         lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA) {
   NN_call <- match.call()
-  X_vec <- y_vec <- is.vector(X)
-  if (!ifelse(X_vec, is.numeric(X), all(apply(X, 2, is.numeric))) || is.factor(X))
+  X <- y <- as.matrix(X)
+  if (!all(apply(X, 2, is.numeric))){
     stop("X should be numeric")
-  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
+  }
+  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers)) {
     stop("Autoencoder should have at least one hidden layer")
+  }
+  if (!validLoss) {
+    validProp <- 0
+  }
   
-  nColX  <- nColY <- ifelse(X_vec, 1, ncol(X))
-  nTot   <- ifelse(X_vec, length(X), nrow(X))
+  nColX  <- nColY <- ncol(X)
+  nTot   <- nrow(X)
   nTrain <- ceiling(nTot * (1 - validProp))
   nVal   <- nTot - nTrain
   
@@ -397,9 +409,8 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
     lossFunction <- "pseudo-huber"
   }
   
-  dataList <- prepData(X = X, y = NA, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
-                       standardize = standardize, autoencoder = TRUE, regression = TRUE,
-                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
+                       regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
@@ -473,8 +484,8 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
                        batchSize = 10, momentum = 0.3, L1 = 1e-07, L2 = 1e-04) {
   if(example_type == "surface"){ regression <- TRUE; if(lossFunction == "log") lossFunction <- "quadratic"}
   XYdata <- genrResponse(example_n, example_type, example_sdnoise)
-  X <- XYdata$X
-  y <- XYdata$y
+  X      <- as.matrix(XYdata$X)
+  y      <- as.matrix(XYdata$y)
   
   if (regression) {
     if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
@@ -484,12 +495,10 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
     if (lossFunction != "log")
       warning("Log loss recommended for classification.")
   }
-  X_vec <- is.vector(X)
-  y_vec <- is.vector(y)
-  
-  nColX  <- ifelse(X_vec, 1, ncol(X))
-  nColY  <- ifelse(regression, ifelse(y_vec, 1, ncol(y)), length(unique(y)))
-  nTot   <- ifelse(X_vec, length(X), nrow(X))
+
+  nColX  <- ncol(X)
+  nColY  <- ifelse(regression, ncol(y), length(unique(y)))
+  nTot   <- nrow(X)
   nTrain <- nTot 
   nVal   <- 0
   
@@ -500,9 +509,8 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
                   lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, nTrain = nTrain,
                   nSteps = 0, smoothSteps = 0)
   
-  dataList <- prepData(X = X, y = y, X_vec = X_vec, y_vec = y_vec, nColX = nColX, nColY = nColY, 
-                       standardize = standardize, autoencoder = FALSE, regression = regression,
-                       nTot = nTot, nTrain = nTrain, nVal = nVal)
+  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
+                       regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
                    stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,

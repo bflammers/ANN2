@@ -310,7 +310,7 @@ double checkLoss(arma::mat X, arma::mat y, Rcpp::List upOut, bool regression, Rc
     Rcpp::Named("nSteps")      = nSteps,
     Rcpp::Named("smoothSteps") = smoothSteps
   );
-  arma::mat Xpred   = predictC(NN, X, FALSE);
+  arma::mat Xpred = predictC(NN, X, FALSE);
   arma::vec XLoss = lossFunction(y, Xpred.t(), lossType, dHuber);
   return mean(XLoss);
 }
@@ -370,7 +370,7 @@ Rcpp::List stochGD(Rcpp::List dataList, int nTrain, bool standardize, Rcpp::Char
   arma::mat Xperm(size(X)), yperm(size(y)), descentDetails(maxEpochs,4); descentDetails.fill(0);
   arma::vec  epochLossVec(nTrain);
   arma::uvec randPerm(nTrain);
-  int nBatch   = ceil(nTrain/batchSize);
+  int nBatch   = (int)std::ceil(double(nTrain)/double(batchSize));
   int nEpochs  = maxEpochs;
   bool doBreak = FALSE;
   
