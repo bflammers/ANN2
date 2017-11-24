@@ -264,6 +264,45 @@ Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::v
 }
 
 // [[Rcpp::export]]
+Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, bool standardizeOut, 
+                         int layerStart, int layerStop) {
+  arma::field<arma::vec> biasVecs   = NN["biasVecs"];
+  arma::field<arma::mat> weightMats = NN["weightMats"];
+  Rcpp::CharacterVector activTypes  = NN["activTypes"];
+  int nSteps                        = NN["nSteps"];
+  int smoothSteps                   = NN["smoothSteps"];
+  arma::mat X(size(nodesIn)), inputLayer;
+  if (standardizeIn) {
+    arma::vec X_center = NN["X_center"];
+    arma::vec X_scale  = NN["X_scale"];
+    X = scaleC(nodesIn, X_center, X_scale);
+  } else {
+    X = nodesIn;
+  }
+  
+  int nX    = X.n_rows;
+  arma::mat prevActivation = X.t();
+  
+  for (int i = layerStart; i!=layerStop; i++) {
+    inputLayer     = weightMats[i] * prevActivation + repVec(biasVecs[i], nX);
+    prevActivation = activFunction(inputLayer, activTypes[i], nSteps, smoothSteps);
+  }
+  
+  arma::mat nodesOut(size(prevActivation.t()));
+  if (standardizeOut) {
+    arma::vec y_center = NN["y_center"];
+    arma::vec y_scale  = NN["y_scale"];
+    nodesOut = reScaleC(prevActivation.t(), y_center, y_scale);
+  } else {
+    nodesOut = prevActivation.t();
+  }
+  return Rcpp::List::create(
+      Rcpp::Named("input")       = inputLayer.t(),
+      Rcpp::Named("activation")  = nodesOut
+  );
+}
+
+// [[Rcpp::export]]
 arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize) {
   arma::field<arma::vec> biasVecs   = NN["biasVecs"];
   arma::field<arma::mat> weightMats = NN["weightMats"];

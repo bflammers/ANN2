@@ -7,7 +7,7 @@
 \method{predict}{ANN}(object, newdata, ...)
 }
 \arguments{
-\item{object}{Object of class \code{NN}}
+\item{object}{Object of class \code{ANN}}
 
 \item{newdata}{Data to make predictions on}
 

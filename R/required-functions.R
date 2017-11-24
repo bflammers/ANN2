@@ -1,6 +1,7 @@
 checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, rampLayers, rectifierLayers,
                             sigmoidLayers, maxEpochs, batchSize, momentum, L1, L2, validLoss, validProp, earlyStop,
-                            earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nTrain, nSteps, smoothSteps) {
+                            earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nTrain, nSteps, smoothSteps,
+                            autoencoder, nColX) {
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
   
   ## ERRORS
@@ -38,8 +39,9 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   if (!noHiddenLayers && !is.vector(hiddenLayers) ) {
     stop("hiddenLayers should be an integer or a (numeric) vector of integers")
   }
-  if (!noHiddenLayers && !all(hiddenLayers > 0))
+  if (!noHiddenLayers && !all(hiddenLayers > 0)) {
     stop("All elements of hiddenLayers should be non-zero and positive.")
+  }
   
   noStepLayers <- (all(is.na(stepLayers)) || is.null(stepLayers))
   noRampLayers <- (all(is.na(rampLayers)) || is.null(rampLayers))
@@ -87,6 +89,21 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   }
   if (lrSched && (lrSchedEpochs > maxEpochs)) {
     warning("Cannot do learning rate schedule when lrSchedEpochs > maxEpochs")
+  }
+  
+  # AUTOENCODER ERRORS AND WARINGS
+  if (autoencoder) {
+    nHidden     <- length(hiddenLayers)
+    middleLayer <- ceiling(nHidden/2)
+    if (nHidden %% 2 == 0) {
+      stop("Number of layers should be odd such that there is a middle layer")
+    }
+    if (middleLayer != which.min(hiddenLayers)) {
+      warning("Hidden layer not the layer with the minimal number of nodes")
+    }
+    if (hiddenLayers[middleLayer] > nColX) {
+      warning("No data compression in middle layer since the number of nodes is larger than the number of input variables")
+    }
   }
 }
 

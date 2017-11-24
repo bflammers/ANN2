@@ -82,7 +82,7 @@ shoud be the same as length of \code{learnSchedLearnRates}.}
 after epochs determined by lrSchedEpochs.}
 }
 \value{
-An \code{NN} object. Use function \code{plot(<object>)} to assess
+An \code{ANN} object. Use function \code{plot(<object>)} to assess
 loss on training and optionally validation data during training process. Use
 function \code{predict(<object>, <newdata>)} for prediction.
 }

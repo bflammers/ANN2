@@ -4,19 +4,24 @@
 \alias{plotStepFunction}
 \title{Plot the step function used in \code{replicator}}
 \usage{
-plotStepFunction(nSteps = 10, smoothSteps = 100, derivative = FALSE, ...)
+plotStepFunction(object = NULL, X, hidden_node = 1, color = "red",
+  derivative = FALSE, ...)
 }
 \arguments{
-\item{nSteps}{number of steps on interval (0, 1)}
+\item{object}{Trained replicator neural network object}
 
-\item{smoothSteps}{smoothing parameter. Small values results in high smoothness.}
+\item{X}{Data to be plotted as points on steps}
+
+\item{hidden_node}{Number of the node to plot}
+
+\item{color}{Color of points. Replace with a vector indicating class-membership
+to give points in classes different colors.}
 
 \item{derivative}{logical indicating if the derivative of the step function should be plotted.}
 
 \item{...}{further arguments to be passed to plot}
 }
 \description{
-Change parameters to see how the shape of the step function is affected.
-Note that setting smoothSteps very high results in a large deriative,
-this might cause instability during training.
+Plot the projections of observations onto the stepfunction in the low-dimensional 
+space of the compression layer
 }

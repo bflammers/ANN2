@@ -63,7 +63,7 @@
 #' @param lrSchedEpochs vector with elements specifying the epoch after which the
 #' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
 #' shoud be the same as length of \code{learnSchedLearnRates}.
-#' @return An \code{NN} object. Use function \code{plot(<object>)} to assess
+#' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
@@ -130,7 +130,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
-                  nSteps = 0, smoothSteps = 0)
+                  nSteps = 0, smoothSteps = 0, autoencoder = FALSE, nColX = nColX)
   
   dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
                        regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
@@ -147,7 +147,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
                    verbose = verbose, regression = regression, plotExample = FALSE)
   
-  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              y_val   = dataList$y_val, pred = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = FALSE)
   class(NN) <- "ANN"
@@ -225,7 +225,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' @param lrSchedEpochs vector with elements specifying the epoch after which the
 #' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
 #' shoud be the same as length of \code{learnSchedLearnRates}.
-#' @return An \code{NN} object. Use function \code{plot(<object>)} to assess
+#' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
@@ -268,7 +268,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
-                  nSteps = nSteps, smoothSteps = smoothSteps)
+                  nSteps = nSteps, smoothSteps = smoothSteps, autoencoder = TRUE, nColX = nColX)
   
   if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
     warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
@@ -294,10 +294,11 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
   errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
   MCD  <- robustbase::covMcd(errX)
   
-  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
-             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize))
+             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
+                            replicator = TRUE, nSteps = nSteps, smoothSteps = smoothSteps))
   class(NN) <- "ANN"
   return(NN)
 }
@@ -362,7 +363,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' @param lrSchedEpochs vector with elements specifying the epoch after which the
 #' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
 #' shoud be the same as length of \code{learnSchedLearnRates}.
-#' @return An \code{NN} object. Use function \code{plot(<object>)} to assess
+#' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
@@ -402,7 +403,7 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
-                  nSteps = 1, smoothSteps = 1)
+                  nSteps = 1, smoothSteps = 1, autoencoder = TRUE, nColX = nColX)
   
   if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
     warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
@@ -428,10 +429,11 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
   errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
   MCD  <- robustbase::covMcd(errX)
   
-  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd,
+  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
-             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize))
+             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
+                            replicator = FALSE, nSteps = NA, smoothSteps = NA))
   class(NN) <- "ANN"
   return(NN)
 }
@@ -507,7 +509,7 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = FALSE, validProp = 0, earlyStop = FALSE, earlyStopEpochs = 0,
                   lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, nTrain = nTrain,
-                  nSteps = 0, smoothSteps = 0)
+                  nSteps = 0, smoothSteps = 0, autoencoder = FALSE, nColX = nColX)
   
   dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
                        regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
@@ -556,59 +558,73 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
 #' @details
 #' A genereric function for training neural nets
 #'
-#' @param NN Object of class \code{NN}
+#' @param object Object of class \code{ANN}
 #' @param X data (matrix) to reconstruct
 #' @param mahalanobis logical indicating if Mahalanobis distance should be calculated
 #' @return Reconstructed observations and optional Mahalanobis distances
 #' @export
-reconstruct <- function(NN, X, mahalanobis = TRUE) {
-  if (!NN$reconstruct)
+reconstruct <- function(object, X, mahalanobis = TRUE) {
+  if (!object$reconstruct) {
     stop("Object is not of type autoencoder or replicator")
-  NN_rec  <- NN$rec
-  NN_pred <- NN$pred
-  if (NN_rec$standardize)
-    X <- scale(X, center = TRUE, scale = TRUE)
-  recX <- predictC(NN_pred, X, FALSE)
-  errX <- recX - X
+  }
+  X       <- as.matrix(X)
+  NN_rec  <- object$rec
+  NN_pred <- object$pred
+  recX    <- predictC(NN_pred, X, NN_rec$standardize)
+  errX    <- recX - X
   if (!mahalanobis) {
-    rNN <- list(reconstructed = recX, reconstruction_errors = errX)
+    rANN <- list(reconstructed = recX, reconstruction_errors = errX)
   } else {
     dfChiSq <- ncol(X)
     mah_sq  <- stats::mahalanobis(errX, center = NN_rec$MCDcenter, cov = NN_rec$MCDcov)
     mah_p   <- 1 - stats::pchisq(mah_sq, df = dfChiSq)
-    rNN     <- list(reconstructed = recX, reconstruction_errors = errX,
+    rANN    <- list(reconstructed = recX, reconstruction_errors = errX,
                     mah_sq = mah_sq, mah_p = mah_p, dfChiSq = dfChiSq)
   }
-  class(rNN) <- "rANN"
-  return(rNN)
+  class(rANN) <- "rANN"
+  return(rANN)
 }
 
 #' @title Plot the step function used in \code{replicator}
 #'
 #' @description
-#' Change parameters to see how the shape of the step function is affected.
-#' Note that setting smoothSteps very high results in a large deriative,
-#' this might cause instability during training.
+#' Plot the projections of observations onto the stepfunction in the low-dimensional 
+#' space of the compression layer 
 #'
-#' @param nSteps number of steps on interval (0, 1)
-#' @param smoothSteps smoothing parameter. Small values results in high smoothness.
+#' @param object Trained replicator neural network object
+#' @param X Data to be plotted as points on steps
+#' @param hidden_node Number of the node to plot
+#' @param color Color of points. Replace with a vector indicating class-membership
+#' to give points in classes different colors. 
 #' @param derivative logical indicating if the derivative of the step function should be plotted.
 #' @param ... further arguments to be passed to plot
 #' @export
-plotStepFunction <- function(nSteps = 10, smoothSteps = 100, derivative = FALSE, ...){
-  x     <- matrix(seq(-0.1, 1.1, by = 0.005), ncol = 1)
-  steps <- stepFun(x, nSteps, smoothSteps)
-  graphics::plot(x, steps, type = "l", xlab = "input", ylab = "activation", main = "Step function", ...)
-  if(derivative){
-    dSteps <- stepGradFun(x, nSteps, smoothSteps)
-    graphics::lines(x, dSteps, col = "blue")
+plotStepFunction <- function(object = NULL, X, hidden_node = 1, color = "red", 
+                             derivative = FALSE, ...){
+  NN_rec <- object$rec
+  if (!NN_rec$replicator) {
+    stop("Object not of type replicator")
+  }
+  comprLayerIO <- encode(object, X, returnInputs = TRUE)
+  x     <- comprLayerIO$input[,hidden_node]
+  y     <- comprLayerIO$activation[,hidden_node]
+  x_lim <- c(min(-0.1, x), max(1.1, x))
+  x_seq <- matrix(seq(from = (x_lim[1]-0.1), to = (x_lim[2]+0.1) , by = 0.001), ncol = 1)
+  steps <- stepFun(x_seq, NN_rec$nSteps, NN_rec$smoothSteps)
+  graphics::plot(x = x_seq, y = steps, type = "l", xlab = "input", ylab = "activation",
+                 main = paste0("Step function, node ", hidden_node), xlim = x_lim)
+  graphics::points(x = x, y = y, col = color)
+  if (derivative) {
+    dSteps <- stepGradFun(x_seq, NN_rec$nSteps,  NN_rec$smoothSteps)
+    graphics::lines(x_seq, dSteps, col = "blue")
   }
 }
+
 
 #' @title Make predictions for new data
 #' @description \code{predict} Predict class or value for new data
 #' @details A genereric function for training neural nets
-#' @param object Object of class \code{NN}
+#' @param object Object of class \code{ANN}
 #' @param newdata Data to make predictions on
 #' @param ... further arguments (not in use)
 #' @return A list with predicted classes for classification and fitted probabilities
@@ -631,7 +647,7 @@ predict.ANN <- function(object, newdata, ...) {
 #' @title Plot training and validation loss
 #' @description \code{plot} Generate plots of the loss against epochs
 #' @details A genereric function for training neural nets
-#' @param x Object of class \code{NN}
+#' @param x Object of class \code{ANN}
 #' @param ... further arguments to be passed to plot
 #' @return Plots
 #' @method plot ANN
@@ -684,3 +700,52 @@ print.ANN <- function(x, ...){
   cat("\nOverview:\n", NN_print$overview, "\n")
   cat("\nNumber of Epochs:\n", NN_print$nEpochs)
 }
+
+#' @title Encoding step 
+#' @description Compress data according to trained replicator or autoencoder.
+#' Outputs are the activations of the nodes in the middle layer for each 
+#' observation in \code{newdata}
+#' @param object Object of class \code{ANN}
+#' @param newdata Data to compress
+#' @param returnInputs Logical indicating whether the inputs to the compression
+#' layer should be returned. Mainly used for plotting the activations. 
+#' @export
+encode <- function(object, newdata, returnInputs = FALSE){
+  if (!object$reconstruct) {
+    stop("Object is not of type autoencoder or replicator")
+  }
+  newdata       <- as.matrix(newdata)
+  nHidden       <- length(object$hiddenLayers)
+  middleLayer   <- ceiling(nHidden/2)
+  NN_pred       <- object$pred
+  middleLayerIO <- partialForward(NN_pred, newdata, NN_pred$standardize, FALSE, 0, middleLayer)
+  if (returnInputs) {
+    return(middleLayerIO)
+  }
+  compressed    <- middleLayerIO$activation
+  colnames(compressed) <- paste0("hidden_Node", 1:NCOL(compressed))
+  return(compressed)
+}
+
+
+#' @title Decoding step 
+#' @description Decompress low-dimensional representation resulting from the nodes
+#' of the middle layer. Output are the reconstructed inputs to function \code{encode}
+#' @param object Object of class \code{ANN}
+#' @param compressed Data to decompress
+#' @export
+decode <- function(object, compressed){
+  if (!object$reconstruct) {
+    stop("Object is not of type autoencoder or replicator")
+  }
+  compressed   <- as.matrix(compressed)
+  nHidden      <- length(object$hiddenLayers)
+  middleLayer  <- ceiling(nHidden/2)
+  finalLayer   <- nHidden + 1
+  NN_pred      <- object$pred
+  finalLayerIO <- partialForward(NN_pred, compressed, FALSE, NN_pred$standardize, middleLayer, finalLayer)
+  decompressed <- finalLayerIO$activation
+  colnames(decompressed) <- NN_pred$y_names
+  return(decompressed)
+}
+

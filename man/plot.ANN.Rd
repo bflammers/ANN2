@@ -7,7 +7,7 @@
 \method{plot}{ANN}(x, ...)
 }
 \arguments{
-\item{x}{Object of class \code{NN}}
+\item{x}{Object of class \code{ANN}}
 
 \item{...}{further arguments to be passed to plot}
 }

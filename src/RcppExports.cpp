@@ -32,6 +32,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// partialForward
+Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, bool standardizeOut, int layerStart, int layerStop);
+RcppExport SEXP _ANN2_partialForward(SEXP NNSEXP, SEXP nodesInSEXP, SEXP standardizeInSEXP, SEXP standardizeOutSEXP, SEXP layerStartSEXP, SEXP layerStopSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type NN(NNSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type nodesIn(nodesInSEXP);
+    Rcpp::traits::input_parameter< bool >::type standardizeIn(standardizeInSEXP);
+    Rcpp::traits::input_parameter< bool >::type standardizeOut(standardizeOutSEXP);
+    Rcpp::traits::input_parameter< int >::type layerStart(layerStartSEXP);
+    Rcpp::traits::input_parameter< int >::type layerStop(layerStopSEXP);
+    rcpp_result_gen = Rcpp::wrap(partialForward(NN, nodesIn, standardizeIn, standardizeOut, layerStart, layerStop));
+    return rcpp_result_gen;
+END_RCPP
+}
 // predictC
 arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize);
 RcppExport SEXP _ANN2_predictC(SEXP NNSEXP, SEXP newdataSEXP, SEXP standardizeSEXP) {
@@ -86,6 +102,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_ANN2_stepFun", (DL_FUNC) &_ANN2_stepFun, 3},
     {"_ANN2_stepGradFun", (DL_FUNC) &_ANN2_stepGradFun, 3},
+    {"_ANN2_partialForward", (DL_FUNC) &_ANN2_partialForward, 6},
     {"_ANN2_predictC", (DL_FUNC) &_ANN2_predictC, 3},
     {"_ANN2_stochGD", (DL_FUNC) &_ANN2_stochGD, 27},
     {NULL, NULL, 0}

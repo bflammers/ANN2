@@ -4,10 +4,10 @@
 \alias{reconstruct}
 \title{Reconstruct data using trained Autoencoder or Replicator object}
 \usage{
-reconstruct(NN, X, mahalanobis = TRUE)
+reconstruct(object, X, mahalanobis = TRUE)
 }
 \arguments{
-\item{NN}{Object of class \code{NN}}
+\item{object}{Object of class \code{ANN}}
 
 \item{X}{data (matrix) to reconstruct}
 
