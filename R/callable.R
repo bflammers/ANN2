@@ -75,7 +75,7 @@
 #' plot(iris[,1:4], pch = as.numeric(iris$Species))
 #'
 #' NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-#'                     momentum = 0.8, learnRate = 0.001)
+#'                     momentum = 0.8, learnRate = 0.001, verbose = FALSE)
 #' plot(NN)
 #' pred <- predict(NN, newdata = test[,-5])
 #' plot(test[,-5], pch = as.numeric(test$Species),
@@ -86,9 +86,9 @@
 #' @export
 neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, rectifierLayers = NA, sigmoidLayers = NA,
                           regression = FALSE, standardize = TRUE, learnRate = 1e-04, maxEpochs = 1000, batchSize = 32,
-                          momentum = 0.2, L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, validProp = 0.2, verbose = TRUE,
-                          earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
-                          lrSchedLearnRates = 1e-05, lrSchedEpochs = 400) {
+                          momentum = 0.2, L1 = 0, L2 = 0, validLoss = TRUE, validProp = 0.2, verbose = TRUE,
+                          earlyStop = FALSE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
+                          lrSchedLearnRates = 1e-05, lrSchedEpochs = 800) {
   
   NN_call <- match.call()
   X       <- as.matrix(X)
@@ -126,7 +126,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
   nVal    <- nTot - nTrain
   
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
-                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
+                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers, linearLayers = NA,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
@@ -136,7 +136,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                        regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
-                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
+                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers, linearLayers = NA, 
                    sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
   
   NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, activTypes = startVal$activTypes, 
@@ -219,6 +219,8 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' if improvements are made but improvements are smaller than tolerance.
 #' @param lrSched logical indicating if a schedule for the learning rate should
 #' be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
+#' @param robErrorCov logical indicating if robust covariance should be estimated in 
+#' order to assess Mahalanobis distances of reconstruction errors
 #' \code{lrSchedLearnRates} .
 #' @param lrSchedLearnRates vector with elements specifying the learn rate to be used
 #' after epochs determined by lrSchedEpochs.
@@ -231,7 +233,8 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' @examples
 #' # Replicator
 #' repNN <- replicator(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3)
+#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
+#'                     verbose = FALSE, robErrorCov = TRUE)
 #' plot(repNN)
 #'
 #' rX <- reconstruct(repNN, faithful)
@@ -241,9 +244,9 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1, stepLayers = 2,
                        nSteps = 5, smoothSteps = 25, rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
                        standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000, batchSize = 32, momentum = 0.2,
-                       L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
-                       earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = NA,
-                       lrSchedLearnRates = NA) {
+                       L1 = 0, L2 = 0, validLoss = TRUE, validProp = 0.1, verbose = TRUE, earlyStop = FALSE,
+                       earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = 800,
+                       lrSchedLearnRates = 1e-07, robErrorCov = FALSE) {
   NN_call <- match.call()
   X <- y <- as.matrix(X)
   if (!all(apply(X, 2, is.numeric))){
@@ -264,7 +267,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
   nVal   <- nTot - nTrain
   
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = stepLayers,
-                  rampLayers = rampLayers, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
+                  rampLayers = rampLayers, rectifierLayers = rectifierLayers, linearLayers = NA, sigmoidLayers = sigmoidLayers,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
@@ -279,7 +282,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
                        regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
-                   stepLayers = stepLayers, rampLayers = rampLayers, rectifierLayers = rectifierLayers,
+                   stepLayers = stepLayers, rampLayers = rampLayers, rectifierLayers = rectifierLayers, linearLayers = NA,
                    sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
   
   NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, activTypes = startVal$activTypes, 
@@ -290,15 +293,20 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
                    verbose = verbose, regression = TRUE, plotExample = FALSE)
   
-  
-  errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
-  MCD  <- robustbase::covMcd(errX)
+  if (robErrorCov) {
+    print("\nCalculating robust covariance matrix...")
+    errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
+    MCD  <- robustbase::covMcd(errX)
+  } else {
+    MCD <- list(center = NULL, cov = NULL)
+  }
   
   NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
              rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
-                            replicator = TRUE, nSteps = nSteps, smoothSteps = smoothSteps))
+                            replicator = TRUE, nSteps = nSteps, smoothSteps = smoothSteps, 
+                            robErrorCov = robErrorCov))
   class(NN) <- "ANN"
   return(NN)
 }
@@ -324,6 +332,8 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' "quadratic", "absolute", "huber" and "pseudo-huber"
 #' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
+#' @param linearLayers vector or integer specifying which layers should have
+#' linear activation in its nodes
 #' @param rectifierLayers vector or integer specifying which layers should have
 #' rectifier activation in its nodes
 #' @param sigmoidLayers vector or integer specifying which layers should have
@@ -363,24 +373,27 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' @param lrSchedEpochs vector with elements specifying the epoch after which the
 #' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
 #' shoud be the same as length of \code{learnSchedLearnRates}.
+#' @param robErrorCov logical indicating if robust covariance should be estimated in 
+#' order to assess Mahalanobis distances of reconstruction errors
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
 #' # Autoencoder
 #' aeNN <- autoencoder(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3)
+#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
+#'                     verbose = FALSE, robErrorCov = TRUE)
 #' plot(aeNN)
 #'
 #' rX <- reconstruct(aeNN, faithful)
 #' plot(rX, alpha = 0.05)
 #' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
 #' @export
-autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1,
-                        rectifierLayers = NA, sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000,
-                        batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04, validLoss = TRUE, 
-                        validProp = 0.2, verbose = TRUE, earlyStop = TRUE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
-                        lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA) {
+autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1, linearLayers = NA,
+                        rectifierLayers = NA, sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06, maxEpochs = 100,
+                        batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0, validLoss = TRUE, 
+                        validProp = 0.1, verbose = TRUE, earlyStop = FALSE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
+                        lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA, robErrorCov = FALSE) {
   NN_call <- match.call()
   X <- y <- as.matrix(X)
   if (!all(apply(X, 2, is.numeric))){
@@ -399,7 +412,7 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
   nVal   <- nTot - nTrain
   
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
-                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
+                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers, linearLayers = linearLayers,
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
@@ -414,7 +427,7 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
                        regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
-                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
+                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers, linearLayers = linearLayers,
                    sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
   
   NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, 
@@ -426,14 +439,19 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
                    fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
                    verbose = verbose, regression = TRUE, plotExample = FALSE)
   
-  errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
-  MCD  <- robustbase::covMcd(errX)
+  if (robErrorCov) {
+    print("\nCalculating robust covariance matrix...")
+    errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
+    MCD  <- robustbase::covMcd(errX)
+  } else {
+    MCD <- list(center = NULL, cov = NULL)
+  }
   
   NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
              print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
              pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
              rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
-                            replicator = FALSE, nSteps = NA, smoothSteps = NA))
+                            replicator = FALSE, nSteps = NA, smoothSteps = NA, robErrorCov = robErrorCov))
   class(NN) <- "ANN"
   return(NN)
 }
@@ -505,7 +523,7 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
   nVal   <- 0
   
   checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
-                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers,
+                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers, linearLayers = NA, 
                   maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
                   validLoss = FALSE, validProp = 0, earlyStop = FALSE, earlyStopEpochs = 0,
                   lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, nTrain = nTrain,
@@ -515,7 +533,7 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
                        regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
   
   startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
-                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers,
+                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers, linearLayers = NA, 
                    sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = FALSE)
   
   fpOut <- bpOut <- list(NA)
@@ -575,6 +593,9 @@ reconstruct <- function(object, X, mahalanobis = TRUE) {
   if (!mahalanobis) {
     rANN <- list(reconstructed = recX, reconstruction_errors = errX)
   } else {
+    if (!NN_rec$robErrorCov) {
+      stop("No covariance matrix to calculate Mahalanobis distance")
+    }
     dfChiSq <- ncol(X)
     mah_sq  <- stats::mahalanobis(errX, center = NN_rec$MCDcenter, cov = NN_rec$MCDcov)
     mah_p   <- 1 - stats::pchisq(mah_sq, df = dfChiSq)
@@ -612,7 +633,7 @@ plotStepFunction <- function(object = NULL, X, hidden_node = 1, color = "red",
   x_seq <- matrix(seq(from = (x_lim[1]-0.1), to = (x_lim[2]+0.1) , by = 0.001), ncol = 1)
   steps <- stepFun(x_seq, NN_rec$nSteps, NN_rec$smoothSteps)
   graphics::plot(x = x_seq, y = steps, type = "l", xlab = "input", ylab = "activation",
-                 main = paste0("Step function, node ", hidden_node), xlim = x_lim)
+                 main = paste0("Step function, node ", hidden_node), xlim = x_lim, ...)
   graphics::points(x = x, y = y, col = color)
   if (derivative) {
     dSteps <- stepGradFun(x_seq, NN_rec$nSteps,  NN_rec$smoothSteps)

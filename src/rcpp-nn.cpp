@@ -132,7 +132,27 @@ arma::mat activGradFunction(arma::mat x, Rcpp::String activType, int nSteps, int
   return result;
 }
 
-arma::mat scaleC(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
+// [[Rcpp::export]]
+Rcpp::List scaleData(arma::mat X){
+  int nCol = X.n_cols;
+  arma::vec Xcenter(nCol), Xscale(nCol);
+  arma::mat scaledX(size(X));
+  for (int i = 0; i != nCol; i ++) {
+    Xcenter[i] = arma::mean(X.col(i));
+    Xscale[i]  = arma::stddev(X.col(i));
+    if (Xscale[i] == 0) {
+      Xscale[i] = 1;
+    }
+    scaledX.col(i) = (X.col(i) -  Xcenter[i]) / Xscale[i];
+  }
+  return Rcpp::List::create(
+    Rcpp::Named("scaled") = scaledX,
+    Rcpp::Named("center") = Xcenter,
+    Rcpp::Named("scale")  = Xscale
+  );
+}
+
+arma::mat scaleNewData(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
   int nCol = X.n_cols;
   arma::mat scaledX(size(X));
   for(int i = 0; i != nCol; i ++){
@@ -141,7 +161,7 @@ arma::mat scaleC(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
   return scaledX;
 }
 
-arma::mat reScaleC(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
+arma::mat reScaleData(arma::mat X, arma::vec Xcenter, arma::vec Xscale){
   int nCol = X.n_cols;
   arma::mat reScaledX(size(X));
   for(int i = 0; i != nCol; i ++){
@@ -275,7 +295,7 @@ Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, 
   if (standardizeIn) {
     arma::vec X_center = NN["X_center"];
     arma::vec X_scale  = NN["X_scale"];
-    X = scaleC(nodesIn, X_center, X_scale);
+    X = scaleNewData(nodesIn, X_center, X_scale);
   } else {
     X = nodesIn;
   }
@@ -292,7 +312,7 @@ Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, 
   if (standardizeOut) {
     arma::vec y_center = NN["y_center"];
     arma::vec y_scale  = NN["y_scale"];
-    nodesOut = reScaleC(prevActivation.t(), y_center, y_scale);
+    nodesOut = reScaleData(prevActivation.t(), y_center, y_scale);
   } else {
     nodesOut = prevActivation.t();
   }
@@ -314,7 +334,7 @@ arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize) {
   if(standardize) {
     arma::vec X_center = NN["X_center"];
     arma::vec X_scale  = NN["X_scale"];
-    X = scaleC(newdata, X_center, X_scale);
+    X = scaleNewData(newdata, X_center, X_scale);
   } else {
     X = newdata;
   }
@@ -332,7 +352,7 @@ arma::mat predictC(Rcpp::List NN, arma::mat newdata, bool standardize) {
   if(regression & standardize){
     arma::vec y_center = NN["y_center"];
     arma::vec y_scale  = NN["y_scale"];
-    prediction = reScaleC(prevActivation.t(), y_center, y_scale);
+    prediction = reScaleData(prevActivation.t(), y_center, y_scale);
   }else{
     prediction = prevActivation.t();
   }

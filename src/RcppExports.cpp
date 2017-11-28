@@ -32,6 +32,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// scaleData
+Rcpp::List scaleData(arma::mat X);
+RcppExport SEXP _ANN2_scaleData(SEXP XSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(scaleData(X));
+    return rcpp_result_gen;
+END_RCPP
+}
 // partialForward
 Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, bool standardizeOut, int layerStart, int layerStop);
 RcppExport SEXP _ANN2_partialForward(SEXP NNSEXP, SEXP nodesInSEXP, SEXP standardizeInSEXP, SEXP standardizeOutSEXP, SEXP layerStartSEXP, SEXP layerStopSEXP) {
@@ -102,6 +113,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_ANN2_stepFun", (DL_FUNC) &_ANN2_stepFun, 3},
     {"_ANN2_stepGradFun", (DL_FUNC) &_ANN2_stepGradFun, 3},
+    {"_ANN2_scaleData", (DL_FUNC) &_ANN2_scaleData, 1},
     {"_ANN2_partialForward", (DL_FUNC) &_ANN2_partialForward, 6},
     {"_ANN2_predictC", (DL_FUNC) &_ANN2_predictC, 3},
     {"_ANN2_stochGD", (DL_FUNC) &_ANN2_stochGD, 27},

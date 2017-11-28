@@ -9,6 +9,10 @@ stepGradFun <- function(x, nSteps, smoothSteps) {
     .Call('_ANN2_stepGradFun', PACKAGE = 'ANN2', x, nSteps, smoothSteps)
 }
 
+scaleData <- function(X) {
+    .Call('_ANN2_scaleData', PACKAGE = 'ANN2', X)
+}
+
 partialForward <- function(NN, nodesIn, standardizeIn, standardizeOut, layerStart, layerStop) {
     .Call('_ANN2_partialForward', PACKAGE = 'ANN2', NN, nodesIn, standardizeIn, standardizeOut, layerStart, layerStop)
 }

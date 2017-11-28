@@ -1,4 +1,4 @@
-checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, rampLayers, rectifierLayers,
+checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, rampLayers, rectifierLayers, linearLayers,
                             sigmoidLayers, maxEpochs, batchSize, momentum, L1, L2, validLoss, validProp, earlyStop,
                             earlyStopEpochs, lrSched, lrSchedEpochs, lrSchedLearnRates, nTrain, nSteps, smoothSteps,
                             autoencoder, nColX) {
@@ -8,32 +8,37 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
   if (!(lossFunction %in% c("log", "huber", "pseudo-huber", "quadratic", "absolute"))) {
     stop("Loss function not one of \"log\", \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\".")
   }
-  if ((lossFunction %in% c("huber", "pseudo-huber")) && dHuber <= 0)
+  if ((lossFunction %in% c("huber", "pseudo-huber")) && dHuber <= 0) {
     stop("dHuber should be positive and non-zero.")
-  if (nTrain < batchSize)
+  }
+  if (nTrain < batchSize) {
     stop(paste0("Batchsize should be between zero and number of observations in trainset: ", nTrain))
-  if (momentum >= 1 || momentum < 0)
+  }
+  if (momentum >= 1 || momentum < 0) {
     stop("Momentum should be smaller than one and larger than or equal to zero.")
-  if (L1 < 0 || L2 < 0)
+  }
+  if (L1 < 0 || L2 < 0) {
     stop("L1 and L2 should be larger than or equal to zero.")
+  }
   if (validLoss) {
-    if (validProp > 1 || validProp < 0)
+    if (validProp > 1 || validProp < 0) {
       stop("validProp should be between zero and one")
-    if (lrSched) {
-      if (any(lrSchedEpochs > maxEpochs))
-        stop("earlyStopEpochs should be smaller than maxEpochs")
     }
     if (earlyStop) {
-      if (earlyStopEpochs > maxEpochs)
+      if (earlyStopEpochs > maxEpochs) {
         stop("earlyStopEpochs should be smaller than maxEpochs")
+      }
     }
-    if (lrSched) {
-      if (any(is.na(lrSchedEpochs)) || is.null(lrSchedEpochs))
-        stop("lrSchedEpochs should be an integer or vector of integers for learning rate schedule")
-      if (any(is.na(lrSchedLearnRates)) || is.null(lrSchedLearnRates))
-        stop("lrSchedLearnRates should be numeric or vector of numerics for learning rate schedule")
-      if (length(lrSchedEpochs) != length(lrSchedLearnRates))
-        stop("lrSchedEpochs an lrSchedLearnRates should be same sized")
+  }
+  if (lrSched) {
+    if (any(is.na(lrSchedEpochs)) || is.null(lrSchedEpochs)) {
+      stop("lrSchedEpochs should be an integer or vector of integers for learning rate schedule")
+    }
+    if (any(is.na(lrSchedLearnRates)) || is.null(lrSchedLearnRates)) {
+      stop("lrSchedLearnRates should be numeric or vector of numerics for learning rate schedule")
+    }
+    if (length(lrSchedEpochs) != length(lrSchedLearnRates)) {
+      stop("Parametervectors lrSchedEpochs and lrSchedLearnRates should be same sized")
     }
   }
   if (!noHiddenLayers && !is.vector(hiddenLayers) ) {
@@ -43,6 +48,7 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
     stop("All elements of hiddenLayers should be non-zero and positive.")
   }
   
+  noLinLayers  <- (all(is.na(linearLayers)) || is.null(linearLayers))
   noStepLayers <- (all(is.na(stepLayers)) || is.null(stepLayers))
   noRampLayers <- (all(is.na(rampLayers)) || is.null(rampLayers))
   noRectLayers <- (all(is.na(rectifierLayers)) || is.null(rectifierLayers))
@@ -61,21 +67,29 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
     }
   } else {
     seqLayers <- seq.int(1, length(hiddenLayers))
-    if (!noStepLayers && any(!(stepLayers %in% seqLayers)))
+    if (!noLinLayers && any(!(linearLayers %in% linearLayers))) {
+      stop("Cannot set hidden layer to linear layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
+    }
+    if (!noStepLayers && any(!(stepLayers %in% seqLayers))) {
       stop("Cannot set hidden layer to step layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
-    if (!noRampLayers && any(!(rampLayers %in% seqLayers)))
+    }
+    if (!noRampLayers && any(!(rampLayers %in% seqLayers))) {
       stop("Cannot set hidden layer to ramp layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
-    if (!noRectLayers && any(!(rectifierLayers %in% seqLayers)))
+    }
+    if (!noRectLayers && any(!(rectifierLayers %in% seqLayers))) {
       stop("Cannot set hidden layer to rectifier layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
-    if (!noSigmLayers && any(!(sigmoidLayers %in% seqLayers)))
+    }
+    if (!noSigmLayers && any(!(sigmoidLayers %in% seqLayers))) {
       stop("Cannot set hidden layer to sigmoid layer. Possible layers are: ", paste0(seqLayers, collapse = ", "))
+    }
     
-    activList <- list(stepLayers, rampLayers, rectifierLayers, sigmoidLayers)
+    activList <- list(linearLayers, stepLayers, rampLayers, rectifierLayers, sigmoidLayers)
     activList[is.na(activList)] <- NULL
     if(length(activList)>0){
       for(i in 1:length(activList)){
-        if(any(activList[[i]] %in% unlist(activList[-i])))
-          stop("stepLayers, rampLayers, rectifierLayers and sigmoidLayers cannot overlap")
+        if(any(activList[[i]] %in% unlist(activList[-i]))) {
+          stop("linearLayers, stepLayers, rampLayers, rectifierLayers and sigmoidLayers cannot overlap")
+        }
       }
     }
   }
@@ -109,7 +123,7 @@ checkParameters <- function(lossFunction, dHuber, hiddenLayers, stepLayers, ramp
 
 
 init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
-                 rectifierLayers, sigmoidLayers, nColX, nColY, verbose) {
+                 rectifierLayers, linearLayers, sigmoidLayers, nColX, nColY, verbose) {
   
   # Define structure of network
   noHiddenLayers <- (all(is.na(hiddenLayers)) || is.null(hiddenLayers))
@@ -138,23 +152,23 @@ init <- function(hiddenLayers, lossFunction, regression, stepLayers, rampLayers,
     activTypes[seqHidden %in% rectifierLayers] <- "rectifier"
     activTypes[seqHidden %in% rampLayers]      <- "ramp"
     activTypes[seqHidden %in% stepLayers]      <- "step"
+    activTypes[seqHidden %in% linearLayers]    <- "linear"
     activTypes <- c(activTypes, ifelse(regression, "linear", "softMax"))
     
     
     # Overview layers
-    overviewNetwork <-  paste0("Neural Network: \n Input layer: ", strrep(" ", 6 - nchar(nColX)), nColX, " nodes\n",
-                               paste0(" hidden layer ", seqHidden, ": ", strrep(" ", 3 - nchar(hiddenLayers)), hiddenLayers,
+    overviewNetwork <-  paste0("Neural Network: \n Input layer: ", strrep(" ", 10 - nchar(nColX)), nColX, " nodes\n",
+                               paste0(" hidden layer ", seqHidden, ": ", strrep(" ", 7 - nchar(hiddenLayers)), hiddenLayers,
                                       " nodes - ", activTypes[-n_Hid_Out], "\n", collapse = ""), " Output layer: ",
-                               strrep(" ", 5- nchar(nColX)), nColY, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, "loss) \n")
+                               strrep(" ", 9 - nchar(nColY)), nColY, " nodes - ", activTypes[n_Hid_Out], " (", lossFunction, " loss) \n")
     if (verbose) cat(overviewNetwork)
   }
   
   # Initialize weights, biases, momentums, etc...
-  biasVecs <- sapply(strucLayers[-1L], function(n_nodes) stats::runif(n_nodes, -0.2, 0.2), simplify = FALSE)
-  biasMomVecs <- sapply(strucLayers[-1L], function(n_nodes) rep(0, n_nodes), simplify = FALSE)
+  biasVecs <- biasMomVecs <- sapply(strucLayers[-1L], function(n_nodes) rep(0, n_nodes), simplify = FALSE)
   weightMats <- sapply(seq.int(1L, n_Hidden + 1L), function(w) {
-    matrix(stats::rnorm(strucWeights[w], sd = sqrt(2/strucLayers[w])), nrow = strucLayers[w +
-                                                                                            1L], ncol = strucLayers[w])
+    matrix(stats::rnorm(strucWeights[w])/sqrt(strucLayers[w]), 
+           nrow = strucLayers[w + 1L], ncol = strucLayers[w])
   }, simplify = FALSE)
   weightMomMats <- weightGradMats <- sapply(seq.int(1L, n_Hidden + 1L), function(w) {
     matrix(0, nrow = strucLayers[w + 1L], ncol = strucLayers[w])
@@ -170,13 +184,15 @@ prepData <- function(X, y, nColX, nColY, standardize, regression, nTot, nTrain, 
   if (regression) {
     if (standardize) {
       # X
-      sX       <- scale(X, center = TRUE, scale = TRUE)
-      X_center <- attr(sX, "scaled:center")
-      X_scale  <- attr(sX, "scaled:scale") 
+      scaledX  <- scaleData(X)
+      sX       <- scaledX$scaled
+      X_center <- scaledX$center
+      X_scale  <- scaledX$scale
       # Y
-      sY       <- scale(y, center = TRUE, scale = TRUE)
-      y_center <- attr(sY, "scaled:center")
-      y_scale  <- attr(sY, "scaled:scale") 
+      scaledY  <- scaleData(y)
+      sY       <- scaledY$scaled
+      y_center <- scaledY$center
+      y_scale  <- scaledY$scale
     } else {
       sX       <- X
       sY       <- y
@@ -193,9 +209,10 @@ prepData <- function(X, y, nColX, nColY, standardize, regression, nTot, nTrain, 
     y_scale  <- 1
     if (standardize) {
       # X
-      sX       <- scale(X, center = TRUE, scale = TRUE)
-      X_center <- attr(sX, "scaled:center")
-      X_scale  <- attr(sX, "scaled:scale") 
+      scaledX  <- scaleData(X)
+      sX       <- scaledX$scaled
+      X_center <- scaledX$center
+      X_scale  <- scaledX$scale
     } else {
       sX       <- X
       X_center <- 0

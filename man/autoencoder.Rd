@@ -5,12 +5,12 @@
 \title{Train an Autoencoding Neural Network}
 \usage{
 autoencoder(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber",
-  dHuber = 1, rectifierLayers = NA, sigmoidLayers = NA,
-  standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000,
-  batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04,
-  validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
+  dHuber = 1, linearLayers = NA, rectifierLayers = NA,
+  sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06,
+  maxEpochs = 100, batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0,
+  validLoss = TRUE, validProp = 0.1, verbose = TRUE, earlyStop = FALSE,
   earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
-  lrSchedEpochs = NA, lrSchedLearnRates = NA)
+  lrSchedEpochs = NA, lrSchedLearnRates = NA, robErrorCov = FALSE)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
@@ -23,6 +23,9 @@ to \code{NA} for a Network without any hidden layers}
 
 \item{dHuber}{used only in case of loss functions "huber" and "pseudo-huber".
 This parameter controls the cut-off point between quadratic and absolute loss.}
+
+\item{linearLayers}{vector or integer specifying which layers should have
+linear activation in its nodes}
 
 \item{rectifierLayers}{vector or integer specifying which layers should have
 rectifier activation in its nodes}
@@ -80,6 +83,9 @@ shoud be the same as length of \code{learnSchedLearnRates}.}
 
 \item{lrSchedLearnRates}{vector with elements specifying the learn rate to be used
 after epochs determined by lrSchedEpochs.}
+
+\item{robErrorCov}{logical indicating if robust covariance should be estimated in 
+order to assess Mahalanobis distances of reconstruction errors}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess
@@ -101,7 +107,8 @@ A function for training Autoencoders. To be used in conjunction with function
 \examples{
 # Autoencoder
 aeNN <- autoencoder(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-                    learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3)
+                    learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
+                    verbose = FALSE, robErrorCov = TRUE)
 plot(aeNN)
 
 rX <- reconstruct(aeNN, faithful)

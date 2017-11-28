@@ -7,10 +7,10 @@
 neuralnetwork(X, y, hiddenLayers, lossFunction = "log", dHuber = 1,
   rectifierLayers = NA, sigmoidLayers = NA, regression = FALSE,
   standardize = TRUE, learnRate = 1e-04, maxEpochs = 1000,
-  batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04,
-  validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
+  batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0, validLoss = TRUE,
+  validProp = 0.2, verbose = TRUE, earlyStop = FALSE,
   earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
-  lrSchedLearnRates = 1e-05, lrSchedEpochs = 400)
+  lrSchedLearnRates = 1e-05, lrSchedEpochs = 800)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
@@ -111,7 +111,7 @@ test     <- iris[setdiff(1:nrow(iris), randDraw),]
 plot(iris[,1:4], pch = as.numeric(iris$Species))
 
 NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-                    momentum = 0.8, learnRate = 0.001)
+                    momentum = 0.8, learnRate = 0.001, verbose = FALSE)
 plot(NN)
 pred <- predict(NN, newdata = test[,-5])
 plot(test[,-5], pch = as.numeric(test$Species),

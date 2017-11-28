@@ -8,10 +8,10 @@ replicator(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber",
   dHuber = 1, stepLayers = 2, nSteps = 5, smoothSteps = 25,
   rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
   standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000,
-  batchSize = 32, momentum = 0.2, L1 = 1e-07, L2 = 1e-04,
-  validLoss = TRUE, validProp = 0.2, verbose = TRUE, earlyStop = TRUE,
+  batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0, validLoss = TRUE,
+  validProp = 0.1, verbose = TRUE, earlyStop = FALSE,
   earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
-  lrSchedEpochs = NA, lrSchedLearnRates = NA)
+  lrSchedEpochs = 800, lrSchedLearnRates = 1e-07, robErrorCov = FALSE)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
@@ -88,8 +88,7 @@ Can be either positive or negative. When set negative, training will be stopped
 if improvements are made but improvements are smaller than tolerance.}
 
 \item{lrSched}{logical indicating if a schedule for the learning rate should
-be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
-\code{lrSchedLearnRates} .}
+be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and}
 
 \item{lrSchedEpochs}{vector with elements specifying the epoch after which the
 corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
@@ -97,6 +96,10 @@ shoud be the same as length of \code{learnSchedLearnRates}.}
 
 \item{lrSchedLearnRates}{vector with elements specifying the learn rate to be used
 after epochs determined by lrSchedEpochs.}
+
+\item{robErrorCov}{logical indicating if robust covariance should be estimated in 
+order to assess Mahalanobis distances of reconstruction errors
+\code{lrSchedLearnRates} .}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess
@@ -114,7 +117,8 @@ A function for training an Replicator Neural Network.
 \examples{
 # Replicator
 repNN <- replicator(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-                    learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3)
+                    learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
+                    verbose = FALSE, robErrorCov = TRUE)
 plot(repNN)
 
 rX <- reconstruct(repNN, faithful)
