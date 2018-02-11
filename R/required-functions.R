@@ -319,10 +319,18 @@ genrResponse <- function(n, type, sd.noise) {
         stats::rnorm(nrow(X), sd = sd.noise)] <- 1
     y[(X[, 1] - loc2[1])^2 + (X[, 2] - loc2[2])^2 < 4 + 
         stats::rnorm(nrow(X), sd = sd.noise)] <- 2
-  } else if (type %in% c("surface")) {
+  } else if (type == "surface") {
     X <- matrix(stats::runif(2 * n, -4, 6), ncol = 2, nrow = n)
     y <- X[, 1] * sin(X[, 2]) - X[, 2] * cos(X[, 1]) + 
       stats::rnorm(nrow(X), mean = 3, sd = sd.noise)
+  } else if (type == "yin-yang") {
+    r  <- seq(0.05, 0.8,   length.out = n) 
+    t1 <- seq(0,    2.6, length.out = n) + stats::rnorm(n, sd = sd.noise) 
+    c1 <- cbind(r*sin(t1)-0.1 , r*cos(t1)+0.1) 
+    t2 <- seq(9.4,  12, length.out = n) + stats::rnorm(n, sd = sd.noise) 
+    c2 <- cbind(r*sin(t2)+0.1 , r*cos(t2)-0.1) 
+    X  <- rbind(c1, c2)
+    y  <- as.numeric(1:(2*n)>n)+1
   } else print(paste0("Type ", type, " not supported."))
   return(list(X = X, y = as.numeric(y)))
 }

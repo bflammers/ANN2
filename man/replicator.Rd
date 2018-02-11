@@ -118,7 +118,7 @@ A function for training an Replicator Neural Network.
 # Replicator
 repNN <- replicator(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
-                    verbose = FALSE, robErrorCov = TRUE)
+                    robErrorCov = TRUE)
 plot(repNN)
 
 rX <- reconstruct(repNN, faithful)
@@ -126,6 +126,6 @@ plot(rX, alpha = 0.05)
 plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
 }
 \references{
-#' Hawkins, Simon, et al. "Outlier detection using replicator neural
+Hawkins, Simon, et al. "Outlier detection using replicator neural
 networks." DaWaK. Vol. 2454. 2002.
 }

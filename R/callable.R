@@ -164,7 +164,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' @details
 #' A function for training an Replicator Neural Network.
 #'
-#' @references #' Hawkins, Simon, et al. "Outlier detection using replicator neural
+#' @references Hawkins, Simon, et al. "Outlier detection using replicator neural
 #' networks." DaWaK. Vol. 2454. 2002.
 #'
 #' @param X matrix with explanatory variables
@@ -234,7 +234,7 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
 #' # Replicator
 #' repNN <- replicator(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
 #'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
-#'                     verbose = FALSE, robErrorCov = TRUE)
+#'                     robErrorCov = TRUE)
 #' plot(repNN)
 #'
 #' rX <- reconstruct(repNN, faithful)
@@ -294,7 +294,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
                    verbose = verbose, regression = TRUE, plotExample = FALSE)
   
   if (robErrorCov) {
-    print("\nCalculating robust covariance matrix...")
+    cat("\nCalculating robust covariance matrix...")
     errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
     MCD  <- robustbase::covMcd(errX)
   } else {
@@ -382,7 +382,7 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' # Autoencoder
 #' aeNN <- autoencoder(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
 #'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
-#'                     verbose = FALSE, robErrorCov = TRUE)
+#'                     robErrorCov = TRUE)
 #' plot(aeNN)
 #'
 #' rX <- reconstruct(aeNN, faithful)
@@ -440,7 +440,7 @@ autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-h
                    verbose = verbose, regression = TRUE, plotExample = FALSE)
   
   if (robErrorCov) {
-    print("\nCalculating robust covariance matrix...")
+    cat("\nCalculating robust covariance matrix...")
     errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
     MCD  <- robustbase::covMcd(errX)
   } else {
@@ -680,8 +680,10 @@ plot.ANN <- function(x, ...) {
   graphics::plot(x = x_seq, y = ddMat[x_seq,1], type = "l", col = "red", xlab = "Epoch", ylab = "Loss", ...)
   if (NN_plot$validLoss) {
     graphics::lines(x_seq, ddMat[x_seq, 2], col = "blue")
-    graphics::abline(v = which(ddMat[x_seq, 4] == 1), col = "darkgrey")
     graphics::legend('topright',c("Training","Validation"), lty = 1, col=c('red','blue'),bty ="n")
+  }
+  if(NN_plot$lrSched) {
+    graphics::abline(v = which(ddMat[x_seq, 4] == 1), col = "darkgrey")
   }
 }
 

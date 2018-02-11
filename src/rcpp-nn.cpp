@@ -30,7 +30,7 @@ arma::mat huberGradLoss(arma::mat y_fit, arma::mat y, double dHuber){
 arma::mat stepFun(arma::mat x, int nSteps, int smoothSteps){
   arma::uword nElements = x.n_elem;
   arma::mat result(size(x));
-  arma::vec seqN = arma::linspace(1, nSteps, nSteps)/ nSteps;
+  arma::vec seqN = arma::linspace(1, (nSteps - 1), (nSteps - 1))/ nSteps;
   for(arma::uword i = 0; i!=nElements; i++){
     result(i) = sum( tanh( smoothSteps * (x(i) - seqN) ) );
   }
@@ -242,8 +242,8 @@ Rcpp::List updateParams(Rcpp::List upOut, Rcpp::List bpOut, double momentum, dou
 
 Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::vec y_center, arma::vec y_scale,
                     arma::vec X_center, arma::vec X_scale, Rcpp::CharacterVector y_names, Rcpp::CharacterVector activTypes, 
-                    int nEpochs, arma::mat descentDetails, bool validLoss, bool plotExample, Rcpp::List fpOut, 
-                    Rcpp::List bpOut, int nSteps, int smoothSteps){
+                    int nEpochs, arma::mat descentDetails, bool validLoss, bool lrSched, bool plotExample, 
+                    Rcpp::List fpOut, Rcpp::List bpOut, int nSteps, int smoothSteps){
   Rcpp::List NN_pred =  Rcpp::List::create(
     Rcpp::Named("biasVecs")       = upOut["biasVecs"],
     Rcpp::Named("weightMats")     = upOut["weightMats"],
@@ -261,7 +261,8 @@ Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::v
   Rcpp::List NN_plot = Rcpp::List::create(
     Rcpp::Named("nEpochs")        = nEpochs,
     Rcpp::Named("descentDetails") = descentDetails,
-    Rcpp::Named("validLoss")      = validLoss
+    Rcpp::Named("validLoss")      = validLoss,
+    Rcpp::Named("lrSched")        = lrSched
   );
   if(!plotExample){
     return Rcpp::List::create(
@@ -285,7 +286,7 @@ Rcpp::List createNN(Rcpp::List upOut, bool regression, bool standardize, arma::v
 
 // [[Rcpp::export]]
 Rcpp::List partialForward(Rcpp::List NN, arma::mat nodesIn, bool standardizeIn, bool standardizeOut, 
-                         int layerStart, int layerStop) {
+                          int layerStart, int layerStop) {
   arma::field<arma::vec> biasVecs   = NN["biasVecs"];
   arma::field<arma::mat> weightMats = NN["weightMats"];
   Rcpp::CharacterVector activTypes  = NN["activTypes"];
@@ -375,9 +376,9 @@ double checkLoss(arma::mat X, arma::mat y, Rcpp::List upOut, bool regression, Rc
 }
 
 Rcpp::List checkValidLoss(arma::mat X_val, arma::mat y_val, Rcpp::List upOut, arma::mat descentDetails,
-                    bool regression, Rcpp::CharacterVector activTypes, bool earlyStop, int earlyStopEpochs, double earlyStopTol,
-                    bool lrSched, arma::vec lrSchedEpochs, arma::vec lrSchedLearnRates, double dHuber, int nSteps,
-                    int smoothSteps, int iEpoch, double learnRate, Rcpp::String lossType){
+                    bool regression, Rcpp::CharacterVector activTypes, bool earlyStop, int earlyStopEpochs, 
+                    double earlyStopTol, double dHuber, int nSteps, int smoothSteps, int iEpoch, 
+                    double learnRate, Rcpp::String lossType){
   bool DoBreak = FALSE;
 
   Rcpp::List NNval =  Rcpp::List::create(
@@ -402,12 +403,6 @@ Rcpp::List checkValidLoss(arma::mat X_val, arma::mat y_val, Rcpp::List upOut, ar
     }
   }
 
-  if(lrSched){
-    if(any(iEpoch == lrSchedEpochs)){
-      learnRate = max(lrSchedLearnRates.elem(find(lrSchedEpochs == iEpoch)));
-      rowDescentDetails[3] = 1;
-    }
-  }
   rowDescentDetails[2] = learnRate;
   return Rcpp::List::create(
     Rcpp::Named("DoBreak")           = DoBreak,
@@ -453,8 +448,7 @@ Rcpp::List stochGD(Rcpp::List dataList, int nTrain, bool standardize, Rcpp::Char
     descentDetails(iEpoch,0) = checkLoss(X, y, upOut, regression, activTypes, lossType, dHuber, nSteps, smoothSteps);
     if(validLoss){
       Rcpp::List validLossList = checkValidLoss(X_val, y_val, upOut, descentDetails, regression, activTypes, earlyStop,
-                                 earlyStopEpochs, earlyStopTol, lrSched, lrSchedEpochs, lrSchedLearnRates,
-                                 dHuber, nSteps, smoothSteps, iEpoch, learnRate, lossType);
+                                 earlyStopEpochs, earlyStopTol, dHuber, nSteps, smoothSteps, iEpoch, learnRate, lossType);
       doBreak        = validLossList["DoBreak"];
       learnRate      = validLossList["learnRate"];
       descentDetails.row(iEpoch) = Rcpp::as<arma::rowvec>(validLossList["rowDescentDetails"]);
@@ -464,17 +458,25 @@ Rcpp::List stochGD(Rcpp::List dataList, int nTrain, bool standardize, Rcpp::Char
         break;
       }
     }
+    if(lrSched){
+      if(any(iEpoch == lrSchedEpochs)){
+        arma::rowvec rowDescentDetails = descentDetails.row(iEpoch);
+        learnRate = max(lrSchedLearnRates.elem(find(lrSchedEpochs == iEpoch)));
+        rowDescentDetails[3] = 1;
+        descentDetails.row(iEpoch) = rowDescentDetails;
+      }
+    }
     if(verbose){
       double percProgress = round(100*double(iEpoch)/double(maxEpochs));
       Rcpp::Rcout << "\r" << "Training: " << percProgress << "%" << std::flush;
     }
     Rcpp::checkUserInterrupt();
   }
-  if (!plotExample) {
+  if (!plotExample & verbose) {
     Rcpp::Rcout << std::endl;
   }
-  Rcpp::List NN = createNN(upOut, regression, standardize, y_center, y_scale, X_center, X_scale, y_names, 
-                           activTypes, nEpochs, descentDetails, validLoss, plotExample, fpOut, upOut, nSteps, smoothSteps);
+  Rcpp::List NN = createNN(upOut, regression, standardize, y_center, y_scale, X_center, X_scale, y_names, activTypes, 
+                           nEpochs, descentDetails, validLoss, lrSched, plotExample, fpOut, bpOut, nSteps, smoothSteps);
   return NN;
 }
 
