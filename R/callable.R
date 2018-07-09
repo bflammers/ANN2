@@ -96,6 +96,8 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
   # Convert input data objects to matrices
   X       <- as.matrix(X)
   y       <- as.matrix(y)
+  
+  # Checks on input specific for neuralnetwork()
   if (regression) {
     if (!all(apply(X, 2, is.numeric))) {
       stop("X should be numeric")
