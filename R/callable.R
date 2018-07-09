@@ -90,9 +90,14 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                           earlyStop = FALSE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
                           lrSchedLearnRates = 1e-05, lrSchedEpochs = 800) {
   
+  # Match function call
   NN_call <- match.call()
+  
+  # Convert input data objects to matrices
   X       <- as.matrix(X)
   y       <- as.matrix(y)
+  
+  # Checks on input specific for 
   if (regression) {
     if (!all(apply(X, 2, is.numeric))) {
       stop("X should be numeric")
