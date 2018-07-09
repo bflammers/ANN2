@@ -90,7 +90,10 @@ neuralnetwork <- function(X, y, hiddenLayers, lossFunction = "log", dHuber = 1, 
                           earlyStop = FALSE, earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
                           lrSchedLearnRates = 1e-05, lrSchedEpochs = 800) {
   
+  # Match function call
   NN_call <- match.call()
+  
+  # Convert input data objects to matrices
   X       <- as.matrix(X)
   y       <- as.matrix(y)
   if (regression) {
