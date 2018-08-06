@@ -104,7 +104,7 @@ arma::mat activFunction(arma::mat x, Rcpp::String activType, int nSteps, int smo
   arma::mat result(x.n_rows, x.n_cols);
   if(activType == "tanh")           result = 1.725*tanh(2*x/3);
   else if(activType == "sigmoid")   result = 1/(1+exp(-x));
-  else if(activType == "rectifier") result = max(result.zeros(), x);
+  else if(activType == "rectifier") result = clamp(x, 0, x.max()); 
   else if(activType == "linear")    result = x;
   else if(activType == "softMax")   result = colSoftMax(x);
   else if(activType == "step")      result = stepFun(x, nSteps, smoothSteps);
