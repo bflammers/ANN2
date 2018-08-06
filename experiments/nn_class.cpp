@@ -10,11 +10,11 @@ mat tanhActivation(mat x){
 }
 
 // [[Rcpp::export]]
-mat reluActivation(mat x){
+mat reluActivation(mat& x){
   return clamp(x, 0, x.max()); 
 }
 
-typedef mat (*funcPtr)(mat x);
+typedef mat (*funcPtr)(mat& x);
 
 // [[Rcpp::export]]
 XPtr<funcPtr> assignActivation(String activation_) {
@@ -42,6 +42,11 @@ public:
     funcPtr g = *g_pointer;
     
     //Rcout << "\n W:\n"<< W << "\n A:\n" << A << "\n Z:\n"<< Z;
+  }
+  
+  mat test (mat X) {
+    Rcout << "\n X: \n" << X << "\n W: \n" << W;
+    return X;
   }
   
   mat activationFunction (mat X) {
@@ -84,6 +89,7 @@ RCPP_MODULE(mod_layer) {
   .constructor<int, int, int, String>()
   .method( "activationFunction", &layer::activationFunction )
   .method( "forward", &layer::forward )
+  .method( "test", &layer::test )
   ;
 }
 
@@ -98,6 +104,9 @@ RCPP_MODULE(mod_layer) {
 
 l <- new(layer, 5,5,10,'relu')
 m <- matrix(rnorm(10,1,2),5,2)
+
+l$test(m)
+#l$activationFunction(m)
 #l$forward(m)
 
 */
