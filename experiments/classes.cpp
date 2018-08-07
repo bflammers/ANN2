@@ -74,12 +74,38 @@ RCPP_MODULE(mod_layer) {
   ;
 }
 
+class ANN {
+private:
+  std::list<layer> layers;
+  
+  
+public:
+  ANN(ivec num_nodes_, StringVector layer_activations_, int H_, int k_) {
+    Rcout << "\n Layers: \n" << num_nodes_ << "\n Activations: \n" << layer_activations_;
+    
+    int n_layers = num_nodes_.size();
+    for(int i = 1; i!=n_layers; i++){
+      Rcout << "\n i: " << i << "/" << n_layers << " a: " << layer_activations_(i);
+      layer l(num_nodes_(i-1), num_nodes_(i), layer_activations_(i), H_, k_);
+      layers.push_back(l);
+    }
+    Rcout << "\n\n" << layers.size();
+  }
+};
+
+RCPP_MODULE(mod_ANN) {
+  class_<ANN>( "ANN" )
+  .constructor<ivec, StringVector, int, int>()
+  ;
+}
+
 
 /*** R
-l <- new(layer, 5, 5, 'relu', 4, 5)
-m <- matrix(rnorm(10,1,2),5,2)
-m
-l$forward(m)
+#l <- new(layer, 5, 5, 'relu', 4, 5)
+#m <- matrix(rnorm(10,1,2),5,2)
+#l$forward(m)
+
+a <- new(ANN, c(3,5,5,5,1), c('linear', 'tanh', 'relu', 'tanh', 'linear'), 0, 0)
 
 */
 
