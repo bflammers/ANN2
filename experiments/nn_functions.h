@@ -5,7 +5,8 @@
 using namespace Rcpp;
 using namespace arma;
 
-typedef mat (*funcPtr)(mat& x);
+typedef mat (*funcPtr)(mat& x, int& H, int& k);
 XPtr<funcPtr> assignActivation(String activation_);
+XPtr<funcPtr> assignDerivative(String activation_);
 
 #endif

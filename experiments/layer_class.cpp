@@ -5,39 +5,57 @@
 using namespace Rcpp;
 using namespace arma;
 
-//typedef mat (*funcPtr)(mat& x);
+typedef mat (*funcPtr)(mat& x, int& H, int& k);
+
+class activation {
+private:
+  int H, k;
+  funcPtr g, dg;
+  
+public:
+  activation(String activation_, int H_, int k_) {
+    H = H_;
+    k = k_;
+    
+    // Assign activation function based on string
+    XPtr<funcPtr> g_pointer = assignActivation(activation_);
+    g = *g_pointer;
+    
+    // Assign derivative function based on string
+    XPtr<funcPtr> dg_pointer = assignDerivative(activation_);
+    dg = *dg_pointer;
+  }
+  
+  mat activ (mat X) {
+    return g(X, H, k);
+  }
+  
+  mat grad (mat X) {
+    return dg(X, H, k);
+  }
+  
+};
 
 class layer {
 private:
   mat A, W, Z, dW;
   vec b;
-  funcPtr g;
+  activation g;
   
 public:
-  layer(int nodes_in_, int nodes_out_, String activation_) {
+  layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_) : 
+  g(activation_, H_, k_) {
     
     // Initialize weight matrix and biasvector
     W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
-    b = ones<vec>(nodes_out_);
+    b = zeros<vec>(nodes_out_);
     
-    // Assign activation function based on string
-    XPtr<funcPtr> g_pointer = assignActivation(activation_);
-    g = *g_pointer;
-  }
-  
-  mat test (mat X) {
-    Rcout << "\n X: \n" << X << "\n W: \n" << W;
-    return X;
-  }
-  
-  mat activationFunction (mat X) {
-    return g(X);
   }
   
   mat forward (mat X){
     int batch_size = X.n_cols;
     Z = W * X + repColVec(b, batch_size);
-    A = g(Z);
+    A = g.activ(Z);
     return A;
   }
   
@@ -50,21 +68,18 @@ public:
 
 RCPP_MODULE(mod_layer) {
   class_<layer>( "layer" )
-  .constructor<int, int, String>()
-  .method( "activationFunction", &layer::activationFunction )
+  .constructor<int, int, String, int, int>()
   .method( "forward", &layer::forward )
-  .method( "test", &layer::test )
+  .method( "backward", &layer::backward )
   ;
 }
 
 
 /*** R
-#l <- new(layer, 10, 5, 'relu')
-#m <- matrix(rnorm(10,1,2),5,2)
-
-#l$test(m)
-#l$activationFunction(m)
-#l$forward(m)
+l <- new(layer, 5, 5, 'relu', 4, 5)
+m <- matrix(rnorm(10,1,2),5,2)
+m
+l$forward(m)
 
 */
 

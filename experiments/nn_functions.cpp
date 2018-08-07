@@ -5,16 +5,28 @@ using namespace Rcpp;
 using namespace arma;
 
 // ----------- Activation functions ----------- //
-mat tanhActivation(mat& x){
-  return 1.725*tanh(2*x/3);
+mat tanhActivation(mat& X, int& H, int& k){
+  return 1.725*tanh(2*X/3);
 }
 
-mat reluActivation(mat& x){
-  return clamp(x, 0, x.max()); 
+mat reluActivation(mat& X, int& H, int& k){
+  return clamp(X, 0, X.max()); 
 }
 
-// ----------- Used to declare activation based on string ----------- //
-typedef mat (*funcPtr)(mat& x);
+// ----------- Derivative functions ----------- //
+mat tanhDerivative(mat& X, int& H, int& k){
+  return 1.15*(1-pow(tanh(2*X/3), 2));
+}
+
+mat reluDerivative(mat& X, int& H, int& k){
+  mat d(size(X), fill::zeros);
+  d.elem(find(X > 0)).fill(1);
+  return d; 
+}
+
+
+// ----------- Assign functions based on string ----------- //
+typedef mat (*funcPtr)(mat& X, int& H, int& k);
 
 XPtr<funcPtr> assignActivation(String activation_) {
   if (activation_ == "tanh")
@@ -24,3 +36,14 @@ XPtr<funcPtr> assignActivation(String activation_) {
   else
     return XPtr<funcPtr>(R_NilValue); // runtime error as NULL no XPtr
 }
+
+XPtr<funcPtr> assignDerivative(String activation_) {
+  if (activation_ == "tanh")
+    return(XPtr<funcPtr>(new funcPtr(&tanhDerivative)));
+  else if (activation_ == "relu")
+    return(XPtr<funcPtr>(new funcPtr(&reluDerivative)));
+  else
+    return XPtr<funcPtr>(R_NilValue); // runtime error as NULL no XPtr
+}
+
+
