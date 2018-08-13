@@ -4,30 +4,32 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-mat repVec(vec vector, int ntimes){
-  mat result(vector.size(), ntimes);
-  for(int i = 0; i!=ntimes; i++){
-    result.col(i) =vector;
+void f1 () {
+  mat A(4,5, fill::zeros);
+  Rcout << size(A);
+}
+
+// [[Rcpp::export]]
+void f2 (int n) {
+  List l;
+  List::iterator it;
+  
+  for(int i = 0; i != n; ++i){
+    l.push_back(i);
   }
-  return(result);
-}
+  
+  for(it = l.begin(); it != l.end(); ++it){
+    n = *it;
+    
+    //Rcout << j << std::endl;
+  }
 
-// [[Rcpp::export]]
-mat repColVector(vec colvec, int n){
-  mat result(colvec.size(), n);
-  result.each_col() = colvec;
-  return result;
-}
-
-// [[Rcpp::export]]
-mat repColVec2(vec colvec, int n){
-  mat result(colvec.size(), n);
-  result.each_col() = colvec;
-  return result;
 }
 
 /*** R
-vec <- 1:10
-repVec(vec, 3)
-repColVector(vec, 3)
+f1()
+#f2(9)
+
+#library('rbenchmark')
+#benchmark(f1(10), f2(10), replications = 10000000)
 */
