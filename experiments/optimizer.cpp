@@ -1,34 +1,51 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+#include "optimizer.h"
 using namespace Rcpp;
 using namespace arma;
 
-class optimizer {
-public: 
-  virtual mat updateW(mat W) { return W.zeros(); }
-  virtual vec updateb(vec b) { return b.zeros(); }
-};
+// ---------------------------------------------------------------------------//
+// Methods of base class optimizer
+// ---------------------------------------------------------------------------//
 
+mat optimizer::updateW(mat W, mat D, mat A_prev) { return W.zeros(); }
+vec optimizer::updateb(vec b, mat D) { return b.zeros(); }
+
+// ---------------------------------------------------------------------------//
+// Optimizers
+// ---------------------------------------------------------------------------//
+
+// SGD 
 class SGD : public optimizer
 {
 private:
   double lambda, m, L1, L2;
-  mat gW, mW;
-  vec gb, mb;
+  int batch_size;
+  mat mW;
+  vec mb;
 public:
-  SGD (mat W_, vec b_, double lambda_, double m_, double L1_, double L2_) : 
-       lambda(lambda_), m(m_), L1(L1_), L2(L2_) {
+  SGD (mat W_templ_, vec b_templ_, double lambda_, double m_, double L1_, 
+       double L2_) : lambda(lambda_), m(m_), L1(L1_), L2(L2_) {
     
-    // Initialize gradient and momentum matrices
-    gW = zeros<mat>(size(W_));
-    mW = zeros<mat>(size(W_));
-    gb = zeros<vec>(size(b_));
-    mb = zeros<vec>(size(b_));
+    // Initialize momentum matrices
+    mW = zeros<mat>(size(W_templ_));
+    mb = zeros<vec>(size(b_templ_));
     
   }
-  double getValue() {return m;}
+  mat updateW(mat W, mat D, mat A_prev) {
+    batch_size = A_prev.n_cols;
+    mat gW = A_prev * D / batch_size;
+    mW = m * mW - lambda * gW.t();
+    return (1 - lambda - L2) * W - lambda * L1 * sign(W) + mW;
+  }
+  
+  vec updateb(vec b, mat D) {
+    mb = m * mb - lambda * sum(D, 0).t() / batch_size;
+    return b + mb;
+  }
 };
 
+// RMSprop 
 class RMSprop : public optimizer
 {
 private:
@@ -43,38 +60,24 @@ public:
   double  getValue() {return m;}
 };
 
-class optimizerFactory
-{
-public:
-  double lambda, m, L1, L2;
-  mat W_templ;
-  vec b_templ;
-  optimizerFactory (mat W_, vec b_, double lambda_, double m_, double L1_, 
-                    double L2_) : lambda(lambda_), m(m_), L1(L1_), L2(L2_) {
-    // Store templates of W and b for initialization purposes
-    W_templ = zeros<mat>(size(W_));
-    b_templ = zeros<vec>(size(b_));
-  }
-  
-  optimizer *createOptimizer (String type) {
-    if      (type == "SGD")       return new SGD(W_templ, b_templ, lambda, m, L1, L2);
-    else if (type == "RMSprop")   return new RMSprop(m, W_templ);
-    else                          return NULL;
-  }
+// ---------------------------------------------------------------------------//
+// Methods for class optimizer factory 
+// ---------------------------------------------------------------------------//
 
-};
+// Constructor
+optimizerFactory::optimizerFactory (mat W_, vec b_, double lambda_, double m_, 
+                                    double L1_, double L2_) : lambda(lambda_), 
+                                    m(m_), L1(L1_), L2(L2_) {
+  // Store templates of W and b for initialization purposes
+  W_templ = zeros<mat>(size(W_));
+  b_templ = zeros<vec>(size(b_));
+}
 
-// [[Rcpp::export]]
-double testFactory(String type, double m_, mat W_, vec b_) {
-  optimizerFactory fact(m_, W_, b_);
-  optimizer *O = NULL;
-  O = fact.createOptimizer(type);
-  return O->getValue();
-};
+// Method for creating optimizers
+optimizer *optimizerFactory::createOptimizer (String type) {
+  if      (type == "SGD")       return new SGD(W_templ, b_templ, lambda, m, L1, L2);
+  else if (type == "RMSprop")   return new RMSprop(m, W_templ);
+  else                          return NULL;
+}
 
 
-
-/*** R
-testFactory("RMSprop", 0.7, diag(1:4), 5:7)
-
-*/

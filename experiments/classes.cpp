@@ -67,11 +67,11 @@ public:
 
 class layer {
 private:
-  mat A, Z, D;
+  mat A, Z;
   activation g;
   
 public:
-  mat W;
+  mat W, D;
   vec b;
   layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_) : 
         g(activation_, H_, k_) {
@@ -93,6 +93,14 @@ public:
   mat backward (mat E){
     D = E % g.grad(Z).t();
     return D * W;
+  }
+  
+  void printDim() {
+    Rcout << "W: rows " << W.n_rows << " cols " << W.n_cols << "\n";
+    Rcout << "b: size " << b.size() << "\n";
+    Rcout << "D: rows " << D.n_rows << " cols " << D.n_cols << "\n";
+    Rcout << "A: rows " << A.n_rows << " cols " << A.n_cols << "\n";
+    Rcout << "Z: rows " << Z.n_rows << " cols " << Z.n_cols << "\n";
   }
 };
 
@@ -141,9 +149,17 @@ public:
     mat E = L.grad(y, y_fit);
     for(rit = layers.rbegin(); rit != layers.rend(); ++rit) {
       E = rit->backward(E);
+      //Rcout << rit->D;
     }
     // Remove when finished
     return E; 
+  }
+  
+  void printLayers () {
+    for(it = layers.begin(); it != layers.end(); ++it) {
+      it->printDim();
+      Rcout << "\n\n";
+    }
   }
   
 };
@@ -153,6 +169,7 @@ RCPP_MODULE(mod_ANN) {
   .constructor<ivec, StringVector, String, int, int, double>()
   .method( "forwardPass", &ANN::forwardPass)
   .method( "backwardPass", &ANN::backwardPass)
+  .method( "printLayers", &ANN::printLayers)
   ;
 }
 
@@ -162,12 +179,15 @@ RCPP_MODULE(mod_ANN) {
 #m <- matrix(rnorm(10,1,2),5,2)
 #l$forward(m)
 
+b_s <- 10
+
 a <- new(ANN, c(2,5,4,3,2), c('linear', 'tanh', 'relu', 'tanh', 'linear'), 'log', 0, 0, 0.6)
-x <- matrix(rnorm(30), 10, 2)
+x <- matrix(rnorm(2 * b_s), b_s, 2)
 e <- a$forwardPass(x)
 e
 a$backwardPass(e)
 
+a$printLayers()
 
 
 */

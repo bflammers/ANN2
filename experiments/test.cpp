@@ -6,6 +6,7 @@ using namespace arma;
 // [[Rcpp::export]]
 void f1 () {
   mat A(4,5, fill::zeros);
+  size(A)
   Rcout << size(A);
 }
 
