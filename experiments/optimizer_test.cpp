@@ -1,6 +1,5 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
-#include "optimizer.h"
 using namespace Rcpp;
 using namespace arma;
 
@@ -83,7 +82,7 @@ public:
 mat testFactory(String type, mat W_, vec b_, double lambda_, double m_,
                    double L1_, double L2_, mat D_, mat A_prev_) {
   optimizerFactory fact(W_, b_, lambda_, m_, L1_, L2_);
-  optimizer *O = NULL;
+  optimizer *O = NULL; 
   O = fact.createOptimizer(type);
   mat uW = O->updateW(W_, D_, A_prev_);
   return O->updateb(b_, D_);

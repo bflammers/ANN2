@@ -1,84 +1,33 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "utils.h"
-#include "loss_functions.h"
-#include "activation_functions.h"
+#include "loss.h"
+#include "activations.h"
+#include "optimizer.h"
 using namespace Rcpp;
 using namespace arma;
-
-typedef mat (*funcPtrA)(mat& X, int& H, int& k);
-typedef mat (*funcPtrL)(mat& y, mat& y_fit, double& dHuber);
-typedef mat (*funcPtrO)(mat& W, vec& b, double& lambda, double& m, double& L1, 
-                        double& L2);
-
-class loss {
-private:
-  double dHuber;
-  funcPtrL L, dL;
-  
-public:
-  loss(String loss_, double dHuber_) : dHuber(dHuber_) {
-    
-    // Assign activation function based on string
-    XPtr<funcPtrL> L_pointer = assignLoss(loss_);
-    L = *L_pointer;
-    
-    // Assign derivative function based on string
-    XPtr<funcPtrL> dL_pointer = assignLossDeriv(loss_);
-    dL = *dL_pointer;
-  }
-  
-  mat eval (mat y, mat y_fit) {
-    return L(y, y_fit, dHuber);
-  }
-  
-  mat grad (mat y, mat y_fit) {
-    return dL(y, y_fit, dHuber);
-  }
-  
-};
-
-class activation {
-private:
-  int H, k;
-  funcPtrA g, dg;
-  
-public:
-  activation(String activation_, int H_, int k_) : H(H_), k(k_) {
-
-    // Assign activation function based on string
-    XPtr<funcPtrA> g_pointer = assignActiv(activation_);
-    g = *g_pointer;
-    
-    // Assign derivative function based on string
-    XPtr<funcPtrA> dg_pointer = assignActivDeriv(activation_);
-    dg = *dg_pointer;
-  }
-  
-  mat eval (mat X) {
-    return g(X, H, k);
-  }
-  
-  mat grad (mat X) {
-    return dg(X, H, k);
-  }
-  
-};
 
 class layer {
 private:
   mat A, Z;
   activation g;
+  optimizerFactory oFact;
   
 public:
   mat W, D;
   vec b;
-  layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_) : 
+  layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_, 
+        double lambda_, double m_, double L1_, double L2_) : 
         g(activation_, H_, k_) {
     
     // Initialize weight matrix and biasvector
     W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
     b = zeros<vec>(nodes_out_);
+    
+    optimizerFactory oFact(W, b, lambda_, m_, L1_, L2_);
+    // optimizer *O = NULL;
+    // O = fact.createOptimizer(type);
+    
     
   }
   
@@ -104,13 +53,13 @@ public:
   }
 };
 
-RCPP_MODULE(mod_layer) {
-  class_<layer>( "layer" )
-  .constructor<int, int, String, int, int>()
-  .method( "forward", &layer::forward )
-  .method( "backward", &layer::backward )
-  ;
-}
+// RCPP_MODULE(mod_layer) {
+//   class_<layer>( "layer" )
+//   .constructor<int, int, String, int, int>()
+//   .method( "forward", &layer::forward )
+//   .method( "backward", &layer::backward )
+//   ;
+// }
 
 class ANN {
 private:
@@ -123,13 +72,15 @@ private:
 public:
   std::list<layer> layers;
   ANN(ivec num_nodes_, StringVector layer_activations_, String loss_, int H_, 
-      int k_, double dHuber_) : L(loss_, dHuber_) {
-
+      int k_, double dHuber_, double lambda_, double m_, double L1_, double L2_)
+    : L(loss_, dHuber_) {
+  
     int n_layers = num_nodes_.size();
     for(int i = 1; i!=n_layers; i++){
       Rcout << "\n Layer: " << i << "/" << n_layers << " --> " << 
         layer_activations_(i);
-      layer l(num_nodes_(i-1), num_nodes_(i), layer_activations_(i), H_, k_);
+      layer l(num_nodes_(i-1), num_nodes_(i), layer_activations_(i), H_, k_, 
+              lambda_, m_, L1_, L2_);
       layers.push_back(l);
     }
     
@@ -166,7 +117,7 @@ public:
 
 RCPP_MODULE(mod_ANN) {
   class_<ANN>( "ANN" )
-  .constructor<ivec, StringVector, String, int, int, double>()
+  .constructor<ivec, StringVector, String, int, int, double, double, double, double, double>()
   .method( "forwardPass", &ANN::forwardPass)
   .method( "backwardPass", &ANN::backwardPass)
   .method( "printLayers", &ANN::printLayers)
@@ -181,13 +132,14 @@ RCPP_MODULE(mod_ANN) {
 
 b_s <- 10
 
-a <- new(ANN, c(2,5,4,3,2), c('linear', 'tanh', 'relu', 'tanh', 'linear'), 'log', 0, 0, 0.6)
+a <- new(ANN, c(2,5,4,3,2), c('linear', 'tanh', 'relu', 'tanh', 'linear'), 'log', 
+         0, 0, 0.6, 0.1, 0.3, 0.1, 0.8)
 x <- matrix(rnorm(2 * b_s), b_s, 2)
 e <- a$forwardPass(x)
 e
 a$backwardPass(e)
 
-a$printLayers()
+#a$printLayers()
 
 
 */

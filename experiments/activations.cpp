@@ -1,10 +1,12 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
-#include "activation_functions.h"
+#include "activations.h"
 using namespace Rcpp;
 using namespace arma;
 
-// ----------- Activation functions ----------- //
+// ---------------------------------------------------------------------------//
+// Activation functions
+// ---------------------------------------------------------------------------//
 mat tanhActiv(mat& X, int& H, int& k){
   return 1.725*tanh(2*X/3);
 }
@@ -17,7 +19,9 @@ mat linearActiv(mat& X, int& H, int& k){
   return X;
 }
 
-// -------- Activation functions derivatives -------- //
+// ---------------------------------------------------------------------------//
+// Activation functions derivatives
+// ---------------------------------------------------------------------------//
 mat tanhActivDeriv(mat& X, int& H, int& k){
   return 1.15*(1-pow(tanh(2*X/3), 2));
 }
@@ -32,7 +36,9 @@ mat linearActivDeriv(mat& X, int& H, int& k){
   return X.fill(1);
 }
 
-// ----------- Assign functions based on string ----------- //
+// ---------------------------------------------------------------------------//
+// Assign functions based on string
+// ---------------------------------------------------------------------------//
 typedef mat (*funcPtrA)(mat& X, int& H, int& k);
 
 XPtr<funcPtrA> assignActiv(String activation_) {
@@ -56,3 +62,26 @@ XPtr<funcPtrA> assignActivDeriv(String activation_) {
   else
     return XPtr<funcPtrA>(R_NilValue); // runtime error as NULL no XPtr
 }
+
+// ---------------------------------------------------------------------------//
+// Activation class
+// ---------------------------------------------------------------------------//
+activation::activation(String activation_, int H_, int k_) : H(H_), k(k_) {
+    
+  // Assign activation function based on string
+  XPtr<funcPtrA> g_pointer = assignActiv(activation_);
+  g = *g_pointer;
+  
+  // Assign derivative function based on string
+  XPtr<funcPtrA> dg_pointer = assignActivDeriv(activation_);
+  dg = *dg_pointer;
+}
+  
+mat activation::eval (mat X) {
+  return g(X, H, k);
+}
+  
+mat activation::grad (mat X) {
+  return dg(X, H, k);
+}
+
