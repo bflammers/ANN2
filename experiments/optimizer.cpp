@@ -8,14 +8,13 @@ using namespace arma;
 // Optimizer parameter object
 // ---------------------------------------------------------------------------//
 
-struct sgdParams : optimParams {
-  double lambda, m, L1, L2;
-  sgdParams (double lambda_, double m_, double L1_, double L2_)
-    : lambda(lambda_), m(m_), L1(L1_), L2(L2_) {}
-};
-struct RMSpropParams : optimParams {
-  double lambda;
-};
+sgdParams::sgdParams () {}
+sgdParams::sgdParams (double lambda_, double m_, double L1_, double L2_)
+  : lambda(lambda_), m(m_), L1(L1_), L2(L2_) {}
+
+rmspropParams::rmspropParams () {}
+rmspropParams::rmspropParams (double lambda_, double m_)
+  : lambda(lambda_), m(m_) {}
 
 // ---------------------------------------------------------------------------//
 // Methods of base class optimizer
@@ -38,13 +37,16 @@ private:
   mat mW;
   vec mb;
 public:
-  SGD (mat W_templ_, vec b_templ_, sgdParams P_) : P(P_) {
-    
+  SGD (mat W_templ_, vec b_templ_) {
     // Initialize momentum matrices
     mW = zeros<mat>(size(W_templ_));
     mb = zeros<vec>(size(b_templ_));
-    
   }
+  
+  void setParams(sgdParams P_) {
+    P = P_;
+  }
+  
   mat updateW(mat W, mat D, mat A_prev) {
     batch_size = A_prev.n_cols;
     mat gW = A_prev * D / batch_size;
@@ -62,13 +64,15 @@ public:
 class RMSprop : public optimizer
 {
 private:
+  rmspropParams P;
   double m;
-  mat dW;
-  vec db;
+  mat mW;
+  vec mb;
 public:
-  RMSprop (double m_, mat W_) : m(m_), dW(W_) {
-    m = m * 100;
-    dW.ones();
+  RMSprop (mat W_templ_, vec b_templ_) {
+    // Initialize momentum matrices
+    mW = zeros<mat>(size(W_templ_));
+    mb = zeros<vec>(size(b_templ_));
   }
   
   mat updateW(mat W, mat D, mat A_prev) {
@@ -79,6 +83,10 @@ public:
     return b.zeros();
   }
   
+  void setParams(rmspropParams P_) {
+    P = P_;
+  }
+  
 };
 
 // ---------------------------------------------------------------------------//
@@ -86,9 +94,7 @@ public:
 // ---------------------------------------------------------------------------//
 
 // Constructor
-optimizerFactory::optimizerFactory (mat W_, vec b_, double lambda_, double m_, 
-                                    double L1_, double L2_) : lambda(lambda_), 
-                                    m(m_), L1(L1_), L2(L2_) {
+optimizerFactory::optimizerFactory (mat W_, vec b_) {
   // Store templates of W and b for initialization purposes
   W_templ = zeros<mat>(size(W_));
   b_templ = zeros<vec>(size(b_));
@@ -96,8 +102,8 @@ optimizerFactory::optimizerFactory (mat W_, vec b_, double lambda_, double m_,
 
 // Method for creating optimizers
 optimizer *optimizerFactory::createOptimizer (String type) {
-  if      (type == "SGD")     return new SGD(W_templ, b_templ, lambda, m, L1, L2);
-  else if (type == "RMSprop") return new RMSprop(m, W_templ);
+  if      (type == "SGD")     return new SGD(W_templ, b_templ);
+  else if (type == "RMSprop") return new RMSprop(W_templ, b_templ);
   else                        return NULL;
 }
 

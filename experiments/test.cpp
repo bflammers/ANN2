@@ -4,10 +4,14 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-void f1 () {
-  mat A(4,5, fill::zeros);
-  size(A)
-  Rcout << size(A);
+void f1 (List ll) {
+  Rcpp::List xlist(ll);
+  double a = xlist["a"];
+  int b = xlist["b"];
+  String c = xlist["c"];
+  Rcout << a << " ";
+  Rcout << b << " ";
+  //Rcout << c << " ";
 }
 
 // [[Rcpp::export]]
@@ -28,7 +32,8 @@ void f2 (int n) {
 }
 
 /*** R
-f1()
+l <- list(a = 0.3, b = 1, c = "hallo")
+f1(l)
 #f2(9)
 
 #library('rbenchmark')

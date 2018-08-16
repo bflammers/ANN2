@@ -17,18 +17,17 @@ public:
   mat W, D;
   vec b;
   layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_, 
-        double lambda_, double m_, double L1_, double L2_) : 
+        double lambda_, double m_, double L1_, double L2_, String optimizer_) : 
         g(activation_, H_, k_) {
     
     // Initialize weight matrix and biasvector
     W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
     b = zeros<vec>(nodes_out_);
     
-    optimizerFactory oFact(W, b, lambda_, m_, L1_, L2_);
-    // optimizer *O = NULL;
-    // O = fact.createOptimizer(type);
-    
-    
+    optimizerFactory oFact(W, b);
+    optimizer *O = NULL;
+    O = oFact.createOptimizer(optimizer_);
+      
   }
   
   mat forward (mat X){

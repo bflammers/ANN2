@@ -7,6 +7,16 @@ using namespace arma;
 
 // Base struct for optimizer parameters
 struct optimParams { };
+struct sgdParams : optimParams {
+  double lambda, m, L1, L2;
+  sgdParams ();
+  sgdParams (double lambda_, double m_, double L1_, double L2_);
+};
+struct rmspropParams : optimParams {
+  double lambda, m;
+  rmspropParams ();
+  rmspropParams (double lambda_, double m_);
+};
 
 // Base class optimizer
 class optimizer {
@@ -20,14 +30,11 @@ public:
 class optimizerFactory
 {
 public:
-  double lambda, m, L1, L2;
   mat W_templ;
   vec b_templ;
   optimizerFactory ();
-  optimizerFactory (mat W_, vec b_, optimParams P);
-  
+  optimizerFactory (mat W_, vec b_);
   optimizer *createOptimizer (String type);
-  
 };
 
 
