@@ -17,16 +17,16 @@ public:
   mat W, D;
   vec b;
   layer(int nodes_in_, int nodes_out_, String activation_, int H_, int k_, 
-        double lambda_, double m_, double L1_, double L2_, String optimizer_) : 
+        List optim_param_) : 
         g(activation_, H_, k_) {
     
     // Initialize weight matrix and biasvector
     W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
     b = zeros<vec>(nodes_out_);
     
-    optimizerFactory oFact(W, b);
+    optimizerFactory oFact(W, b, optim_param_); 
     optimizer *O = NULL;
-    O = oFact.createOptimizer(optimizer_);
+    O = oFact.createOptimizer();
       
   }
   
@@ -130,6 +130,9 @@ RCPP_MODULE(mod_ANN) {
 #l$forward(m)
 
 b_s <- 10
+loss_params <- list()
+activ_params <- list(types = c('linear', 'tanh', 'relu', 'tanh', 'linear'), H = 5, k = 100)
+optim_params <- list(type = 'sgd', lambda = 0.001, m = 0.8, L1 = 0.001, L2 = 0.01)
 
 a <- new(ANN, c(2,5,4,3,2), c('linear', 'tanh', 'relu', 'tanh', 'linear'), 'log', 
          0, 0, 0.6, 0.1, 0.3, 0.1, 0.8)
