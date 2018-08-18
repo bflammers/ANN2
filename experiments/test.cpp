@@ -1,41 +1,37 @@
 // [[Rcpp::depends(RcppArmadillo)]]
+// [[Rcpp::plugins("cpp11")]]
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-void f1 (List ll) {
-  Rcpp::List xlist(ll);
-  double a = xlist["a"];
-  int b = xlist["b"];
-  String c = xlist["c"];
-  Rcout << a << " ";
-  Rcout << b << " ";
-  //Rcout << c << " ";
+arma::mat colSoftMax(arma::mat x) {
+  int nrow = x.n_rows;
+  mat out(x);
+  for (int i = 0; i < nrow; i++) {
+    rowvec exp_x = exp( x.row(i) - max(x.row(i)) );
+    out.row(i)      = exp_x / sum(exp_x);
+  }
+  return out;
 }
 
 // [[Rcpp::export]]
-void f2 (int n) {
-  List l;
-  List::iterator it;
-  
-  for(int i = 0; i != n; ++i){
-    l.push_back(i);
-  }
-  
-  for(it = l.begin(); it != l.end(); ++it){
-    n = *it;
-    
-    //Rcout << j << std::endl;
-  }
-
+mat softMax(mat X) {
+  rowvec max_X = max(X);
+  X.each_row() -= max_X;
+  mat A = exp(X);
+  rowvec t = sum(A);
+  A.each_row() /= t;
+  return A;
 }
 
 /*** R
-l <- list(a = 0.3, b = 1, c = "hallo")
-f1(l)
-#f2(9)
+x <- matrix(rnorm(15), 5, 3)
+tx <- t(x)
 
-#library('rbenchmark')
-#benchmark(f1(10), f2(10), replications = 10000000)
+colSoftMax(x)
+softMax(tx)
+
+library('rbenchmark')
+benchmark(colSoftMax(x), softMax(tx), replications = 1000000)
 */

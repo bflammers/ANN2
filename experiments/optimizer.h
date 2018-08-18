@@ -16,7 +16,7 @@ public:
 class optimizerFactory
 {
 public:
-  int type;
+  std::string type;
   List optim_param;
   mat W_templ;
   vec b_templ;

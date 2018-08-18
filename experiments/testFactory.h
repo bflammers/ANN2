@@ -1,5 +1,5 @@
-#ifndef ACTIVATIONS
-#define ACTIVATIONS
+#ifndef TEST
+#define TEST
 
 #include <RcppArmadillo.h>
 using namespace Rcpp;
@@ -7,9 +7,16 @@ using namespace arma;
 
 // Base class activation
 class activation {
-public: 
+public:
   virtual mat eval(mat X);
   virtual mat grad(mat X);
+};
+
+class tanhActivation : public activation {
+public:
+  tanhActivation ();
+  mat eval(mat X);
+  mat grad(mat X);
 };
 
 // Class for creating activation classes that inherit from base class

@@ -38,9 +38,17 @@ public:
   
   mat updateW(mat W, mat D, mat A_prev) {
     batch_size = A_prev.n_cols;
+    // Rcout << "    w:1  A * D \n" << "batchsize: " << batch_size << "\n"; 
+    // Rcout << "A: " << A_prev.n_rows << " " << A_prev.n_cols << "\n";
+    // Rcout << "D: " << D.n_rows << " " << D.n_cols << "\n";
+    // Rcout << "mW: " << mW.n_rows << " " << mW.n_cols << "\n";
+    
     mat gW = A_prev * D / batch_size;
+    //Rcout << "    w:2 \n";
+    
     mW = m * mW - lambda * gW.t();
-    return (1 - lambda - L2) * W - lambda * L1 * sign(W) + mW;
+    //Rcout << "    w:3 \n";
+    return (1 - lambda * L2) * W - lambda * L1 * sign(W) + mW;
   }
   
   vec updateb(vec b, mat D) {
@@ -89,13 +97,13 @@ optimizerFactory::optimizerFactory (mat W_, vec b_, List optim_param_) :
   b_templ = zeros<vec>(size(b_));
   
   // Set optimization type
-  type = optim_param["type"];
+  type = as<std::string>(optim_param_["type"]);
 }
 
 // Method for creating optimizers
 optimizer *optimizerFactory::createOptimizer () {
-  if      (type == 0) return new SGD(W_templ, b_templ, optim_param);
-  else if (type == 1) return new RMSprop(W_templ, b_templ, optim_param);
+  if      (type == "sgd")     return new SGD(W_templ, b_templ, optim_param);
+  else if (type == "rmsprop") return new RMSprop(W_templ, b_templ, optim_param);
   else                return NULL;
 }
 
