@@ -8,7 +8,7 @@ using namespace arma;
 // Base class loss
 class loss {
 public: 
-  virtual mat eval(mat y, mat y_fit);
+  virtual double eval(mat y, mat y_fit);
   virtual mat grad(mat y, mat y_fit);
 };
 

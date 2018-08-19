@@ -7,17 +7,17 @@
 using namespace Rcpp;
 using namespace arma;
 
-class layer {
+class layer 
+{
 private:
-  mat A_prev, Z, D;
+  mat W, A_prev, Z;
+  vec b;
   activation *g;
   optimizer *O;
   
 public:
-  mat W;
-  vec b;
-  layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_) {
-    
+  layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_)
+  {
     // Initialize weight matrix and biasvector
     W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
     b = zeros<vec>(nodes_out_);
@@ -32,61 +32,58 @@ public:
     
     Rcout << "\n Layer - "<< nodes_out_ << " nodes - " << 
       as<std::string>(activ_param_["type"]);
-      
   }
   
-  mat forward (mat X) {
-    int batch_size = X.n_cols;
+  mat forward (mat X) 
+  {
     A_prev = X; 
-    Z = W * X + repColVec(b, batch_size);
+    Z = W * X + repColVec(b, X.n_cols);
     return g->eval(Z);
   }
   
-  mat backward (mat E) {
-    D = E % g->grad(Z).t();
+  mat backward (mat E) 
+  {
+    mat D = E % g->grad(Z).t();
     W = O->updateW(W, D, A_prev);
     b = O->updateb(b, D);
     return D * W;
   }
-  
-  mat predict (mat X) {
-    int batch_size = X.n_cols;
-    mat Z = W * X + repColVec(b, batch_size);
-    return g->eval(Z);
-  }
-
 };
 
-class ANN {
+class ANN 
+{
 private:
+  std::list<layer> layers;
   std::list<layer>::iterator it;
   std::list<layer>::reverse_iterator rit;
+  int epoch;
   loss *L;
   mat y_fit;
   
 public:
-  std::list<layer> layers;
-  StringVector activ_types;
-  List activ_param;
-  
-  ANN(ivec num_nodes_, List optim_param_, List loss_param_, List activ_param_) 
-    : activ_param(activ_param_) {
-    
+  ANN(ivec num_nodes_, List optim_param_, List loss_param_, List activ_param_)
+  {
     // Set loss
     lossFactory lFact(loss_param_); 
     L = lFact.createLoss();
     
+    // Set iterable parameter vectors for activation type and lambda
+    List activ_param = activ_param_;
+    List optim_param = optim_param_;
+    StringVector activ_types = activ_param["types"];
+    vec lambdas = optim_param["lambdas"];
+    
     // Set layers
-    activ_types = activ_param_["types"];
-    int n_layers = num_nodes_.size();
-    for(int i = 1; i!=n_layers; i++){
+    for(int i = 1; i!=num_nodes_.size(); i++){
       activ_param["type"] = activ_types(i);
-      layer l(num_nodes_(i-1), num_nodes_(i), activ_param, optim_param_);
+      optim_param["lambda"] = lambdas(i);
+      layer l(num_nodes_(i-1), num_nodes_(i), activ_param, optim_param);
       layers.push_back(l);
     }
   }
   
-  void forwardPass (mat X) {
+  void forwardPass (mat X) 
+  {
     X = X.t();
     for(it = layers.begin(); it != layers.end(); ++it) {
       X = it->forward(X);
@@ -94,22 +91,42 @@ public:
     y_fit = X.t();
   }
   
-  void backwardPass (mat y) {
+  void backwardPass (mat y) 
+  {
     mat E = L->grad(y, y_fit);
     for(rit = layers.rbegin(); rit != layers.rend(); ++rit) {
       E = rit->backward(E);
     }
   }
   
-  mat predict (mat X) {
+  mat partialForward (mat X, int i_start, int i_stop) 
+  {
     X = X.t();
-    for(it = layers.begin(); it != layers.end(); ++it) {
-      X = it->predict(X);
+    
+    // Set start & stop point iterators
+    std::list<layer>::iterator start_it = layers.begin();
+    std::advance(start_it, i_start);
+    std::list<layer>::iterator stop_it = layers.begin();
+    std::advance(stop_it, i_stop);
+    
+    // Loop from start_it to stop_it
+    for(it = start_it; it != stop_it; ++it) {
+      X = it->forward(X);
     }
     return X.t();
   }
   
-  double evalLoss(mat y, mat X) {
+  mat predict (mat X) 
+  {
+    X = X.t();
+    for(it = layers.begin(); it != layers.end(); ++it) {
+      X = it->forward(X);
+    }
+    return X.t();
+  }
+  
+  double evalLoss(mat y, mat X) 
+  {
     return accu( L->eval(y, predict(X)) );
   }
   
@@ -122,6 +139,7 @@ RCPP_MODULE(mod_ANN) {
   .method( "backwardPass", &ANN::backwardPass)
   .method( "predict", &ANN::predict)
   .method( "evalLoss", &ANN::evalLoss)
+  .method( "partialForward", &ANN::partialForward)
   ;
 }
 
@@ -132,13 +150,13 @@ RCPP_MODULE(mod_ANN) {
 #l$forward(m)
 
 b_s <- 100
-loss_params  <- list(type = "log", dHuber = NA)
-activ_params <- list(types = c('input', 'tanh', 'softmax'), H = 5, k = 100)
-optim_params <- list(type = 'sgd', lambda = 0.2, m = 0.9, L1 = 0, L2 = 0)
+loss_params  <- list(type = "pseudoHuber", dHuber = 1)
+activ_params <- list(types = c('input', 'sigmoid', 'sigmoid', 'sigmoid', 'softmax'), H = 5, k = 100)
+optim_params <- list(type = 'sgd', lambdas = c(0, 0.9, 0.8, 0.7, 0.6), m = 0.9, L1 = 0, L2 = 0)
 
-a <- new(ANN, c(2,100,2), optim_params, loss_params, activ_params)
-n <- 500
-sd_noise = 0.6
+a <- new(ANN, c(2,5,5,5,2), optim_params, loss_params, activ_params)
+n <- 200
+sd_noise = 0.8
 r  <- seq(0.05, 0.8,   length.out = n)
 t1 <- seq(0,    2.6, length.out = n) + stats::rnorm(n, sd = sd_noise)
 c1 <- cbind(r*sin(t1)-0.1 , r*cos(t1)+0.1)
@@ -151,10 +169,10 @@ plot(X, col = y)
 Y <- t(sapply(y, function(yy) as.numeric(yy == c(1,2))))
 
 
-for(i in 0:1000) {
+for(i in 0:5000) {
   a$forwardPass(X)
   a$backwardPass(Y)
-  if (i %% 100 == 0){
+  if (i %% 500 == 0){
     print(a$evalLoss(Y, X))
     
     x_seq <- seq(min(X), max(X), by = 0.1)
@@ -169,12 +187,7 @@ for(i in 0:1000) {
     graphics::points(X, col = y + 1)
     Sys.sleep(0.5)
   }
-
 }
-
-
-
-
 
 */
 

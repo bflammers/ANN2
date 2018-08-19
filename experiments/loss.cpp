@@ -8,8 +8,8 @@ using namespace arma;
 // Base loss class
 // ---------------------------------------------------------------------------//
 
-mat loss::eval(mat y, mat y_fit) { return y.zeros(); }
-mat loss::grad(mat y, mat y_fit) { return y.zeros(); }
+double loss::eval(mat y, mat y_fit) { return 0; }
+mat loss::grad(mat y, mat y_fit) { return 0; }
 
 // ---------------------------------------------------------------------------//
 // Loss classes
@@ -19,12 +19,17 @@ class logLoss : public loss
 {
 public:
   logLoss () {}
-  mat eval(mat y, mat y_fit) {
-    vec result = -log( y_fit.elem(find(y == 1)) );
-    return clamp(result, std::numeric_limits<double>::min(),
-                 std::numeric_limits<double>::max());
+  
+  double eval(mat y, mat y_fit) 
+  {
+    mat l = -log( y_fit.elem(find(y == 1)) );
+    l = clamp(l, std::numeric_limits<double>::min(), 
+              std::numeric_limits<double>::max());
+    return accu(l) / y.n_rows;
   }
-  mat grad(mat y, mat y_fit) { 
+  
+  mat grad(mat y, mat y_fit) 
+  { 
     return y_fit-y;
   }
 };
@@ -33,10 +38,15 @@ class squaredLoss : public loss
 {
 public:
   squaredLoss () {}
-  mat eval(mat y, mat y_fit) { 
-    return sum(pow(y_fit - y, 2), 1);
+  
+  double eval(mat y, mat y_fit) 
+  {
+    mat l = pow(y_fit - y, 2);
+    return accu( l ) / y.n_rows;
   }
-  mat grad(mat y, mat y_fit) { 
+  
+  mat grad(mat y, mat y_fit) 
+  { 
     return 2 * (y_fit - y);
   }
 };
@@ -45,25 +55,62 @@ class absoluteLoss : public loss
 {
 public:
   absoluteLoss () {}
-  mat eval(mat y, mat y_fit) { 
-    return sum(abs(y_fit - y), 1);
+  
+  double eval(mat y, mat y_fit) 
+  {
+    mat l = abs(y_fit - y);
+    return accu( l ) / y.n_rows;
   }
-  mat grad(mat y, mat y_fit) { 
+  
+  mat grad(mat y, mat y_fit) 
+  { 
     return sign( y_fit - y );
+  }
+};
+
+class huberLoss : public loss
+{
+private:
+  double dHuber;
+public:
+  huberLoss(List loss_param_) 
+    : dHuber(loss_param_["dHuber"]) {}
+  
+  double eval(mat y, mat y_fit) 
+  {
+    mat E   = abs(y_fit - y);
+    mat l   = dHuber * (E - dHuber/2);
+    uvec iE = find(E <= dHuber);
+    l(iE)   = pow(E(iE), 2)/2;
+    return accu( l ) / y.n_rows;
+  }
+  
+  mat grad(mat y, mat y_fit) 
+  { 
+    mat E   = y_fit - y;
+    mat dl  = dHuber * sign(E);
+    uvec iE = find(abs(E) <= dHuber);
+    dl(iE)  = E(iE);
+    return dl;
   }
 };
 
 class pseudoHuberLoss : public loss
 {
-public:
+private:
   double dHuber;
-  pseudoHuberLoss(List loss_param_) {
-    dHuber = loss_param_["dHuber"];
+public:
+  pseudoHuberLoss(List loss_param_) 
+    : dHuber(loss_param_["dHuber"]) {}
+  
+  double eval(mat y, mat y_fit) 
+  {
+    mat l = sqrt(1 + pow( (y_fit - y) / dHuber, 2)) - 1;
+    return accu( l ) / y.n_rows;
   }
-  mat eval(mat y, mat y_fit) { 
-    return sum(sqrt(1 + pow( (y_fit.t() - y) / dHuber, 2)) - 1, 1);
-  }
-  mat grad(mat y, mat y_fit) { 
+  
+  mat grad(mat y, mat y_fit) 
+  { 
     mat E = y_fit - y;
     return E % ( 1 / sqrt(1 + pow(E/dHuber, 2)) );
   }
@@ -74,20 +121,20 @@ public:
 // ---------------------------------------------------------------------------//
 
 // Constructor
-lossFactory::lossFactory (List loss_param_) : loss_param(loss_param_) {
+lossFactory::lossFactory (List loss_param_) : loss_param(loss_param_) 
+{
   // Set optimization type
   type = as<std::string>(loss_param["type"]);
 }
 
 // Method for creating optimizers
-loss *lossFactory::createLoss () {
+loss *lossFactory::createLoss () 
+{
   if      (type == "log")         return new logLoss();
   else if (type == "squared")     return new squaredLoss();
   else if (type == "absolute")    return new absoluteLoss();
+  else if (type == "huber")       return new huberLoss(loss_param);
   else if (type == "pseudoHuber") return new pseudoHuberLoss(loss_param);
-  else {
-    Rcout << "\n\nloss factory failed!!!!\n\n";
-    return NULL;
-  }                            
+  else                            return NULL;
 }
 

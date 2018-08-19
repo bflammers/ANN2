@@ -24,30 +24,21 @@ private:
   mat mW;
   vec mb;
 public:
-  SGD (mat W_templ_, vec b_templ_, List optim_param_) {
+  SGD (mat W_templ_, vec b_templ_, List optim_param_) 
+    : lambda ( optim_param_["lambda"]),
+      m ( optim_param_["m"]),
+      L1 ( optim_param_["L1"]),
+      L2 ( optim_param_["L2"])
+  {
     // Initialize momentum matrices
     mW = zeros<mat>(size(W_templ_));
     mb = zeros<vec>(size(b_templ_));
-    
-    // Set optimization parameters
-    lambda = optim_param_["lambda"];
-    m = optim_param_["m"];
-    L1 = optim_param_["L1"];
-    L2 = optim_param_["L2"];
   }
   
   mat updateW(mat W, mat D, mat A_prev) {
     batch_size = A_prev.n_cols;
-    // Rcout << "    w:1  A * D \n" << "batchsize: " << batch_size << "\n"; 
-    // Rcout << "A: " << A_prev.n_rows << " " << A_prev.n_cols << "\n";
-    // Rcout << "D: " << D.n_rows << " " << D.n_cols << "\n";
-    // Rcout << "mW: " << mW.n_rows << " " << mW.n_cols << "\n";
-    
     mat gW = A_prev * D / batch_size;
-    //Rcout << "    w:2 \n";
-    
     mW = m * mW - lambda * gW.t();
-    //Rcout << "    w:3 \n";
     return (1 - lambda * L2) * W - lambda * L1 * sign(W) + mW;
   }
   
