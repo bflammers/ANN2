@@ -58,7 +58,7 @@ private:
   std::list<layer>::reverse_iterator rit;
   scaler sX, sY;
   loss *L;
-  int epoch;
+  double epoch;
   
 public:
   ANN(List net_param_, List optim_param_, List loss_param_, List activ_param_)
@@ -147,22 +147,29 @@ public:
     return accu( L->eval(Y, predict(X)) );
   }
   
-  void train (mat X_, mat Y_, int n_epochs, int batch_size)
+  void train (mat X_, mat Y_, int n_epochs, int batch_size, double val_prop)
   {
     int max_epochs = epoch + n_epochs;
+    int n_train = ceil( (1 - val_prop) * X_.n_rows );
+    int n_val = X_.n_rows - n_train;
+    double batch_prop = batch_size / double(n_train);
+    uvec train_indices = regspace<uvec>(0, n_train - 1);
+    uvec val_indices = regspace<uvec>(0, n_val - 1);
     
     if ( epoch == 0) {
       sX.fit(X_);
       sY.fit(Y_);
-      //rand_perm = linspace() random linspace for train test split
     }
     mat X = sX.scale(X_);
     mat Y = sY.scale(Y_);
     
-    for (; epoch != max_epochs; ++epoch){
+    while ( epoch <= max_epochs ) {
       mat Y_fit = forwardPass(X);
       backwardPass(Y, Y_fit);
-      Rcout << evalLoss(Y_, X_) << std::endl;
+      checkUserInterrupt();
+      Rcout << "Loss: " << evalLoss(Y_, X_) << "  Epoch: " << epoch << 
+        " / " << max_epochs << std::endl;
+      epoch += batch_prop;
     }
     
   }
@@ -208,7 +215,7 @@ net_params   <- list(standardize = TRUE, num_nodes = c(2,5,5,5,2))
 
 a <- new(ANN, net_params, optim_params, loss_params, activ_params)
 
-a$train(X, Y, 100, 10)
+a$train(X, Y, 10, 50, 0.1)
 x_seq <- seq(min(X), max(X), by = 0.1)
 xy_plot <- as.matrix(expand.grid(x_seq, x_seq))
 xy_pred <- data.frame(xy_plot, apply(a$predict(xy_plot), 1, which.max))

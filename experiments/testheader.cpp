@@ -1,48 +1,20 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
-#include "testFactory.h"
+#include "utils.h"
 
-// [[Rcpp::export]]
-mat testFactory(List activ_param_, mat X) {
-  // Set activation function
-  activationFactory aFact(activ_param_); 
-  activation *g = NULL;
-  g = aFact.createActivation();
-  return g->eval(X);
-};
-
-class ANN {
-private:
-  activation *g;
-public:
-  ANN(List activ_param_) {
-    
-    activationFactory aFact(activ_param_); 
-    //*g = NULL;
-    g = aFact.createActivation();
-    
-  }
-  
-  mat test (mat X) {
-    return g->eval(X);
-  }
-  
-};
-
-RCPP_MODULE(mod_ANN) {
-  class_<ANN>( "ANN" )
+RCPP_MODULE(mod_sampler) {
+  class_<sampler>( "sampler" )
   .constructor<List>()
-  .method( "test", &ANN::test)
+  .method( "sampleTrainX", &sampler::sampleTrainX)
+  .method( "sampleTrainY", &sampler::sampleTrainY)
+  .method( "getValX", &sampler::getValX)
+  .method( "getValY", &sampler::getValY)
   ;
 }
 
 /*** R
-activ_params <- list(type = 'tanh', H = 5, k = 100)
-X <- matrix(rnorm(100)*3, 50, 2)
-y <- testFactory(activ_params, X)
-plot(c(X), c(y))
+X <- matrix(rnorm(200), 50, 4)
+Y <- matrix(sample(1:2, 100, replace = TRUE), 50, 2)
+s <- new(sampler, X, Y, 32, 0.8)
 
-a <- new(ANN, activ_params)
-z <- a$test(X)
-plot(c(X), c(z))
 */

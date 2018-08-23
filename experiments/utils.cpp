@@ -48,3 +48,38 @@ mat scaler::unscale(mat x)
   return x;
 }
 
+// ---------------------------------------------------------------------------//
+// Sampler class
+// ---------------------------------------------------------------------------//
+sampler::sampler (mat X_, mat Y_, int batch_size_, double val_prop_) 
+  : batch_size(batch_size_)
+{
+  int n_obs = X_.n_rows;
+  int n_train = ceil ( (1 - val_prop_ ) * n_obs);
+  
+  // Randomly shuffle X and Y
+  uvec rand_perm = arma::shuffle(regspace<uvec>(0, n_obs - 1));
+  mat X = X_.rows(rand_perm);
+  mat Y = Y_.rows(rand_perm);
+  
+  // Divide X and Y in training and validation sets
+  X_train = X.rows(regspace<uvec>(0, n_train - 1));
+  Y_train = X.rows(regspace<uvec>(0, n_train - 1));
+  X_val = X.rows(regspace<uvec>(n_train, n_obs - 1));
+  Y_val = X.rows(regspace<uvec>(n_train, n_obs - 1));
+  
+  // Determine bounds of batches
+  batch_bounds = regspace<uvec>(0, batch_size, n_obs + batch_size - 1);
+  batch_bounds = unique(clamp(batch_bounds, 0, n_obs - 1));
+}
+
+void sampler::shuffle () {
+  // Set list of batch indices to new random uvecs
+  
+  // Set list iterators to begin
+};
+mat sampler::nextBatchX () { return X_train; };
+mat sampler::nextBatchY () { return Y_train; };
+mat sampler::getValX () { return X_val; };
+mat sampler::getValY () { return Y_val; };
+
