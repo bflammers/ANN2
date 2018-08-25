@@ -7,7 +7,7 @@ using namespace arma;
 
 // Base class optimizer
 class optimizer {
-public: 
+public:
   virtual mat updateW(mat W, mat D, mat A_prev);
   virtual vec updateb(vec b, mat D);
 };

@@ -6,7 +6,8 @@ using namespace arma;
 
 RCPP_MODULE(mod_sampler) {
   class_<sampler>( "sampler" )
-  .constructor<mat, mat, int, double>()
+  .constructor<mat, mat, List>()
+  .method( "shuffle", &sampler::shuffle)
   .method( "nextBatchX", &sampler::nextBatchX)
   .method( "nextBatchY", &sampler::nextBatchY)
   .method( "getValX", &sampler::getValX)
@@ -14,37 +15,47 @@ RCPP_MODULE(mod_sampler) {
   ;
 }
 
+
+// class tester 
+// {
+// public:
+//   int a;
+//   tester(int b) : a(b) {};
+// };
+// 
+// // [[Rcpp::export]]
+// void testfn(int b) {
+//   tester t(b);
+//   Rcout << t.a;
+// }
+
 // [[Rcpp::export]]
-uvec testfn(mat X, double batch_size) {
-  
-  int n_obs = X.n_rows;
-  int n_batch = ceil(n_obs / batch_size);
-  
-  // Randomly shuffle X and Y
-  uvec rand_perm = round(linspace<uvec>(0, n_obs - 1, n_batch * batch_size));
-  rand_perm = arma::shuffle(rand_perm);
-  uvec batch_range = regspace<uvec>(0, batch_size - 1);
-  
-  std::list<uvec> indices;
-  
-  for (int i = 0; i != n_batch; i++) {
-    indices.push_back ( rand_perm(batch_range + i * batch_size) );
-    Rcout << batch_range + i * batch_size << std::endl;
-  }
-  
-  return rand_perm;
-};
-
-
+void tester(mat X, int a, int b) {
+  // Divide X and Y in training and validation sets
+  X.resize(a,b);
+  Rcout << X;
+}
 
 /*** R
-X <- matrix(rnorm(100), 25, 4)
-Y <- matrix(sample(1:2, 50, replace = TRUE), 25, 2)
-s <- new(sampler, X, Y, 10, 0.1)
+ 
+X <- matrix(1:100, 25, 4)
+Y <- matrix(1:50, 25, 2)
 
-a <- testfn(X, 2)
-table(a)
-#s$getValX()
-#s$nextBatchX()
+tester(matrix(1:4, 2, 2), 4, 2)
+
+# train_param <- list(batch_size = 10, val_prop = 0.1)
+# s <- new(sampler, X, Y, train_param)
+# 
+# X
+# Y
+# 
+# s$getValX()
+# s$getValY()
+# s$nextBatchX()
+# s$nextBatchY()
+# s$shuffle()
+# 
+# any( s$getValX() %in% s$nextBatchX() )
+
 
 */
