@@ -5,6 +5,13 @@ using namespace Rcpp;
 using namespace arma;
 
 // ---------------------------------------------------------------------------//
+// Constants
+// ---------------------------------------------------------------------------//
+
+double double_min = std::numeric_limits<double>::min();
+double double_max = std::numeric_limits<double>::max();
+
+// ---------------------------------------------------------------------------//
 // Base loss class
 // ---------------------------------------------------------------------------//
 
@@ -22,9 +29,8 @@ public:
   
   double eval(mat y, mat y_fit) 
   {
-    mat l = -log( y_fit.elem(find(y == 1)) );
-    l = clamp(l, std::numeric_limits<double>::min(), 
-              std::numeric_limits<double>::max());
+    mat l = - y % log( y_fit );
+    l = clamp(l, double_min, double_max);
     return accu(l) / y.n_rows;
   }
   

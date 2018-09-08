@@ -107,15 +107,15 @@ private:
   mat A;
 public:
   // Constructor
-  softMaxActivation () {}
+  softMaxActivation () { }
   
   // Evaluate softmax
   mat eval(mat X) 
   {
-    rowvec max_X = max(X);
+    rowvec max_X = max(X, 0);
     X.each_row() -= max_X;
     A = exp(X);
-    rowvec t = sum(A);
+    rowvec t = sum(A, 0);
     A.each_row() /= t;
     return A;
   }

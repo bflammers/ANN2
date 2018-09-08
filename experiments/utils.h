@@ -5,18 +5,20 @@
 using namespace Rcpp;
 using namespace arma;
 
+// [[Rcpp::export]]
+std::string progressBar(int progress);
+
 mat repColVec(vec colvec, int n);
 
 class scaler 
 {
 private:
-  rowvec x_mu, x_sd;
+  rowvec z_mu, z_sd;
   bool standardize;
 public:
-  scaler (List net_param_);
-  void fit(mat x);
-  mat scale(mat x);
-  mat unscale(mat x);
+  scaler (mat z, bool standardize_, List net_param_);
+  mat scale(mat z);
+  mat unscale(mat z);
 };
 
 class sampler 
@@ -29,28 +31,26 @@ private:
   std::list<uvec>::iterator Yit;
 public:
   int n_batch;
-  double batch_prop;
   bool validate;
   sampler (mat X_, mat y_, List train_param);
   void shuffle();
-  mat nextBatchX();
-  mat nextBatchY();
-  mat getValX();
-  mat getValY();
-  mat getTrainX();
-  mat getTrainY();
+  mat nextXb();
+  mat nextYb();
+  mat getXv();
+  mat getYv();
 };
 
-// Base class optimizer
-class tracker 
-{
+class tracker {
 private:
-  uword k;
+  bool verbose, validate;
+  int k, n_passes;
+  double one_percent;
 public:
-  mat train_history;
   tracker();
-  void setTracker(int n_eval);
-  void track(double train_loss, double val_loss);
+  ~tracker();
+  mat train_history;
+  void setTracker(int n_passes_, bool validate_, List train_param_);
+  void track (double train_loss, double val_loss);
 };
 
 #endif
