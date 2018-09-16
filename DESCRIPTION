@@ -1,8 +1,8 @@
 Package: ANN2
 Type: Package
 Title: Artificial Neural Networks for Anomaly Detection
-Version: 1.6
-Date: 2017-11-24
+Version: 2.0
+Date: 2018-09-09
 Author: Bart Lammers
 Maintainer: Bart Lammers <bart.f.lammers@gmail.com>
 Description: Training of general classification and regression neural networks using 
@@ -16,7 +16,7 @@ License: GPL (>= 3)
 URL: https://github.com/bflammers/ANN2
 Encoding: UTF-8
 LazyData: true
-Imports: Rcpp (>= 0.12.12), robustbase (>= 0.92), stats (>= 3.3.2), graphics (>= 3.3.2)
+Imports: Rcpp (>= 0.12.18), robustbase (>= 0.92), stats (>= 3.3.2), graphics (>= 3.3.2)
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: rgl, reshape2
 RoxygenNote: 6.0.1
