@@ -1,15 +1,9 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "loss.h"
+#include "utils.h"
 using namespace Rcpp;
 using namespace arma;
-
-// ---------------------------------------------------------------------------//
-// Constants
-// ---------------------------------------------------------------------------//
-
-double double_min = std::numeric_limits<double>::min();
-double double_max = std::numeric_limits<double>::max();
 
 // ---------------------------------------------------------------------------//
 // Base loss class

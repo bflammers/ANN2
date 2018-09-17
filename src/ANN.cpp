@@ -1,5 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 #include "utils.h"
 #include "loss.h"
 #include "layer.h"
@@ -34,8 +36,8 @@ public:
 // ANN class constructor
 ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
     List activ_param_)
-  : sX(data_["X"], net_param_["standardize_X"], net_param_),
-    sY(data_["Y"], net_param_["standardize_Y"], net_param_),
+  : sX(data_["X"], net_param_["standardize_X"]),
+    sY(data_["Y"], net_param_["standardize_Y"]),
     epoch(0)
 {
   
@@ -123,6 +125,7 @@ double ANN::evalLoss(mat Y, mat X)
 
 void ANN::train (List data, List train_param)
 {
+  
   // Training parameters
   int n_epochs = train_param["n_epochs"];
   int max_epochs = epoch + n_epochs;
@@ -130,23 +133,23 @@ void ANN::train (List data, List train_param)
   // Scale data
   mat X = sX.scale(data["X"]);
   mat Y = sY.scale(data["Y"]);
-  
+
   // Set sampler and tracker
   Sampler sampler(X, Y, train_param);
   int n_new_passes = n_epochs * sampler.n_batch;
   tracker.setTracker(n_new_passes, sampler.validate, train_param);
-  
+
   for (; epoch != max_epochs; epoch++) {
-    
+
     // Shuffle data
     sampler.shuffle();
-    
+
     for (int b = 0; b != sampler.n_batch; b++) {
       
       // Sample new batch
       mat Xb = sampler.nextXb();
       mat Yb = sampler.nextYb();
-      
+
       // Forward pass
       mat Yb_fit = forwardPass(Xb);
       

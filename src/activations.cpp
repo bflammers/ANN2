@@ -1,6 +1,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "activations.h"
+#include "utils.h"
 using namespace Rcpp;
 using namespace arma;
 
@@ -70,7 +71,7 @@ public:
   // Evaluate relu
   mat eval(mat X) 
   {
-    return clamp(X, 0, X.max());
+    return clamp(X, 0, double_max);
   }
   
   // Derivative relu
@@ -131,7 +132,8 @@ public:
 class stepActivation : public activation
 {
 private:
-  double H, k;
+  int H; 
+  double k;
   vec seqH;
   mat::iterator mit;
 public:

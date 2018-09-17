@@ -4,10 +4,10 @@
 \alias{neuralnetwork}
 \title{Train a Neural Network}
 \usage{
-neuralnetwork(X, Y, hidden.layers, activ.functions = "tanh",
-  regression = FALSE, loss.type = "log", delta.huber = 1,
-  standardize = TRUE, optim.type = "sgd", n.epochs = 1000,
-  learn.rate = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32,
+neuralnetwork(X, Y, hidden.layers, regression = FALSE, loss.type = "log",
+  delta.huber = 1, activ.functions = "tanh", H = 5, k = 100,
+  optim.type = "sgd", n.epochs = 1000, learn.rate = 1e-04,
+  momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32, standardize = TRUE,
   drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
 }
 \arguments{
@@ -15,16 +15,16 @@ neuralnetwork(X, Y, hidden.layers, activ.functions = "tanh",
 
 \item{regression}{logical indicating regression or classification}
 
-\item{standardize}{logical indicating if X and y should be standardized before
-training the network. Recommended to leave at \code{TRUE} for faster
-convergence.}
-
 \item{momentum}{numeric value specifying how much momentum should be
 used. Set to zero for no momentum, otherwise a value between zero and one.}
 
 \item{L1}{L1 regularization. Non-negative number. Set to zero for no regularization.}
 
 \item{L2}{L2 regularization. Non-negative number. Set to zero for no regularization.}
+
+\item{standardize}{logical indicating if X and y should be standardized before
+training the network. Recommended to leave at \code{TRUE} for faster
+convergence.}
 
 \item{verbose}{logical indicating if additional information (such as lifesign)
 should be printed to console during training.}

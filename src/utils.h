@@ -5,17 +5,33 @@
 using namespace Rcpp;
 using namespace arma;
 
+// ---------------------------------------------------------------------------//
+// Constants
+// ---------------------------------------------------------------------------//
+
+double double_epsilon = std::numeric_limits<double>::epsilon();
+
+double double_min = std::numeric_limits<double>::min();
+
+double double_max = std::numeric_limits<double>::max();
+
+// ---------------------------------------------------------------------------//
+// Common functions
+// ---------------------------------------------------------------------------//
 std::string progressBar(int progress);
 
 mat repColVec(vec colvec, int n);
 
+// ---------------------------------------------------------------------------//
+// Common classes
+// ---------------------------------------------------------------------------//
 class Scaler 
 {
 private:
   rowvec z_mu, z_sd;
   bool standardize;
 public:
-  Scaler (mat z, bool standardize_, List net_param_);
+  Scaler (mat z, bool standardize_);
   mat scale(mat z);
   mat unscale(mat z);
 };

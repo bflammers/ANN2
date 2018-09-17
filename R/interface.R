@@ -84,11 +84,12 @@
 #' #For other examples see function example_NN()
 #'
 #' @export
-neuralnetwork <- function(X, Y, hidden.layers, activ.functions = "tanh", 
-                          regression = FALSE, loss.type = "log", delta.huber = 1,
-                          standardize = TRUE, optim.type = "sgd", 
-                          n.epochs = 1000, learn.rate = 1e-04, momentum = 0.2, 
-                          L1 = 0, L2 = 0, batch.size = 32, drop.last = TRUE,
+neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE, 
+                          loss.type = "log", delta.huber = 1, 
+                          activ.functions = "tanh", H = 5, k = 100,
+                          optim.type = "sgd", n.epochs = 1000, 
+                          learn.rate = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
+                          batch.size = 32, standardize = TRUE, drop.last = TRUE,
                           val.prop = 0.1, verbose = TRUE) {
   
   # Store function call
@@ -98,19 +99,19 @@ neuralnetwork <- function(X, Y, hidden.layers, activ.functions = "tanh",
   data <- setData(X, Y, regression)
   
   # Set and check parameters
-  loss_params  <- setLossParams(loss.type, delta.huber, regression)
-  activ_params <- setActivParams(activ.functions, regression, hidden.layers)
-  optim_params <- setOptimParams(optim.type, learn.rate, momentum, L1, L2, hidden.layers)
-  net_params   <- setNetworkParams(data, hidden.layers, standardize, regression)
+  loss_param  <- setLossParams(loss.type, delta.huber, regression)
+  activ_param <- setActivParams(activ.functions, regression, hidden.layers, H, k)
+  optim_param <- setOptimParams(optim.type, learn.rate, momentum, L1, L2, hidden.layers)
+  net_param   <- setNetworkParams(data, hidden.layers, standardize, regression)
   
   # Initialize new ANN object
-  NN <- new(ANN, data, net_params, optim_params, loss_params, activ_params)
+  NN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
-  train_params <- setTrainParams(data, n.epochs, batch.size, val.prop, drop.last, verbose)
+  train_param <- setTrainParams(data, n.epochs, batch.size, val.prop, drop.last, verbose)
   
   # Call train method
-  NN$train(data, train_params)
+  NN$train(data, train_param)
 
   return(NN)
 }

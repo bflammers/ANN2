@@ -8,7 +8,7 @@ using namespace arma;
 // Constants
 // ---------------------------------------------------------------------------//
 
-double double_epsilon = std::numeric_limits<double>::epsilon();
+
 
 // ---------------------------------------------------------------------------//
 // Functions
@@ -89,16 +89,15 @@ void Tracker::track (double train_loss, double val_loss) {
 // Scaler class
 // ---------------------------------------------------------------------------//
 
-Scaler::Scaler (mat z, bool standardize_, List net_param_)
+Scaler::Scaler (mat z, bool standardize_)
   : standardize(standardize_)
 {
-  ivec num_nodes = net_param_["num_nodes"];
   if ( standardize ) {
     z_mu = mean(z);
     z_sd = stddev(z);
   } else {
-    z_mu = zeros<rowvec>(num_nodes[0]);
-    z_sd = ones<rowvec>(num_nodes[num_nodes.size() - 1]);
+    z_mu = zeros<rowvec>(z.n_cols);
+    z_sd = ones<rowvec>(z.n_cols);
   }
 }
 

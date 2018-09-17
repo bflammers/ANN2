@@ -138,7 +138,7 @@ setLossParams <- function(loss.type, delta.huber, regression) {
 }
 
 # Set and check activation parameter list
-setActivParams <- function(activ.functions, regression, hidden.layers) {
+setActivParams <- function(activ.functions, regression, hidden.layers, H, k) {
   allowed_types <- c('tanh', 'sigmoid', 'relu', 'linear', 'ramp', 'step')
   
   # No hidden layers: return parameter list with types set to NULL
@@ -164,12 +164,27 @@ setActivParams <- function(activ.functions, regression, hidden.layers) {
     types <- rep(activ.functions, length(hidden.layers))
   }
   
+  # Check parameters H and k, only for step activation function
+  if ( 'step' %in% activ.functions ) {
+    
+    # (ERROR) number of steps H should be a whole number larger than zero
+    if ( H %% 1 != 0  || H < 1 ) {
+      stop('H should be an integer larger than zero')
+    }
+    
+    # (ERROR) smoothing parameter k should be and integer larger than zero
+    if ( k %% 1 != 0  || k < 1 ) {
+      stop('k should be an integer larger than zero')
+    }
+    
+  }
+  
   # Append activation type of output layer (and 'input', not used)
-  output_type <- ifelse(regression, 'linear', 'softMax')
+  output_type <- ifelse(regression, 'linear', 'softmax')
   types  <- c('input', activ.functions, output_type)
   
   # Collect parameters in list
-  return ( list(types = types) )
+  return ( list(types = types, H = 5, k = 100) )
 }
 
 # Set and check optimizer parameter list
