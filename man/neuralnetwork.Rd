@@ -6,7 +6,7 @@
 \usage{
 neuralnetwork(X, Y, hidden.layers, regression = FALSE, loss.type = "log",
   delta.huber = 1, activ.functions = "tanh", H = 5, k = 100,
-  optim.type = "sgd", n.epochs = 1000, learn.rate = 1e-04,
+  optim.type = "sgd", n.epochs = 1000, learn.rates = 1e-04,
   momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32, standardize = TRUE,
   drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
 }

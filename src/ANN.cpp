@@ -36,8 +36,8 @@ public:
 // ANN class constructor
 ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
     List activ_param_)
-  : sX(data_["X"], net_param_["standardize_X"]),
-    sY(data_["Y"], net_param_["standardize_Y"]),
+  : sX(data_["X"], net_param_["stand_X"]),
+    sY(data_["Y"], net_param_["stand_Y"]),
     epoch(0)
 {
   
@@ -163,8 +163,12 @@ void ANN::train (List data, List train_param)
       
       // Check for interrupt
       checkUserInterrupt();
+      
     }
   }
+  
+  // End printing on the same line
+  tracker.endLine();
 }
 
 RCPP_MODULE(ANN) {

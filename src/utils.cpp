@@ -5,25 +5,24 @@ using namespace Rcpp;
 using namespace arma;
 
 // ---------------------------------------------------------------------------//
-// Constants
+// Tracker class
 // ---------------------------------------------------------------------------//
+Tracker::Tracker () : k(0), curr_progress(0), one_percent(100) {}
+Tracker::~Tracker () { Rcout << std::endl; }
 
-
-
-// ---------------------------------------------------------------------------//
-// Functions
-// ---------------------------------------------------------------------------//
-
-// Make a matrix consisting of one repeated column
-mat repColVec(vec colvec, int n)
+// Set tracker parameters of training run, allocate memory
+void Tracker::setTracker (int n_passes_, bool validate_, List train_param_)
 {
-  mat result(colvec.size(), n);
-  result.each_col() = colvec;
-  return result;
+  verbose = train_param_["verbose"];
+  validate = validate_;
+  n_passes = k + n_passes_;
+  one_percent = std::max( double(n_passes - 1) / 100, 
+                          std::numeric_limits<double>::epsilon());
+  train_history.resize(n_passes, 2);
 }
 
-// Make progress bar string
-std::string progressBar(int progress) {
+// Private method for creating progress bar string
+std::string Tracker::progressBar(int progress) {
   int bar_width = 50;
   std::stringstream progress_string;
   int pos = bar_width * progress / 100;
@@ -38,30 +37,15 @@ std::string progressBar(int progress) {
   return progress_string.str();
 }
 
-// ---------------------------------------------------------------------------//
-// Tracker class
-// ---------------------------------------------------------------------------//
-Tracker::Tracker () : k(0), one_percent(100) {}
-Tracker::~Tracker () { Rcout << std::endl; }
-
-void Tracker::setTracker (int n_passes_, bool validate_, List train_param_)
-{
-  verbose = train_param_["verbose"];
-  validate = validate_;
-  n_passes = k + n_passes_;
-  one_percent = std::max( double(n_passes - 1) / 100, double_epsilon );
-  train_history.resize(n_passes, 2);
-}
-
 void Tracker::track (double train_loss, double val_loss) {
 
   // Update progress bar and loss
   if ( verbose ) {
 
-    double progress = k / one_percent;
-    int progress_perc = std::ceil( progress );
-    if ( true ) {
+    int progress_perc = std::ceil( k / one_percent );
+    if ( progress_perc != curr_progress || k % 10 == 0 ) {
       
+      curr_progress = progress_perc;
       std::stringstream progress_stream;
       progress_stream << progressBar( progress_perc );
       
@@ -84,6 +68,9 @@ void Tracker::track (double train_loss, double val_loss) {
   // Increment counter
   k++;
 }
+
+// End the line after
+void Tracker::endLine () { if ( verbose ) Rcout << std::endl; }
 
 // ---------------------------------------------------------------------------//
 // Scaler class

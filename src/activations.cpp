@@ -1,7 +1,6 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "activations.h"
-#include "utils.h"
 using namespace Rcpp;
 using namespace arma;
 
@@ -71,7 +70,7 @@ public:
   // Evaluate relu
   mat eval(mat X) 
   {
-    return clamp(X, 0, double_max);
+    return clamp(X, 0, std::numeric_limits<double>::max());
   }
   
   // Derivative relu

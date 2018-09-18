@@ -22,14 +22,15 @@ layer::layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_
   activationFactory aFact(activ_param_); 
   g = aFact.createActivation();
   
-  Rcout << "\n Layer - "<< nodes_out_ << " nodes - " << 
-    as<std::string>(activ_param_["type"]);
+  Rcout << "Layer - "<< nodes_out_ << " nodes - " << 
+    as<std::string>(activ_param_["type"]) << "\n";
 }
   
 mat layer::forward (mat X) 
 {
   A_prev = X; 
-  Z = W * X + repColVec(b, X.n_cols);
+  Z = W * X;
+  Z.each_col() += b;
   return g->eval(Z);
 }
 

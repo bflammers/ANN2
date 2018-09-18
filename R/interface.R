@@ -88,33 +88,37 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
                           loss.type = "log", delta.huber = 1, 
                           activ.functions = "tanh", H = 5, k = 100,
                           optim.type = "sgd", n.epochs = 1000, 
-                          learn.rate = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
+                          learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
                           batch.size = 32, standardize = TRUE, drop.last = TRUE,
                           val.prop = 0.1, verbose = TRUE) {
   
   # Store function call
   NN_call <- match.call()
   
-  # Perform checks on data
+  # Perform checks on data, set meta data
   data <- setData(X, Y, regression)
+  meta <- setMeta(data, hidden.layers, regression)
   
   # Set and check parameters
-  loss_param  <- setLossParams(loss.type, delta.huber, regression)
-  activ_param <- setActivParams(activ.functions, regression, hidden.layers, H, k)
-  optim_param <- setOptimParams(optim.type, learn.rate, momentum, L1, L2, hidden.layers)
-  net_param   <- setNetworkParams(data, hidden.layers, standardize, regression)
+  net_param   <- setNetworkParams(hidden.layers, standardize, meta)
+  activ_param <- setActivParams(activ.functions, H, k, meta)
+  optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
+  loss_param  <- setLossParams(loss.type, delta.huber, meta)
   
   # Initialize new ANN object
   NN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
-  train_param <- setTrainParams(data, n.epochs, batch.size, val.prop, drop.last, verbose)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                verbose, meta)
   
   # Call train method
   NN$train(data, train_param)
 
   return(NN)
 }
+
+NN$train()
 
 #' @title Train a Replicator Neural Network
 #'

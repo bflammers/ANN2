@@ -6,24 +6,7 @@ using namespace Rcpp;
 using namespace arma;
 
 // ---------------------------------------------------------------------------//
-// Constants
-// ---------------------------------------------------------------------------//
-
-double double_epsilon = std::numeric_limits<double>::epsilon();
-
-double double_min = std::numeric_limits<double>::min();
-
-double double_max = std::numeric_limits<double>::max();
-
-// ---------------------------------------------------------------------------//
-// Common functions
-// ---------------------------------------------------------------------------//
-std::string progressBar(int progress);
-
-mat repColVec(vec colvec, int n);
-
-// ---------------------------------------------------------------------------//
-// Common classes
+// Scaler class
 // ---------------------------------------------------------------------------//
 class Scaler 
 {
@@ -36,6 +19,9 @@ public:
   mat unscale(mat z);
 };
 
+// ---------------------------------------------------------------------------//
+// Sampler class
+// ---------------------------------------------------------------------------//
 class Sampler 
 {
 private:
@@ -55,17 +41,22 @@ public:
   mat getYv();
 };
 
+// ---------------------------------------------------------------------------//
+// Tracker class
+// ---------------------------------------------------------------------------//
 class Tracker {
 private:
   bool verbose, validate;
-  int k, n_passes;
+  int k, n_passes, curr_progress;
   double one_percent;
+  std::string progressBar(int progress);
 public:
   Tracker();
   ~Tracker();
   mat train_history;
   void setTracker(int n_passes_, bool validate_, List train_param_);
   void track (double train_loss, double val_loss);
+  void endLine ();
 };
 
 #endif
