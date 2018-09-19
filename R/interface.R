@@ -106,175 +106,19 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   loss_param  <- setLossParams(loss.type, delta.huber, meta)
   
   # Initialize new ANN object
-  NN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
+  Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
-                                verbose, meta)
+                                verbose, data)
   
   # Call train method
-  NN$train(data, train_param)
+  Rcpp_ANN$train(data, train_param)
+  
+  ANN <- list(meta = meta, Rcpp_ANN = Rcpp_ANN)
+  class(ANN) <- 'ANN'
 
-  return(NN)
-}
-
-NN$train()
-
-#' @title Train a Replicator Neural Network
-#'
-#' @description
-#' Train a Replicator Neural Network using Stohastic Gradient
-#' descent with optional batch learning. See Hawkins et al. (2002) for details on
-#' Replicator Neural Networks.
-#'
-#' @details
-#' A function for training an Replicator Neural Network.
-#'
-#' @references Hawkins, Simon, et al. "Outlier detection using replicator neural
-#' networks." DaWaK. Vol. 2454. 2002.
-#'
-#' @param X matrix with explanatory variables
-#' @param hiddenLayers vector specifying the number of nodes in each layer. Set
-#' to \code{NA} for a Network without any hidden layers
-#' @param lossFunction which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
-#' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
-#' This parameter controls the cut-off point between quadratic and absolute loss.
-#' @param stepLayers vector or integer specifying which layers should have
-#' stepwise activation in its nodes
-#' @param nSteps numeric integer specifying how many steps the step function should
-#' have on the interval [0, 1]
-#' @param smoothSteps numeric indicating the smoothness of the step function.
-#' Smaller values result in smoother steps. Recommended to keep below 50 for
-#' stability. If set to high, the derivative of the stepfunction will also be large
-#' @param rampLayers vector or integer specifying which layers should have
-#' ramplike activation in its nodes. This is equivalent to a stepfunction
-#' with an infinite number of steps (limit of step function when nSteps and
-#' smoothSteps go to infinity) but more efficient than using step function layer
-#' with a large number for nSteps.
-#' @param rectifierLayers vector or integer specifying which layers should have
-#' rectifier activation in its nodes
-#' @param sigmoidLayers vector or integer specifying which layers should have
-#' sigmoid activation in its nodes
-#' @param standardize logical indicating if X and y should be standardized before
-#' training the network. Recommended to leave at \code{TRUE} for faster
-#' convergence.
-#' @param learnRate the size of the steps made in gradient descent. If set too large,
-#' optimization can become unstable. Is set too small, convergence will be slow.
-#' @param maxEpochs the maximum number of epochs (one iteration through training
-#' data).
-#' @param batchSize the number of observations to use in each batch. Batch learning
-#' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Le Cun for details.
-#' @param momentum numeric value specifying how much momentum should be
-#' used. Set to zero for no momentum, otherwise a value between zero and one.
-#' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
-#' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
-#' @param validLoss logical indicating if loss should be monitored during training.
-#' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-#' drawn from full training set. Use function \code{plot} to assess convergence.
-#' @param validProp proportion of training data to use for validation
-#' @param verbose logical indicating if additional information (such as lifesign)
-#' should be printed to console during training.
-#' @param earlyStop logical indicating if early stopping should be used based on
-#' the loss on a validation set. Only possible with \code{validLoss} set to \code{TRUE}
-#' @param earlyStopEpochs after how many epochs without sufficient improvement
-#' (as specified by \code{earlyStopTol}) should training be stopped.
-#' @param earlyStopTol numerical value specifying tolerance for early stopping.
-#' Can be either positive or negative. When set negative, training will be stopped
-#' if improvements are made but improvements are smaller than tolerance.
-#' @param lrSched logical indicating if a schedule for the learning rate should
-#' be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
-#' @param robErrorCov logical indicating if robust covariance should be estimated in 
-#' order to assess Mahalanobis distances of reconstruction errors
-#' \code{lrSchedLearnRates} .
-#' @param lrSchedLearnRates vector with elements specifying the learn rate to be used
-#' after epochs determined by lrSchedEpochs.
-#' @param lrSchedEpochs vector with elements specifying the epoch after which the
-#' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
-#' shoud be the same as length of \code{learnSchedLearnRates}.
-#' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
-#' loss on training and optionally validation data during training process. Use
-#' function \code{predict(<object>, <newdata>)} for prediction.
-#' @examples
-#' # Replicator
-#' repNN <- replicator(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
-#'                     robErrorCov = TRUE)
-#' plot(repNN)
-#'
-#' rX <- reconstruct(repNN, faithful)
-#' plot(rX, alpha = 0.05)
-#' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
-#' @export
-replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1, stepLayers = 2,
-                       nSteps = 5, smoothSteps = 25, rampLayers = NA, rectifierLayers = NA, sigmoidLayers = NA,
-                       standardize = TRUE, learnRate = 1e-06, maxEpochs = 1000, batchSize = 32, momentum = 0.2,
-                       L1 = 0, L2 = 0, validLoss = TRUE, validProp = 0.1, verbose = TRUE, earlyStop = FALSE,
-                       earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE, lrSchedEpochs = 800,
-                       lrSchedLearnRates = 1e-07, robErrorCov = FALSE) {
-  NN_call <- match.call()
-  X <- y <- as.matrix(X)
-  if (!all(apply(X, 2, is.numeric))){
-    stop("X should be numeric")
-  }
-  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers)) {
-    stop("Replicator NN should have at least one hidden layer")
-  }
-  if ((all(is.na(rampLayers)) || is.null(rampLayers)) && (all(is.na(stepLayers)) || is.null(stepLayers))){
-    stop("Replicator NN should have one layer with step function activation or ramp activation")
-  }
-  if (!validLoss) {
-    validProp <- 0
-  }
-  nColX  <- nColY <- ncol(X)
-  nTot   <- nrow(X)
-  nTrain <- ceiling(nTot * (1 - validProp))
-  nVal   <- nTot - nTrain
-  
-  checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = stepLayers,
-                  rampLayers = rampLayers, rectifierLayers = rectifierLayers, linearLayers = NA, sigmoidLayers = sigmoidLayers,
-                  maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
-                  validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
-                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
-                  nSteps = nSteps, smoothSteps = smoothSteps, autoencoder = TRUE, nColX = nColX)
-  
-  if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
-    warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
-    lossFunction <- "pseudo-huber"
-  }
-  
-  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
-                       regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
-  
-  startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
-                   stepLayers = stepLayers, rampLayers = rampLayers, rectifierLayers = rectifierLayers, linearLayers = NA,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
-  
-  NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, activTypes = startVal$activTypes, 
-                   lossType = lossFunction, dHuber = dHuber, nSteps = nSteps, smoothSteps = smoothSteps, 
-                   batchSize = batchSize, maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, 
-                   L2 = L2, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
-                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
-                   fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
-                   verbose = verbose, regression = TRUE, plotExample = FALSE)
-  
-  if (robErrorCov) {
-    cat("\nCalculating robust covariance matrix...")
-    errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
-    MCD  <- robustbase::covMcd(errX)
-  } else {
-    MCD <- list(center = NULL, cov = NULL)
-  }
-  
-  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
-             print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
-             pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
-             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
-                            replicator = TRUE, nSteps = nSteps, smoothSteps = smoothSteps, 
-                            robErrorCov = robErrorCov))
-  class(NN) <- "ANN"
-  return(NN)
+  return(ANN)
 }
 
 #' @title Train an Autoencoding Neural Network
@@ -298,6 +142,15 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' "quadratic", "absolute", "huber" and "pseudo-huber"
 #' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
+#' @param H numeric integer specifying number of steps of the step function
+#' @param k numeric indicating the smoothness of the step function.
+#' Smaller values result in smoother steps. Recommended to keep below 50 for
+#' stability. If set to high, the derivative of the stepfunction will also be large
+#' @param rampLayers vector or integer specifying which layers should have
+#' ramplike activation in its nodes. This is equivalent to a stepfunction
+#' with an infinite number of steps (limit of step function when nSteps and
+#' smoothSteps go to infinity) but more efficient than using step function layer
+#' with a large number for nSteps.
 #' @param linearLayers vector or integer specifying which layers should have
 #' linear activation in its nodes
 #' @param rectifierLayers vector or integer specifying which layers should have
@@ -355,70 +208,36 @@ replicator <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-hu
 #' plot(rX, alpha = 0.05)
 #' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
 #' @export
-autoencoder <- function(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber", dHuber = 1, linearLayers = NA,
-                        rectifierLayers = NA, sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06, maxEpochs = 100,
-                        batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0, validLoss = TRUE, 
-                        validProp = 0.1, verbose = TRUE, earlyStop = FALSE, earlyStopEpochs = 50, earlyStopTol = -1e-07,
-                        lrSched = FALSE, lrSchedEpochs = NA, lrSchedLearnRates = NA, robErrorCov = FALSE) {
+autoencoder <- function(X, Y, hidden.layers, loss.type = "squared", 
+                        delta.huber = 1, activ.functions = "tanh", H = 5, k = 100,
+                        optim.type = "sgd", n.epochs = 1000, 
+                        learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
+                        batch.size = 32, standardize = TRUE, drop.last = TRUE,
+                        val.prop = 0.1, verbose = TRUE) {
+  
+  # Store function call
   NN_call <- match.call()
-  X <- y <- as.matrix(X)
-  if (!all(apply(X, 2, is.numeric))){
-    stop("X should be numeric")
-  }
-  if (all(is.na(hiddenLayers)) || is.null(hiddenLayers)) {
-    stop("Autoencoder should have at least one hidden layer")
-  }
-  if (!validLoss) {
-    validProp <- 0
-  }
   
-  nColX  <- nColY <- ncol(X)
-  nTot   <- nrow(X)
-  nTrain <- ceiling(nTot * (1 - validProp))
-  nVal   <- nTot - nTrain
+  # Perform checks on data, set meta data
+  data <- setData(X, Y, regression = TRUE)
+  meta <- setMeta(data, hidden.layers, regression = TRUE)
   
-  checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
-                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers, linearLayers = linearLayers,
-                  maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
-                  validLoss = validLoss, validProp = validProp, earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs,
-                  lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates, nTrain = nTrain,
-                  nSteps = 1, smoothSteps = 1, autoencoder = TRUE, nColX = nColX)
+  # Set and check parameters
+  net_param   <- setNetworkParams(hidden.layers, standardize, meta)
+  activ_param <- setActivParams(activ.functions, H, k, meta)
+  optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
+  loss_param  <- setLossParams(loss.type, delta.huber, meta)
   
-  if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
-    warning("Loss function not one of \"huber\", \"pseudo-huber\", \"quadratic\", \"absolute\". Using pseudo-huber loss function.\n")
-    lossFunction <- "pseudo-huber"
-  }
+  # Initialize new ANN object
+  NN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
-  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
-                       regression = TRUE, nTot = nTot, nTrain = nTrain, nVal = nVal)
+  # Set and check training parameters
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                verbose, data)
   
-  startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = TRUE,
-                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers, linearLayers = linearLayers,
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = verbose)
+  # Call train method
+  NN$train(data, train_param)
   
-  NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize, 
-                   activTypes = startVal$activTypes, lossType = lossFunction,
-                   dHuber = dHuber, nSteps = 0, smoothSteps = 0, batchSize = batchSize,
-                   maxEpochs = maxEpochs, learnRate = learnRate, momentum = momentum, L1 = L1, L2 = L2,
-                   earlyStop = earlyStop, earlyStopEpochs = earlyStopEpochs, earlyStopTol = earlyStopTol,
-                   lrSched = lrSched, lrSchedEpochs = lrSchedEpochs, lrSchedLearnRates = lrSchedLearnRates,
-                   fpOut = list(NA), bpOut = list(NA), upOut = startVal$upOut, validLoss = validLoss,
-                   verbose = verbose, regression = TRUE, plotExample = FALSE)
-  
-  if (robErrorCov) {
-    cat("\nCalculating robust covariance matrix...")
-    errX <- X - predictC(NNfit$NN_pred, as.matrix(X), standardize)
-    MCD  <- robustbase::covMcd(errX)
-  } else {
-    MCD <- list(center = NULL, cov = NULL)
-  }
-  
-  NN <- list(X       = X, trainInd = dataList$trainInd, valInd = dataList$valInd, hiddenLayers = hiddenLayers,
-             print   = list(call = NN_call, overview = startVal$overview, nEpochs = NNfit$NN_plot$nEpochs),
-             pred    = NNfit$NN_pred, plot = NNfit$NN_plot, reconstruct = TRUE,
-             rec     = list(MCDcenter = MCD$center, MCDcov = MCD$cov, standardize = standardize,
-                            replicator = FALSE, nSteps = NA, smoothSteps = NA, robErrorCov = robErrorCov))
-  class(NN) <- "ANN"
   return(NN)
 }
 
@@ -618,17 +437,36 @@ plotStepFunction <- function(object = NULL, X, hidden_node = 1, color = "red",
 #' @method predict ANN
 #' @export
 predict.ANN <- function(object, newdata, ...) {
-  NN_pred <- object$pred
-  newdata <- as.matrix(newdata)
-  rawPred <- predictC(NN_pred, newdata, NN_pred$standardize)
-  if (NN_pred$regression) {
-    colnames(rawPred) <- NN_pred$y_names
-    return(list(prediction = rawPred, probabilities = "Not applicable"))
-  } else {
-    colnames(rawPred) <- paste0("class_", NN_pred$y_names)
-    predictions <- NN_pred$y_names[apply(rawPred, 1, which.max)]
-    return(list(predictions = predictions, probabilities = rawPred))
+  
+  # Extract module and meta
+  Rcpp_ANN <- object$Rcpp_ANN
+  meta <- object$meta
+  
+  # Convert X to matrix
+  X <- as.matrix(newdata)
+  
+  # (ERROR) missing values in X
+  if ( any(is.na(X)) ) {
+    stop('newdata contain missing values', call. = FALSE)
   }
+  
+  # (ERROR) matrix X all numeric columns
+  if ( !all(apply(X, 2, is.numeric)) ) {
+    stop('newdata should be numeric', call. = FALSE)
+  }
+  
+  # Predict and set column names
+  fit <- Rcpp_ANN$predict(X)
+  colnames(fit) <- meta$names
+  
+  # For regression return fitted values
+  if ( meta$regression ) {
+    return( list(predictions = fit) )
+  }
+  
+  # For classification return predicted classes and probabilities (fit)
+  predictions   <- meta$classes[apply(fit, 1, which.max)]
+  return( list(predictions = predictions, probabilities = fit) )
 }
 
 #' @title Plot training and validation loss

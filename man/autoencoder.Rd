@@ -4,16 +4,34 @@
 \alias{autoencoder}
 \title{Train an Autoencoding Neural Network}
 \usage{
-autoencoder(X, hiddenLayers = c(10, 5, 10), lossFunction = "pseudo-huber",
-  dHuber = 1, linearLayers = NA, rectifierLayers = NA,
-  sigmoidLayers = NA, standardize = TRUE, learnRate = 1e-06,
-  maxEpochs = 100, batchSize = 32, momentum = 0.2, L1 = 0, L2 = 0,
-  validLoss = TRUE, validProp = 0.1, verbose = TRUE, earlyStop = FALSE,
-  earlyStopEpochs = 50, earlyStopTol = -1e-07, lrSched = FALSE,
-  lrSchedEpochs = NA, lrSchedLearnRates = NA, robErrorCov = FALSE)
+autoencoder(X, Y, hidden.layers, loss.type = "squared", delta.huber = 1,
+  activ.functions = "tanh", H = 5, k = 100, optim.type = "sgd",
+  n.epochs = 1000, learn.rates = 1e-04, momentum = 0.2, L1 = 0,
+  L2 = 0, batch.size = 32, standardize = TRUE, drop.last = TRUE,
+  val.prop = 0.1, verbose = TRUE)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
+
+\item{H}{numeric integer specifying number of steps of the step function}
+
+\item{k}{numeric indicating the smoothness of the step function.
+Smaller values result in smoother steps. Recommended to keep below 50 for
+stability. If set to high, the derivative of the stepfunction will also be large}
+
+\item{momentum}{numeric value specifying how much momentum should be
+used. Set to zero for no momentum, otherwise a value between zero and one.}
+
+\item{L1}{L1 regularization. Non-negative number. Set to zero for no regularization.}
+
+\item{L2}{L2 regularization. Non-negative number. Set to zero for no regularization.}
+
+\item{standardize}{logical indicating if X and y should be standardized before
+training the network. Recommended to leave at \code{TRUE} for faster
+convergence.}
+
+\item{verbose}{logical indicating if additional information (such as lifesign)
+should be printed to console during training.}
 
 \item{hiddenLayers}{vector specifying the number of nodes in each layer. Set
 to \code{NA} for a Network without any hidden layers}
@@ -24,6 +42,12 @@ to \code{NA} for a Network without any hidden layers}
 \item{dHuber}{used only in case of loss functions "huber" and "pseudo-huber".
 This parameter controls the cut-off point between quadratic and absolute loss.}
 
+\item{rampLayers}{vector or integer specifying which layers should have
+ramplike activation in its nodes. This is equivalent to a stepfunction
+with an infinite number of steps (limit of step function when nSteps and
+smoothSteps go to infinity) but more efficient than using step function layer
+with a large number for nSteps.}
+
 \item{linearLayers}{vector or integer specifying which layers should have
 linear activation in its nodes}
 
@@ -32,10 +56,6 @@ rectifier activation in its nodes}
 
 \item{sigmoidLayers}{vector or integer specifying which layers should have
 sigmoid activation in its nodes}
-
-\item{standardize}{logical indicating if X and y should be standardized before
-training the network. Recommended to leave at \code{TRUE} for faster
-convergence.}
 
 \item{learnRate}{the size of the steps made in gradient descent. If set too large,
 optimization can become unstable. Is set too small, convergence will be slow.}
@@ -47,21 +67,11 @@ data).}
 is computationally faster than stochastic gradient descent. However, large
 batches might not result in optimal learning, see Le Cun for details.}
 
-\item{momentum}{numeric value specifying how much momentum should be
-used. Set to zero for no momentum, otherwise a value between zero and one.}
-
-\item{L1}{L1 regularization. Non-negative number. Set to zero for no regularization.}
-
-\item{L2}{L2 regularization. Non-negative number. Set to zero for no regularization.}
-
 \item{validLoss}{logical indicating if loss should be monitored during training.
 If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
 drawn from full training set. Use function \code{plot} to assess convergence.}
 
 \item{validProp}{proportion of training data to use for validation}
-
-\item{verbose}{logical indicating if additional information (such as lifesign)
-should be printed to console during training.}
 
 \item{earlyStop}{logical indicating if early stopping should be used based on
 the loss on a validation set. Only possible with \code{validLoss} set to \code{TRUE}}
@@ -77,12 +87,12 @@ if improvements are made but improvements are smaller than tolerance.}
 be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
 \code{lrSchedLearnRates} .}
 
+\item{lrSchedLearnRates}{vector with elements specifying the learn rate to be used
+after epochs determined by lrSchedEpochs.}
+
 \item{lrSchedEpochs}{vector with elements specifying the epoch after which the
 corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
 shoud be the same as length of \code{learnSchedLearnRates}.}
-
-\item{lrSchedLearnRates}{vector with elements specifying the learn rate to be used
-after epochs determined by lrSchedEpochs.}
 
 \item{robErrorCov}{logical indicating if robust covariance should be estimated in 
 order to assess Mahalanobis distances of reconstruction errors}

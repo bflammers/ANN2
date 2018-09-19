@@ -3,17 +3,12 @@
 setMeta <- function(data, hidden.layers, regression) {
   
   # Check if network has no hidden layers, set n_hidden layers accordingly
-  if ( is.null(hidden.layers) ) {
+  if ( is.null(hidden.layers) || all(is.na(hidden.layers)) ) {
     no_hidden <- TRUE
     n_hidden  <- 0
   } else {
-    if ( length(hidden.layers) == 1 && all(is.na(hidden.layers)) ) {
-      no_hidden <- TRUE
-      n_hidden  <- 0
-    } else {
-      no_hidden <- FALSE
-      n_hidden  <- length(hidden.layers)
-    }
+    no_hidden <- FALSE
+    n_hidden  <- length(hidden.layers)
   }
   
   # Set number of nodes in input and output layer
@@ -24,7 +19,8 @@ setMeta <- function(data, hidden.layers, regression) {
   n_obs <- nrow(data$X)
   
   return( list(no_hidden = no_hidden, n_hidden = n_hidden, n_in = n_in, 
-               n_out = n_out, n_obs = n_obs, regression = regression) )
+               n_out = n_out, n_obs = n_obs, regression = regression, 
+               classes = data$classes, names = data$names) )
 }
 
 
@@ -64,6 +60,9 @@ setData <- function(X, Y, regression) {
     # Set classes to NULL (only relevant for classification)
     classes <- NULL
     
+    # Set names to class names (used in predict.ANN() )
+    names <- colnames(Y)
+    
   } else {
     
     # (ERROR) matrix Y not single column
@@ -82,17 +81,23 @@ setData <- function(X, Y, regression) {
     classes <- sort(unique(Y))
     Y <- 1 * outer(c(Y), classes, '==')
     
+    # Set names to class names (used in predict.ANN() )
+    names <- paste0('class_', classes)
+    
     # Convert Y to matrix
     Y <- as.matrix(Y)
   }
   
+  # Set number of observations
+  n_obs <- nrow(X)
+  
   # (ERROR) not same number of observations in X and Y
-  if ( nrow(X) != nrow(Y) ) {
+  if ( n_obs != nrow(Y) ) {
     stop('Unequal numbers of observations in X and Y', call. = FALSE)
   }
   
   # Collect parameters in list
-  return ( list(X = X, Y = Y, classes = classes) )
+  return ( list(X = X, Y = Y, classes = classes, names = names, n_obs = n_obs) )
 }
 
 # Set and check network parameter list
@@ -159,15 +164,19 @@ setActivParams <- function(activ.functions, H, k, meta) {
     # Single activ.function specified by user (or incorrect number of values)
     if ( length(activ.functions) != meta$n_hidden ) {
       
-      # (ERROR) length of activ.functions either 1 (broadcasting) or equal to the 
-      #         number of hidden layers
-      if ( length(activ.functions) != 1 ) {
+      # Broadcasting or throw error
+      if ( length(activ.functions) == 1 ) {
+        
+        # Broadcast single activ.function over all hidden layers
+        types <- c('input', rep(activ.functions, meta$n_hidden), output_type)
+        
+      } else {
+        
+        # (ERROR) length of activ.functions either 1 (broadcasting) or equal to the 
+        #         number of hidden layers
         stop('length of activ.functions should be either one (for broadcasting) or equal to number of hidden layers', 
              call. = FALSE)
       }
-      
-      # Broadcast single activ.function over all hidden layers
-      types <- c('input', rep(activ.functions, meta$n_hidden), output_type)
       
     } else {
       
@@ -224,36 +233,28 @@ setOptimParams <- function(optim.type, learn.rates, momentum, L1, L2, meta) {
     stop('learn rates should be larger than 0', call. = FALSE)
   }
   
-  # No hidden layers: return parameter list with only output type
-  if ( meta$no_hidden ) {
+  # Length of learn.rates does not mach number of optimizers
+  if ( length(learn.rates) != meta$n_hidden + 1 ) {
     
-    # (ERROR) no learn rate for output layer
-    if ( length(learn.rates) != 1 ) {
-      stop('no hidden layers, length of learn.rates should be one', call. = FALSE)
-    }
-    
-    # Set learn rate for input layer (0, not used) and output layer
-    rates <- c(0, learn.rates)
-    
-  } else {
-    
-    # Single learn.rate specified by user
-    if ( length(learn.rates) != meta$n_hidden + 1 ) {
-      
-      # (ERROR) length of learn.rates should be either 1 (broadcasting) or
-      #         equal to the number of hidden layers + 1
-      if ( length(learn.rates) != 1 ) {
-        stop('length of learn.rates should be one or equal to number of hidden layers + 1',
-             call. = FALSE)
-      }
+    # Broadcasting or throw error
+    if ( length(learn.rates) == 1 ) {
       
       # Broadcast single activ.function over all layers
       rates <- c(0, rep(learn.rates, meta$n_hidden + 1))
+      
     } else {
       
-      # No broadcasting
-      rates <- c(0, learn.rates)
+      # (ERROR) length of learn.rates should be either 1 (broadcasting) or
+      #         equal to the number of hidden layers + 1
+      stop('length of learn.rates should be one or equal to number of hidden layers + 1',
+           call. = FALSE)
     }
+      
+  } else {
+      
+    # No broadcasting
+    rates <- c(0, learn.rates)
+  
   }
   
   # Collect parameters in list
@@ -300,7 +301,7 @@ setLossParams <- function(loss.type, delta.huber, meta) {
 }
 
 # Set training parameters
-setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, verbose, meta) {
+setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, verbose, data) {
   
   # (ERROR) n.epochs not positive
   if ( n.epochs <= 0 ) {
@@ -329,11 +330,11 @@ setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, verbose, 
   }
   
   # Size of training and validation sets
-  n_train <- ceiling( meta$n_obs * (1 - val.prop) )
-  n_val   <- meta$n_obs - n_train
+  n_train <- ceiling( data$n_obs * (1 - val.prop) )
+  n_val   <- data$n_obs - n_train
   
   # (ERROR) batch.size larger than n_obs
-  if ( batch.size > meta$n_obs ) {
+  if ( batch.size > data$n_obs ) {
     stop('batch.size larger than total number of observations in X and Y', 
          call. = FALSE)
   }
