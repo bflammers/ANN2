@@ -1,7 +1,5 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
-#include <thread>         // std::this_thread::sleep_for
-#include <chrono>         // std::chrono::seconds
 #include "utils.h"
 #include "loss.h"
 #include "layer.h"
@@ -30,14 +28,16 @@ public:
   mat predict (mat X);
   double evalLoss(mat Y, mat X);
   void train (List data, List train_param);
+  void print (bool print_epochs);
 
 };
 
 // ANN class constructor
 ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
     List activ_param_)
-  : sX(data_["X"], net_param_["stand_X"]),
-    sY(data_["Y"], net_param_["stand_Y"]),
+  : sX(as<mat>(data_["X"]), as<bool>(net_param_["stand_X"])),
+    sY(as<mat>(data_["Y"]), as<bool>(net_param_["stand_Y"])),
+    tracker(as<bool>(net_param_["verbose"])),
     epoch(0)
 {
   
@@ -61,6 +61,8 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
     layer l(num_nodes(i-1), num_nodes(i), activ_param, optim_param);
     layers.push_back(l);
   }
+  
+  if ( as<bool>(net_param_["verbose"]) ) print( false );
 }
 
 mat ANN::forwardPass (mat X) 
@@ -171,6 +173,18 @@ void ANN::train (List data, List train_param)
   tracker.endLine();
 }
 
+void ANN::print ( bool print_epochs ) {
+  std::stringstream print_stream;
+  print_stream << "Artificial Neural Network: \n";
+  print_stream << "  Layer - " << sX.n_col << " nodes - input \n";
+  for(it = layers.begin(); it != layers.end(); ++it) {
+    print_stream << "  Layer - " << it->n_nodes << " nodes - "; 
+    print_stream << it->activ_type << " \n";
+  }
+  if ( print_epochs ) print_stream << "Trained for " << epoch << " epochs \n"; 
+  Rcout << print_stream.str();
+}
+
 RCPP_MODULE(ANN) {
   using namespace Rcpp ;
   class_<ANN>( "ANN" )
@@ -178,6 +192,7 @@ RCPP_MODULE(ANN) {
   .method( "predict", &ANN::predict)
   .method( "partialForward", &ANN::partialForward)
   .method( "train", &ANN::train)
+  .method( "print", &ANN::print)
   ;
 }
 

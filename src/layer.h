@@ -18,6 +18,8 @@ private:
   optimizer *O;
   
 public:
+  int n_nodes;
+  std::string activ_type;
   layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_);
   mat forward (mat X);
   mat backward (mat E); 

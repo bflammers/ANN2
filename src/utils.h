@@ -14,6 +14,7 @@ private:
   rowvec z_mu, z_sd;
   bool standardize;
 public:
+  int n_col;
   Scaler (mat z, bool standardize_);
   mat scale(mat z);
   mat unscale(mat z);
@@ -51,8 +52,7 @@ private:
   double one_percent;
   std::string progressBar(int progress);
 public:
-  Tracker();
-  ~Tracker();
+  Tracker(bool verbose_);
   mat train_history;
   void setTracker(int n_passes_, bool validate_, List train_param_);
   void track (double train_loss, double val_loss);

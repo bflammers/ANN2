@@ -4,7 +4,7 @@
 \alias{autoencoder}
 \title{Train an Autoencoding Neural Network}
 \usage{
-autoencoder(X, Y, hidden.layers, loss.type = "squared", delta.huber = 1,
+autoencoder(X, hidden.layers, loss.type = "squared", delta.huber = 1,
   activ.functions = "tanh", H = 5, k = 100, optim.type = "sgd",
   n.epochs = 1000, learn.rates = 1e-04, momentum = 0.2, L1 = 0,
   L2 = 0, batch.size = 32, standardize = TRUE, drop.last = TRUE,

@@ -101,7 +101,7 @@ setData <- function(X, Y, regression) {
 }
 
 # Set and check network parameter list
-setNetworkParams <- function(hidden.layers, standardize, meta) {
+setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
   
   # Booleans for standardizing X and Y
   stand_X <- standardize
@@ -131,7 +131,8 @@ setNetworkParams <- function(hidden.layers, standardize, meta) {
   }
 
   # Collect parameters in list
-  return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_Y = stand_Y) )
+  return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_Y = stand_Y, 
+                verbose = verbose) )
 }
 
 # Set and check activation parameter list
@@ -301,7 +302,7 @@ setLossParams <- function(loss.type, delta.huber, meta) {
 }
 
 # Set training parameters
-setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, verbose, data) {
+setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, data) {
   
   # (ERROR) n.epochs not positive
   if ( n.epochs <= 0 ) {
@@ -352,6 +353,6 @@ setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, verbose, 
   
   # Collect parameters in list
   return ( list(n_epochs = n.epochs, batch_size = batch.size, val_prop = val.prop, 
-                drop_last = drop.last, verbose = verbose) )
+                drop_last = drop.last) )
 }
 

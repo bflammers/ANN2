@@ -7,18 +7,19 @@ using namespace arma;
 // ---------------------------------------------------------------------------//
 // Tracker class
 // ---------------------------------------------------------------------------//
-Tracker::Tracker () : k(0), curr_progress(0), one_percent(100) {}
-Tracker::~Tracker () { Rcout << std::endl; }
+Tracker::Tracker (bool verbose_)
+  : k(0), curr_progress(0), one_percent(100), verbose(verbose_) {}
 
 // Set tracker parameters of training run, allocate memory
 void Tracker::setTracker (int n_passes_, bool validate_, List train_param_)
 {
-  verbose = train_param_["verbose"];
   validate = validate_;
   n_passes = k + n_passes_;
   one_percent = std::max( double(n_passes - 1) / 100, 
                           std::numeric_limits<double>::epsilon());
   train_history.resize(n_passes, 2);
+  
+  if ( verbose ) Rcout << "Training progress:\n";
 }
 
 // Private method for creating progress bar string
@@ -77,7 +78,8 @@ void Tracker::endLine () { if ( verbose ) Rcout << std::endl; }
 // ---------------------------------------------------------------------------//
 
 Scaler::Scaler (mat z, bool standardize_)
-  : standardize(standardize_)
+  : standardize(standardize_), 
+    n_col(z.n_cols)
 {
   if ( standardize ) {
     z_mu = mean(z);

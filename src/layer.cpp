@@ -9,7 +9,10 @@ using namespace arma;
 // ---------------------------------------------------------------------------//
 
 layer::layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_)
+  : n_nodes(nodes_out_), 
+    activ_type(as<std::string>(activ_param_["type"]))
 {
+  
   // Initialize weight matrix and biasvector
   W = randn<mat>(nodes_out_, nodes_in_) / sqrt(nodes_in_);
   b = zeros<vec>(nodes_out_);
@@ -22,8 +25,6 @@ layer::layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_
   activationFactory aFact(activ_param_); 
   g = aFact.createActivation();
   
-  Rcout << "Layer - "<< nodes_out_ << " nodes - " << 
-    as<std::string>(activ_param_["type"]) << "\n";
 }
   
 mat layer::forward (mat X) 

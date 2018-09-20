@@ -100,7 +100,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   meta <- setMeta(data, hidden.layers, regression)
   
   # Set and check parameters
-  net_param   <- setNetworkParams(hidden.layers, standardize, meta)
+  net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
   activ_param <- setActivParams(activ.functions, H, k, meta)
   optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
   loss_param  <- setLossParams(loss.type, delta.huber, meta)
@@ -109,14 +109,15 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
-                                verbose, data)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
   
   # Call train method
   Rcpp_ANN$train(data, train_param)
   
+  # Create ANN object
   ANN <- list(meta = meta, Rcpp_ANN = Rcpp_ANN)
   class(ANN) <- 'ANN'
+  attr(ANN, 'autoencoder') <- FALSE
 
   return(ANN)
 }
@@ -208,7 +209,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' plot(rX, alpha = 0.05)
 #' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
 #' @export
-autoencoder <- function(X, Y, hidden.layers, loss.type = "squared", 
+autoencoder <- function(X, hidden.layers, loss.type = "squared", 
                         delta.huber = 1, activ.functions = "tanh", H = 5, k = 100,
                         optim.type = "sgd", n.epochs = 1000, 
                         learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
@@ -219,7 +220,7 @@ autoencoder <- function(X, Y, hidden.layers, loss.type = "squared",
   NN_call <- match.call()
   
   # Perform checks on data, set meta data
-  data <- setData(X, Y, regression = TRUE)
+  data <- setData(X, X, regression = TRUE)
   meta <- setMeta(data, hidden.layers, regression = TRUE)
   
   # Set and check parameters
@@ -229,14 +230,19 @@ autoencoder <- function(X, Y, hidden.layers, loss.type = "squared",
   loss_param  <- setLossParams(loss.type, delta.huber, meta)
   
   # Initialize new ANN object
-  NN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
+  Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
                                 verbose, data)
   
   # Call train method
-  NN$train(data, train_param)
+  Rcpp_ANN$train(data, train_param)
+  
+  # Create ANN object
+  ANN <- list(meta = meta, Rcpp_ANN = Rcpp_ANN)
+  class(ANN) <- 'ANN'
+  attr(ANN, 'autoencoder') <- TRUE
   
   return(NN)
 }
@@ -522,10 +528,7 @@ plot.rANN <- function(x, alpha = 0.05, ...) {
 #' @method print ANN
 #' @export
 print.ANN <- function(x, ...){
-  NN_print <- x$print
-  cat("\nCall:\n", deparse(NN_print$call), "\n")
-  cat("\nOverview:\n", NN_print$overview, "\n")
-  cat("\nNumber of Epochs:\n", NN_print$nEpochs)
+  x$Rcpp_ANN$print( TRUE )
 }
 
 #' @title Encoding step 
