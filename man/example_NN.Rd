@@ -65,6 +65,5 @@ The training process is visualized through plots. Most parameters can be adjuste
 so that the effect of changes can be assessed by inspecting the plots.
 }
 \details{
-One regression example and three classification examples are included. More
-examples will be added in future versions of \code{ANN}.
+One regression example and three classification examples are included.
 }

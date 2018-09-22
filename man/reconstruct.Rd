@@ -7,7 +7,7 @@
 reconstruct(object, X, mahalanobis = TRUE)
 }
 \arguments{
-\item{object}{Object of class \code{ANN}}
+\item{object}{Object of class \code{ANN} created with autoencoder()}
 
 \item{X}{data (matrix) to reconstruct}
 

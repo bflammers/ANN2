@@ -42,21 +42,6 @@ to \code{NA} for a Network without any hidden layers}
 \item{dHuber}{used only in case of loss functions "huber" and "pseudo-huber".
 This parameter controls the cut-off point between quadratic and absolute loss.}
 
-\item{rampLayers}{vector or integer specifying which layers should have
-ramplike activation in its nodes. This is equivalent to a stepfunction
-with an infinite number of steps (limit of step function when nSteps and
-smoothSteps go to infinity) but more efficient than using step function layer
-with a large number for nSteps.}
-
-\item{linearLayers}{vector or integer specifying which layers should have
-linear activation in its nodes}
-
-\item{rectifierLayers}{vector or integer specifying which layers should have
-rectifier activation in its nodes}
-
-\item{sigmoidLayers}{vector or integer specifying which layers should have
-sigmoid activation in its nodes}
-
 \item{learnRate}{the size of the steps made in gradient descent. If set too large,
 optimization can become unstable. Is set too small, convergence will be slow.}
 
@@ -72,27 +57,6 @@ If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
 drawn from full training set. Use function \code{plot} to assess convergence.}
 
 \item{validProp}{proportion of training data to use for validation}
-
-\item{earlyStop}{logical indicating if early stopping should be used based on
-the loss on a validation set. Only possible with \code{validLoss} set to \code{TRUE}}
-
-\item{earlyStopEpochs}{after how many epochs without sufficient improvement
-(as specified by \code{earlyStopTol}) should training be stopped.}
-
-\item{earlyStopTol}{numerical value specifying tolerance for early stopping.
-Can be either positive or negative. When set negative, training will be stopped
-if improvements are made but improvements are smaller than tolerance.}
-
-\item{lrSched}{logical indicating if a schedule for the learning rate should
-be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
-\code{lrSchedLearnRates} .}
-
-\item{lrSchedLearnRates}{vector with elements specifying the learn rate to be used
-after epochs determined by lrSchedEpochs.}
-
-\item{lrSchedEpochs}{vector with elements specifying the epoch after which the
-corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
-shoud be the same as length of \code{learnSchedLearnRates}.}
 
 \item{robErrorCov}{logical indicating if robust covariance should be estimated in 
 order to assess Mahalanobis distances of reconstruction errors}

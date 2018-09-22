@@ -29,7 +29,7 @@ public:
   double evalLoss(mat Y, mat X);
   void train (List data, List train_param);
   void print (bool print_epochs);
-
+  List getTrainHistory ();
 };
 
 // ANN class constructor
@@ -62,6 +62,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
     layers.push_back(l);
   }
   
+  // Print NN info if verbose
   if ( as<bool>(net_param_["verbose"]) ) print( false );
 }
 
@@ -133,8 +134,8 @@ void ANN::train (List data, List train_param)
   int max_epochs = epoch + n_epochs;
   
   // Scale data
-  mat X = sX.scale(data["X"]);
-  mat Y = sY.scale(data["Y"]);
+  mat X = sX.scale(as<mat>(data["X"]));
+  mat Y = sY.scale(as<mat>(data["Y"]));
 
   // Set sampler and tracker
   Sampler sampler(X, Y, train_param);
@@ -173,16 +174,39 @@ void ANN::train (List data, List train_param)
   tracker.endLine();
 }
 
+// Class method for printing NN information
 void ANN::print ( bool print_epochs ) {
+  
+  // Use stringstream to pass only one string to Rcout
   std::stringstream print_stream;
+  
+  // Add first line and input layer line (input layer not in layers List)
   print_stream << "Artificial Neural Network: \n";
   print_stream << "  Layer - " << sX.n_col << " nodes - input \n";
+  
+  // Get number of nodes and activation type for each layer and add to stream
   for(it = layers.begin(); it != layers.end(); ++it) {
     print_stream << "  Layer - " << it->n_nodes << " nodes - "; 
     print_stream << it->activ_type << " \n";
   }
+  
+  // Add the amount of training (in epochs) to stream
   if ( print_epochs ) print_stream << "Trained for " << epoch << " epochs \n"; 
+  
+  // Pass stream as string to Rcout to print
   Rcout << print_stream.str();
+}
+
+// Class method for accessing training history
+List ANN::getTrainHistory ( ) {
+  
+  // Collect loss vectors in list and return
+  return List::create(Named("n_epoch") = epoch, 
+                      Named("n_eval") = tracker.n_passes, 
+                      Named("validate") = tracker.validate,
+                      Named("train_loss") = tracker.train_history.col(0),
+                      Named("val_loss") = tracker.train_history.col(1));
+  
 }
 
 RCPP_MODULE(ANN) {
@@ -193,6 +217,7 @@ RCPP_MODULE(ANN) {
   .method( "partialForward", &ANN::partialForward)
   .method( "train", &ANN::train)
   .method( "print", &ANN::print)
+  .method( "getTrainHistory", &ANN::getTrainHistory)
   ;
 }
 

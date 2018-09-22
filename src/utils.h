@@ -47,11 +47,13 @@ public:
 // ---------------------------------------------------------------------------//
 class Tracker {
 private:
-  bool verbose, validate;
-  int k, n_passes, curr_progress;
+  bool verbose;
+  int k, curr_progress;
   double one_percent;
   std::string progressBar(int progress);
 public:
+  bool validate;
+  int n_passes;
   Tracker(bool verbose_);
   mat train_history;
   void setTracker(int n_passes_, bool validate_, List train_param_);

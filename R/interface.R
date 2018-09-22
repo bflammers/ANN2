@@ -17,16 +17,12 @@
 #'
 #' @param X matrix with explanatory variables
 #' @param y matrix with dependent variables
-#' @param hiddenLayers vector specifying the number of nodes in each layer. Set
+#' @param hidden.layers vector specifying the number of nodes in each layer. Set
 #' to \code{NA} for a Network without any hidden layers
 #' @param lossFunction which loss function should be used. Options are "log",
 #' "quadratic", "absolute", "huber" and "pseudo-huber"
 #' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
-#' @param rectifierLayers vector or integer specifying which layers should have
-#' rectifier activation in its nodes
-#' @param sigmoidLayers vector or integer specifying which layers should have
-#' sigmoid activation in its nodes
 #' @param regression logical indicating regression or classification
 #' @param standardize logical indicating if X and y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
@@ -47,22 +43,6 @@
 #' drawn from full training set. Use function \code{plot} to assess convergence.
 #' @param validProp proportion of training data to use for validation
 #' @param verbose logical indicating if additional information (such as lifesign)
-#' should be printed to console during training.
-#' @param earlyStop logical indicating if early stopping should be used based on
-#' the loss on a validation set. Only possible with \code{validLoss} set to \code{TRUE}
-#' @param earlyStopEpochs after how many epochs without sufficient improvement
-#' (as specified by \code{earlyStopTol}) should training be stopped.
-#' @param earlyStopTol numerical value specifying tolerance for early stopping.
-#' Can be either positive or negative. When set negative, training will be stopped
-#' if improvements are made but improvements are smaller than tolerance.
-#' @param lrSched logical indicating if a schedule for the learning rate should
-#' be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
-#' \code{lrSchedLearnRates} .
-#' @param lrSchedLearnRates vector with elements specifying the learn rate to be used
-#' after epochs determined by lrSchedEpochs.
-#' @param lrSchedEpochs vector with elements specifying the epoch after which the
-#' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
-#' shoud be the same as length of \code{learnSchedLearnRates}.
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
@@ -147,17 +127,6 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' @param k numeric indicating the smoothness of the step function.
 #' Smaller values result in smoother steps. Recommended to keep below 50 for
 #' stability. If set to high, the derivative of the stepfunction will also be large
-#' @param rampLayers vector or integer specifying which layers should have
-#' ramplike activation in its nodes. This is equivalent to a stepfunction
-#' with an infinite number of steps (limit of step function when nSteps and
-#' smoothSteps go to infinity) but more efficient than using step function layer
-#' with a large number for nSteps.
-#' @param linearLayers vector or integer specifying which layers should have
-#' linear activation in its nodes
-#' @param rectifierLayers vector or integer specifying which layers should have
-#' rectifier activation in its nodes
-#' @param sigmoidLayers vector or integer specifying which layers should have
-#' sigmoid activation in its nodes
 #' @param standardize logical indicating if X and y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
@@ -178,21 +147,6 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' @param validProp proportion of training data to use for validation
 #' @param verbose logical indicating if additional information (such as lifesign)
 #' should be printed to console during training.
-#' @param earlyStop logical indicating if early stopping should be used based on
-#' the loss on a validation set. Only possible with \code{validLoss} set to \code{TRUE}
-#' @param earlyStopEpochs after how many epochs without sufficient improvement
-#' (as specified by \code{earlyStopTol}) should training be stopped.
-#' @param earlyStopTol numerical value specifying tolerance for early stopping.
-#' Can be either positive or negative. When set negative, training will be stopped
-#' if improvements are made but improvements are smaller than tolerance.
-#' @param lrSched logical indicating if a schedule for the learning rate should
-#' be used. If \code{TRUE}, schedule as specified by \code{lrSchedEpochs} and
-#' \code{lrSchedLearnRates} .
-#' @param lrSchedLearnRates vector with elements specifying the learn rate to be used
-#' after epochs determined by lrSchedEpochs.
-#' @param lrSchedEpochs vector with elements specifying the epoch after which the
-#' corresponding learn rate from vector \code{lrSchedLearnRates}. Length of vector
-#' shoud be the same as length of \code{learnSchedLearnRates}.
 #' @param robErrorCov logical indicating if robust covariance should be estimated in 
 #' order to assess Mahalanobis distances of reconstruction errors
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
@@ -224,7 +178,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   meta <- setMeta(data, hidden.layers, regression = TRUE)
   
   # Set and check parameters
-  net_param   <- setNetworkParams(hidden.layers, standardize, meta)
+  net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
   activ_param <- setActivParams(activ.functions, H, k, meta)
   optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
   loss_param  <- setLossParams(loss.type, delta.huber, meta)
@@ -233,8 +187,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
-                                verbose, data)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
   
   # Call train method
   Rcpp_ANN$train(data, train_param)
@@ -244,7 +197,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   class(ANN) <- 'ANN'
   attr(ANN, 'autoencoder') <- TRUE
   
-  return(NN)
+  return(ANN)
 }
 
 #' @title Visual examples of training a Neural Network
@@ -255,8 +208,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
 #' so that the effect of changes can be assessed by inspecting the plots.
 #'
 #' @details
-#' One regression example and three classification examples are included. More
-#' examples will be added in future versions of \code{ANN}.
+#' One regression example and three classification examples are included. 
 #'
 #' @param example_type which example to use. Possible values are \code{surface},
 #' \code{polynomial}, \code{nested}, \code{linear}, \code{disjoint} and \code{multiclass}
@@ -358,6 +310,82 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
   }
 }
 
+#' @title Continue training of a Neural Network
+#'
+#' @description
+#' Train a Multilayer Neural Network using Stohastic Gradient
+#' Descent with optional batch learning. Functions \code{autoencoder}
+#' and \code{replicator} are special cases of this general function.
+#'
+#' @details
+#' A genereric function for training Neural Networks for classification and
+#' regression problems. Various types of activation and cost functions are
+#' supported, as well as  L1 and L2 regularization. Additional options are
+#' early stopping, momentum and the specification of a learning rate schedule.
+#' See function \code{example_NN} for some visualized examples on toy data.
+#'
+#' @references LeCun, Yann A., et al. "Efficient backprop." Neural networks:
+#' Tricks of the trade. Springer Berlin Heidelberg, 2012. 9-48.
+#'
+#' @param object object of class \code{ANN}
+#' @param X matrix with explanatory variables
+#' @param y matrix with dependent variables
+#' @param learnRate the size of the steps made in gradient descent. If set too large,
+#' optimization can become unstable. Is set too small, convergence will be slow.
+#' @param maxEpochs the maximum number of epochs (one iteration through training
+#' data).
+#' @param batchSize the number of observations to use in each batch. Batch learning
+#' is computationally faster than stochastic gradient descent. However, large
+#' batches might not result in optimal learning, see Le Cun for details.
+#' @param momentum numeric value specifying how much momentum should be
+#' used. Set to zero for no momentum, otherwise a value between zero and one.
+#' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
+#' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
+#' @param validLoss logical indicating if loss should be monitored during training.
+#' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
+#' drawn from full training set. Use function \code{plot} to assess convergence.
+#' @param validProp proportion of training data to use for validation
+#' @param verbose logical indicating if additional information (such as lifesign)
+#' should be printed to console during training.
+#' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
+#' loss on training and optionally validation data during training process. Use
+#' function \code{predict(<object>, <newdata>)} for prediction.
+#' @examples
+#' # Example on iris dataset:
+#' randDraw <- sample(1:nrow(iris), size = 100)
+#' train    <- iris[randDraw,]
+#' test     <- iris[setdiff(1:nrow(iris), randDraw),]
+#'
+#' plot(iris[,1:4], pch = as.numeric(iris$Species))
+#'
+#' NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
+#'                     momentum = 0.8, learnRate = 0.001, verbose = FALSE)
+#' plot(NN)
+#' pred <- predict(NN, newdata = test[,-5])
+#' plot(test[,-5], pch = as.numeric(test$Species),
+#'      col = as.numeric(test$Species == pred$predictions)+2)
+#'
+#' #For other examples see function example_NN()
+#'
+#' @export
+train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04, 
+                  momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32, 
+                  drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
+  
+  # Extract meta from object
+  meta <- object$meta
+  
+  # Perform checks on data, set meta data
+  data <- setData(X, Y, meta$regression)
+  
+  # Set and check training parameters
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
+  
+  # Call train method
+  object$Rcpp_ANN$train(data, train_param)
+
+}
+
 #' @title Reconstruct data using trained Autoencoder or Replicator object
 #'
 #' @description
@@ -367,69 +395,56 @@ example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise
 #' @details
 #' A genereric function for training neural nets
 #'
-#' @param object Object of class \code{ANN}
+#' @param object Object of class \code{ANN} created with autoencoder()
 #' @param X data (matrix) to reconstruct
 #' @param mahalanobis logical indicating if Mahalanobis distance should be calculated
 #' @return Reconstructed observations and optional Mahalanobis distances
 #' @export
 reconstruct <- function(object, X, mahalanobis = TRUE) {
-  if (!object$reconstruct) {
-    stop("Object is not of type autoencoder or replicator")
-  }
-  X       <- as.matrix(X)
-  NN_rec  <- object$rec
-  NN_pred <- object$pred
-  recX    <- predictC(NN_pred, X, NN_rec$standardize)
-  errX    <- recX - X
-  if (!mahalanobis) {
-    rANN <- list(reconstructed = recX, reconstruction_errors = errX)
-  } else {
-    if (!NN_rec$robErrorCov) {
-      stop("No covariance matrix to calculate Mahalanobis distance")
-    }
-    dfChiSq <- ncol(X)
-    mah_sq  <- stats::mahalanobis(errX, center = NN_rec$MCDcenter, cov = NN_rec$MCDcov)
-    mah_p   <- 1 - stats::pchisq(mah_sq, df = dfChiSq)
-    rANN    <- list(reconstructed = recX, reconstruction_errors = errX,
-                    mah_sq = mah_sq, mah_p = mah_p, dfChiSq = dfChiSq)
-  }
-  class(rANN) <- "rANN"
-  return(rANN)
-}
 
-#' @title Plot the step function used in \code{replicator}
-#'
-#' @description
-#' Plot the projections of observations onto the stepfunction in the low-dimensional 
-#' space of the compression layer 
-#'
-#' @param object Trained replicator neural network object
-#' @param X Data to be plotted as points on steps
-#' @param hidden_node Number of the node to plot
-#' @param color Color of points. Replace with a vector indicating class-membership
-#' to give points in classes different colors. 
-#' @param derivative logical indicating if the derivative of the step function should be plotted.
-#' @param ... further arguments to be passed to plot
-#' @export
-plotStepFunction <- function(object = NULL, X, hidden_node = 1, color = "red", 
-                             derivative = FALSE, ...){
-  NN_rec <- object$rec
-  if (!NN_rec$replicator) {
-    stop("Object not of type replicator")
+  # Reconstruct only relevant for NNs of type autoencoder
+  if ( !attr(object, 'autoencoder') ) {
+    stop("Object is not of type autoencoder")
   }
-  comprLayerIO <- encode(object, X, returnInputs = TRUE)
-  x     <- comprLayerIO$input[,hidden_node]
-  y     <- comprLayerIO$activation[,hidden_node]
-  x_lim <- c(min(-0.1, x), max(1.1, x))
-  x_seq <- matrix(seq(from = (x_lim[1]-0.1), to = (x_lim[2]+0.1) , by = 0.001), ncol = 1)
-  steps <- stepFun(x_seq, NN_rec$nSteps, NN_rec$smoothSteps)
-  graphics::plot(x = x_seq, y = steps, type = "l", xlab = "input", ylab = "activation",
-                 main = paste0("Step function, node ", hidden_node), xlim = x_lim, ...)
-  graphics::points(x = x, y = y, col = color)
-  if (derivative) {
-    dSteps <- stepGradFun(x_seq, NN_rec$nSteps,  NN_rec$smoothSteps)
-    graphics::lines(x_seq, dSteps, col = "blue")
+  
+  # Convert X to matrix
+  X <- as.matrix(X)
+  
+  # (ERROR) missing values in X
+  if ( any(is.na(X)) ) {
+    stop('X contain missing values', call. = FALSE)
   }
+  
+  # (ERROR) matrix X all numeric columns
+  if ( !all(apply(X, 2, is.numeric)) ) {
+    stop('X should be numeric', call. = FALSE)
+  }
+  
+  # Make reconstruction, calculate errors
+  fit <- object$Rcpp_ANN$predict(X)
+  err <- fit - X
+  
+  # Construct function output
+  out <- list(reconstructed = fit, errors = err)
+  
+  # Add mahalanobis distances and corresponding p values
+  if ( FALSE && mahalanobis && object$meta$mahalanobis ) {
+    
+    # Calculate squared mahalanobis distance
+    mah_sq  <- stats::mahalanobis(err, 
+                                  center = object$mahalanobis$center, 
+                                  cov = object$mahalanobis$inv_cov, 
+                                  inverted = TRUE)
+    
+    # Add mahalanobis distance to result
+    out$mahalanobis <- sqrt(mah_sq)
+    
+    # Calculate p values and add to result
+    out$p_value <- 1 - stats::pchisq(mah_sq, df = object$meta$n_out)
+
+  }
+  
+  return( out )
 }
 
 
@@ -444,8 +459,7 @@ plotStepFunction <- function(object = NULL, X, hidden_node = 1, color = "red",
 #' @export
 predict.ANN <- function(object, newdata, ...) {
   
-  # Extract module and meta
-  Rcpp_ANN <- object$Rcpp_ANN
+  # Extract meta
   meta <- object$meta
   
   # Convert X to matrix
@@ -462,7 +476,7 @@ predict.ANN <- function(object, newdata, ...) {
   }
   
   # Predict and set column names
-  fit <- Rcpp_ANN$predict(X)
+  fit <- object$Rcpp_ANN$predict(X)
   colnames(fit) <- meta$names
   
   # For regression return fitted values
@@ -484,17 +498,15 @@ predict.ANN <- function(object, newdata, ...) {
 #' @method plot ANN
 #' @export
 plot.ANN <- function(x, ...) {
-  NN_plot <- x$plot
-  ddMat <- NN_plot$descentDetails
-  x_seq <- seq.int(1, NN_plot$nEpochs)
-  graphics::plot(x = x_seq, y = ddMat[x_seq,1], type = "l", col = "red", xlab = "Epoch", ylab = "Loss", ...)
-  if (NN_plot$validLoss) {
-    graphics::lines(x_seq, ddMat[x_seq, 2], col = "blue")
-    graphics::legend('topright',c("Training","Validation"), lty = 1, col=c('red','blue'),bty ="n")
+  
+  train_history <- x$Rcpp_ANN$getTrainHistory()
+  x_seq <- seq(from = 0, to = train_history$n_epoch, length.out = train_history$n_eval)
+  graphics::plot(x_seq, train_history$train_loss, type = "l", col = "red", 
+                 xlab = "Epoch", ylab = "Loss", ...)
+  if ( train_history$validate ) {
+    graphics::lines(x_seq, train_history$val_loss, col = 'blue')
   }
-  if(NN_plot$lrSched) {
-    graphics::abline(v = which(ddMat[x_seq, 4] == 1), col = "darkgrey")
-  }
+  
 }
 
 #' @title Plot mahalanobis distances of reconstructed errors
