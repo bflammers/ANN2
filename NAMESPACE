@@ -1,3 +1,5 @@
 useDynLib(ANN2, .registration=TRUE)
 import(Rcpp)
+import(ggplot2)
+import(reshape2)
 exportPattern("^[[:alpha:]]+")

@@ -498,15 +498,26 @@ predict.ANN <- function(object, newdata, ...) {
 #' @method plot ANN
 #' @export
 plot.ANN <- function(x, ...) {
+
+  # Obtain training history from ANN object
+  train_hist <- x$Rcpp_ANN$getTrainHistory()
   
-  train_history <- x$Rcpp_ANN$getTrainHistory()
-  x_seq <- seq(from = 0, to = train_history$n_epoch, length.out = train_history$n_eval)
-  graphics::plot(x_seq, train_history$train_loss, type = "l", col = "red", 
-                 xlab = "Epoch", ylab = "Loss", ...)
-  if ( train_history$validate ) {
-    graphics::lines(x_seq, train_history$val_loss, col = 'blue')
-  }
+  # Make a vector x
+  x_seq <- seq(from = 0, to = train_hist$n_epoch, length.out = train_hist$n_eval)
   
+  # Make df, add validation loss if applicable
+  df <- data.frame(x = x_seq, Training = train_hist$train_loss)
+  if ( train_hist$validate ) df$Validation <- train_hist$val_loss 
+  
+  # Meld df
+  df_melt <- melt(df, id.vars = 'x', value.name = 'y')
+  
+  # Return plot
+  ggplot(data = df_melt) + 
+    geom_path(aes(x = x, y = y, color = variable)) + 
+    labs(x = 'Epoch', y = 'Loss') + 
+    theme(legend.title = element_blank()) + 
+    scale_color_manual(values = c('Training' = 'orange', 'Validation' = 'blue'))
 }
 
 #' @title Plot mahalanobis distances of reconstructed errors

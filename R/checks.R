@@ -77,6 +77,9 @@ setData <- function(X, Y, regression) {
            call. = FALSE)
     }
     
+    # Convert Y to matrix
+    Y <- as.matrix(Y)
+    
     # One-hot encode Y and store classes
     classes <- sort(unique(Y))
     Y <- 1 * outer(c(Y), classes, '==')
@@ -84,8 +87,6 @@ setData <- function(X, Y, regression) {
     # Set names to class names (used in predict.ANN() )
     names <- paste0('class_', classes)
     
-    # Convert Y to matrix
-    Y <- as.matrix(Y)
   }
   
   # Set number of observations

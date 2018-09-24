@@ -4,9 +4,9 @@
 \alias{train}
 \title{Continue training of a Neural Network}
 \usage{
-train(object, X, Y, n.epochs = 500, learn.rates = 1e-04, momentum = 0.2,
-  L1 = 0, L2 = 0, batch.size = 32, drop.last = TRUE, val.prop = 0.1,
-  verbose = TRUE)
+train(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
+  momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32,
+  drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
 }
 \arguments{
 \item{object}{object of class \code{ANN}}

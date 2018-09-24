@@ -4,12 +4,12 @@
 \alias{example_NN}
 \title{Visual examples of training a Neural Network}
 \usage{
-example_NN(example_type = "nested", example_n = 500, example_sdnoise = 1,
-  example_nframes = 30, hiddenLayers = c(5, 5), lossFunction = "log",
-  dHuber = 1, rectifierLayers = NA, sigmoidLayers = NA,
-  regression = FALSE, standardize = TRUE, learnRate = 0.001,
-  maxEpochs = 2000, batchSize = 10, momentum = 0.3, L1 = 1e-07,
-  L2 = 1e-04)
+example_NN(example_type = "nested", example_n = 500,
+  example_sdnoise = 1, example_nframes = 30, hiddenLayers = c(5, 5),
+  lossFunction = "log", dHuber = 1, rectifierLayers = NA,
+  sigmoidLayers = NA, regression = FALSE, standardize = TRUE,
+  learnRate = 0.001, maxEpochs = 2000, batchSize = 10,
+  momentum = 0.3, L1 = 1e-07, L2 = 1e-04)
 }
 \arguments{
 \item{example_type}{which example to use. Possible values are \code{surface},
