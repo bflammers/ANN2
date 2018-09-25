@@ -4,15 +4,16 @@
 \alias{encode}
 \title{Encoding step}
 \usage{
-encode(object, newdata, returnInputs = FALSE)
+encode(object, newdata, compression.layer = NULL)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}
 
 \item{newdata}{Data to compress}
 
-\item{returnInputs}{Logical indicating whether the inputs to the compression
-layer should be returned. Mainly used for plotting the activations.}
+\item{compression.layer}{Integer specifying which hidden layer is the 
+compression layer. If NULL this parameter is inferred from the structure 
+of the network (hidden layer with smallest number of nodes)}
 }
 \description{
 Compress data according to trained replicator or autoencoder.

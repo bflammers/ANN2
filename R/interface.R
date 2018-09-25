@@ -200,116 +200,6 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   return(ANN)
 }
 
-#' @title Visual examples of training a Neural Network
-#'
-#' @description
-#' Some examples of training a neural network using simple randomly generated data.
-#' The training process is visualized through plots. Most parameters can be adjusted
-#' so that the effect of changes can be assessed by inspecting the plots.
-#'
-#' @details
-#' One regression example and three classification examples are included. 
-#'
-#' @param example_type which example to use. Possible values are \code{surface},
-#' \code{polynomial}, \code{nested}, \code{linear}, \code{disjoint} and \code{multiclass}
-#' @param example_n number of observations to generate
-#' @param example_sdnoise standard deviation of random normal noise to be added to data
-#' @param example_nframes number of frames to be plotted
-#' @param hiddenLayers vector specifying the number of nodes in each layer. Set
-#' to \code{NA} for a Network without any hidden layers
-#' @param lossFunction which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
-#' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
-#' This parameter controls the cut-off point between quadratic and absolute loss.
-#' @param rectifierLayers vector or integer specifying which layers should have
-#' rectifier activation in its nodes
-#' @param sigmoidLayers vector or integer specifying which layers should have
-#' sigmoid activation in its nodes
-#' @param regression logical indicating regression or classification
-#' @param standardize logical indicating if X and y should be standardized before
-#' training the network. Recommended to leave at \code{TRUE} for faster
-#' convergence.
-#' @param learnRate the size of the steps made in gradient descent. If set too large,
-#' optimization can become unstable. Is set too small, convergence will be slow.
-#' @param maxEpochs the maximum number of epochs (one iteration through training
-#' data).
-#' @param batchSize the number of observations to use in each batch. Batch learning
-#' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Le Cun for details.
-#' @param momentum numeric value specifying how much momentum should be
-#' used. Set to zero for no momentum, otherwise a value between zero and one.
-#' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
-#' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
-#' @export
-example_NN <- function(example_type = "nested", example_n = 500, example_sdnoise = 1, example_nframes = 30,
-                       hiddenLayers = c(5, 5), lossFunction = "log", dHuber = 1, rectifierLayers = NA,
-                       sigmoidLayers = NA, regression = FALSE, standardize = TRUE, learnRate = 1e-3, maxEpochs = 2000,
-                       batchSize = 10, momentum = 0.3, L1 = 1e-07, L2 = 1e-04) {
-  if(example_type == "surface"){ regression <- TRUE; if(lossFunction == "log") lossFunction <- "quadratic"}
-  XYdata <- genrResponse(example_n, example_type, example_sdnoise)
-  X      <- as.matrix(XYdata$X)
-  y      <- as.matrix(XYdata$y)
-  
-  if (regression) {
-    if (!(lossFunction %in% c("quadratic", "huber", "pseudo-huber", "absolute"))) {
-      stop("Use loss functions \"huber\", \"pseudo-huber\", \"quadratic\" and \"absolute\" for regression.\n")
-    }
-  } else {
-    if (lossFunction != "log")
-      warning("Log loss recommended for classification.")
-  }
-
-  nColX  <- ncol(X)
-  nColY  <- ifelse(regression, ncol(y), length(unique(y)))
-  nTot   <- nrow(X)
-  nTrain <- nTot 
-  nVal   <- 0
-  
-  checkParameters(lossFunction = lossFunction, dHuber = dHuber, hiddenLayers = hiddenLayers, stepLayers = NA,
-                  rampLayers = NA, rectifierLayers = rectifierLayers, sigmoidLayers = sigmoidLayers, linearLayers = NA, 
-                  maxEpochs = maxEpochs, batchSize = batchSize, momentum = momentum, L1 = L1, L2 = L2,
-                  validLoss = FALSE, validProp = 0, earlyStop = FALSE, earlyStopEpochs = 0,
-                  lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, nTrain = nTrain,
-                  nSteps = 0, smoothSteps = 0, autoencoder = FALSE, nColX = nColX)
-  
-  dataList <- prepData(X = X, y = y, nColX = nColX, nColY = nColY, standardize = standardize, 
-                       regression = regression, nTot = nTot, nTrain = nTrain, nVal = nVal)
-  
-  startVal <- init(hiddenLayers = hiddenLayers, lossFunction = lossFunction, regression = regression,
-                   stepLayers = NA, rampLayers = NA, rectifierLayers = rectifierLayers, linearLayers = NA, 
-                   sigmoidLayers = sigmoidLayers, nColX = nColX, nColY = nColY, verbose = FALSE)
-  
-  fpOut <- bpOut <- list(NA)
-  upOut <- startVal$upOut
-  exMaxEpochs <- ceiling(maxEpochs/example_nframes)
-  for (i in 1:example_nframes) {
-    cur_epoch <- exMaxEpochs * i
-    cur_maxEpoch <- min(exMaxEpochs, maxEpochs - exMaxEpochs * (i - 1))
-    if (cur_maxEpoch <= 0)
-      (break)()
-    NNfit <- stochGD(dataList = dataList, nTrain = nTrain, standardize = standardize,
-                     activTypes = startVal$activTypes, lossType = lossFunction, dHuber = dHuber, 
-                     nSteps = 0, smoothSteps = 0, batchSize = batchSize, maxEpochs = cur_maxEpoch, learnRate = learnRate,
-                     momentum = momentum, L1 = L1, L2 = L2, earlyStop = FALSE, earlyStopEpochs = 0,
-                     earlyStopTol = 0, lrSched = FALSE, lrSchedEpochs = 0, lrSchedLearnRates = 0, fpOut = fpOut,
-                     bpOut = bpOut, upOut = upOut, validLoss = FALSE, verbose = FALSE, regression = regression,
-                     plotExample = TRUE)
-    
-    fpOut <- NNfit$NN_example$fpOut
-    bpOut <- NNfit$NN_example$bpOut
-    upOut <- NNfit$NN_example$upOut
-    
-    if (regression) {
-      plot_regress(NNfit$NN_pred, XYdata$X, XYdata$y, epoch = min(cur_epoch, maxEpochs),
-                   standardize = standardize)
-    } else {
-      plot_classif(NNfit$NN_pred, XYdata$X, XYdata$y, epoch = min(cur_epoch, maxEpochs),
-                   standardize = standardize, example_type)
-    }
-    Sys.sleep(0.05)
-  }
-}
-
 #' @title Continue training of a Neural Network
 #'
 #' @description
@@ -402,13 +292,16 @@ train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
 #' @export
 reconstruct <- function(object, X, mahalanobis = TRUE) {
 
+  # Extract meta
+  meta <- object$meta
+  
+  # Convert X to matrix
+  X <- as.matrix(X)
+  
   # Reconstruct only relevant for NNs of type autoencoder
   if ( !attr(object, 'autoencoder') ) {
     stop("Object is not of type autoencoder")
   }
-  
-  # Convert X to matrix
-  X <- as.matrix(X)
   
   # (ERROR) missing values in X
   if ( any(is.na(X)) ) {
@@ -422,29 +315,12 @@ reconstruct <- function(object, X, mahalanobis = TRUE) {
   
   # Make reconstruction, calculate errors
   fit <- object$Rcpp_ANN$predict(X)
-  err <- fit - X
+  colnames(fit) <- meta$names
+  err <- rowSums( (fit - X)^2 ) / meta$n_out
   
   # Construct function output
-  out <- list(reconstructed = fit, errors = err)
+  return( list(reconstructed = fit, errors = err) )
   
-  # Add mahalanobis distances and corresponding p values
-  if ( FALSE && mahalanobis && object$meta$mahalanobis ) {
-    
-    # Calculate squared mahalanobis distance
-    mah_sq  <- stats::mahalanobis(err, 
-                                  center = object$mahalanobis$center, 
-                                  cov = object$mahalanobis$inv_cov, 
-                                  inverted = TRUE)
-    
-    # Add mahalanobis distance to result
-    out$mahalanobis <- sqrt(mah_sq)
-    
-    # Calculate p values and add to result
-    out$p_value <- 1 - stats::pchisq(mah_sq, df = object$meta$n_out)
-
-  }
-  
-  return( out )
 }
 
 
@@ -485,7 +361,7 @@ predict.ANN <- function(object, newdata, ...) {
   }
   
   # For classification return predicted classes and probabilities (fit)
-  predictions   <- meta$classes[apply(fit, 1, which.max)]
+  predictions <- meta$classes[apply(fit, 1, which.max)]
   return( list(predictions = predictions, probabilities = fit) )
 }
 
@@ -560,24 +436,55 @@ print.ANN <- function(x, ...){
 #' observation in \code{newdata}
 #' @param object Object of class \code{ANN}
 #' @param newdata Data to compress
-#' @param returnInputs Logical indicating whether the inputs to the compression
-#' layer should be returned. Mainly used for plotting the activations. 
+#' @param compression.layer Integer specifying which hidden layer is the 
+#' compression layer. If NULL this parameter is inferred from the structure 
+#' of the network (hidden layer with smallest number of nodes)
 #' @export
-encode <- function(object, newdata, returnInputs = FALSE){
-  if (!object$reconstruct) {
-    stop("Object is not of type autoencoder or replicator")
+encode <- function(object, newdata, compression.layer = NULL) {
+  
+  if ( !attr(object, 'autoencoder') ) {
+    warning("Object is not an autoencoder")
   }
-  newdata       <- as.matrix(newdata)
-  nHidden       <- length(object$hiddenLayers)
-  middleLayer   <- ceiling(nHidden/2)
-  NN_pred       <- object$pred
-  middleLayerIO <- partialForward(NN_pred, newdata, NN_pred$standardize, FALSE, 0, middleLayer)
-  if (returnInputs) {
-    return(middleLayerIO)
+  
+  # Extract meta
+  meta <- object$meta
+  
+  # Convert X to matrix
+  X <- as.matrix(newdata)
+  
+  # (ERROR) missing values in X
+  if ( any(is.na(X)) ) {
+    stop('newdata contain missing values', call. = FALSE)
   }
-  compressed    <- middleLayerIO$activation
-  colnames(compressed) <- paste0("hidden_Node", 1:NCOL(compressed))
-  return(compressed)
+  
+  # (ERROR) matrix X all numeric columns
+  if ( !all(apply(X, 2, is.numeric)) ) {
+    stop('newdata should be numeric', call. = FALSE)
+  }
+  
+  # (ERROR) incorrect number of columns of input data
+  if ( ncol(X) != meta$n_in ) {
+    stop('Input data incorrect number of columns', call. = FALSE)
+  }
+  
+  # Determine compression layer
+  if ( is.null(compression.layer) ) {
+    
+    # Compression layer is hidden layer with minimum number of nodes
+    hidden_layers <- meta$hidden_layers
+    compression.layer <- which.min( hidden_layers )
+    
+    # (ERROR) Ambiguous compression layer
+    if ( sum( hidden_layers[compression.layer] == hidden_layers) > 1 ) {
+      stop('Ambiguous compression layer, specify compression.layer', call. = FALSE)
+    } 
+  }
+  
+  # Predict and set column names
+  compressed <- object$Rcpp_ANN$partialForward(X, 0, compression.layer)
+  colnames(compressed) <- paste0("node_", 1:NCOL(compressed))
+  
+  return( compressed )
 }
 
 

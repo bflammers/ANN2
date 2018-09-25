@@ -88,24 +88,24 @@ mat ANN::partialForward (mat X, int i_start, int i_stop)
   
   // Set start & stop point iterators
   std::list<layer>::iterator start_it = layers.begin();
-  std::advance(start_it, i_start - 1);
+  std::advance(start_it, i_start);
   std::list<layer>::iterator stop_it = layers.begin();
-  std::advance(stop_it, i_stop - 1);
+  std::advance(stop_it, i_stop);
   
-  // If input layer: standardize and transpose
-  if ( i_start == 1 ) {
+  // If input layer: standardize
+  if ( i_start == 0 ) {
     X = sX.scale(X); // Check if start at 0
-    X = X.t();
   }
   
+  X = X.t();
   // Loop from start_it to stop_it
   for(it = start_it; it != stop_it; ++it) {
     X = it->forward(X);
   }
+  X = X.t();
   
-  // If output layer: transpose and standardize
+  // If output layer: undo standardize
   if ( i_stop == layers.size() ) {
-    X = X.t();
     X = sY.unscale(X);
   }
   

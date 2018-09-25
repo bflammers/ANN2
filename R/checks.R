@@ -20,7 +20,8 @@ setMeta <- function(data, hidden.layers, regression) {
   
   return( list(no_hidden = no_hidden, n_hidden = n_hidden, n_in = n_in, 
                n_out = n_out, n_obs = n_obs, regression = regression, 
-               classes = data$classes, names = data$names) )
+               classes = data$classes, names = data$names, 
+               hidden_layers = hidden.layers) )
 }
 
 
