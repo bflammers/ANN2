@@ -162,7 +162,7 @@ void ANN::train (List data, List train_param)
       // Track loss on scaled data
       double batch_loss = L->eval(Yb, Yb_fit);
       double val_loss = (sampler.validate) ? evalLoss(sampler.getYv(), sampler.getXv()) : 0;
-      tracker.track(batch_loss, val_loss);
+      tracker.track(epoch, batch_loss, val_loss);
       
       // Check for interrupt
       checkUserInterrupt();
@@ -204,8 +204,9 @@ List ANN::getTrainHistory ( ) {
   return List::create(Named("n_epoch") = epoch, 
                       Named("n_eval") = tracker.n_passes, 
                       Named("validate") = tracker.validate,
-                      Named("train_loss") = tracker.train_history.col(0),
-                      Named("val_loss") = tracker.train_history.col(1));
+                      Named("epoch") = tracker.train_history.col(0),
+                      Named("train_loss") = tracker.train_history.col(1),
+                      Named("val_loss") = tracker.train_history.col(2));
   
 }
 

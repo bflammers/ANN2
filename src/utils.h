@@ -57,7 +57,7 @@ public:
   Tracker(bool verbose_);
   mat train_history;
   void setTracker(int n_passes_, bool validate_, List train_param_);
-  void track (double train_loss, double val_loss);
+  void track (int epoch, double train_loss, double val_loss);
   void endLine ();
 };
 

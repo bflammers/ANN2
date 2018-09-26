@@ -4,12 +4,16 @@
 \alias{decode}
 \title{Decoding step}
 \usage{
-decode(object, compressed)
+decode(object, compressed, compression.layer = NULL)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}
 
-\item{compressed}{Data to decompress}
+\item{compressed}{Compressed data}
+
+\item{compression.layer}{Integer specifying which hidden layer is the 
+compression layer. If NULL this parameter is inferred from the structure 
+of the network (hidden layer with smallest number of nodes)}
 }
 \description{
 Decompress low-dimensional representation resulting from the nodes

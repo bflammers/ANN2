@@ -17,7 +17,7 @@ void Tracker::setTracker (int n_passes_, bool validate_, List train_param_)
   n_passes = k + n_passes_;
   one_percent = std::max( double(n_passes - 1) / 100, 
                           std::numeric_limits<double>::epsilon());
-  train_history.resize(n_passes, 2);
+  train_history.resize(n_passes, 3);
   
   if ( verbose ) Rcout << "Training progress:\n";
 }
@@ -38,7 +38,7 @@ std::string Tracker::progressBar(int progress) {
   return progress_string.str();
 }
 
-void Tracker::track (double train_loss, double val_loss) {
+void Tracker::track (int epoch, double train_loss, double val_loss) {
 
   // Update progress bar and loss
   if ( verbose ) {
@@ -63,7 +63,7 @@ void Tracker::track (double train_loss, double val_loss) {
   }
 
   // Add train and validation loss to matrix
-  rowvec loss_vec = {train_loss, val_loss};
+  rowvec loss_vec = {epoch, train_loss, val_loss};
   train_history.row(k) = loss_vec;
   
   // Increment counter

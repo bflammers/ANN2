@@ -379,14 +379,17 @@ plot.ANN <- function(x, ...) {
   train_hist <- x$Rcpp_ANN$getTrainHistory()
   
   # Make a vector x
-  x_seq <- seq(from = 0, to = train_hist$n_epoch, length.out = train_hist$n_eval)
+  x_seq <- c(unlist(sapply(unique(train_hist$epoch), function(xx) {
+    n <- sum(train_hist$epoch==xx) + 1
+    xx + seq(from = 0, to = 1, length.out = n)[-n]
+  })))
   
   # Make df, add validation loss if applicable
   df <- data.frame(x = x_seq, Training = train_hist$train_loss)
   if ( train_hist$validate ) df$Validation <- train_hist$val_loss 
   
   # Meld df
-  df_melt <- melt(df, id.vars = 'x', value.name = 'y')
+  df_melt <- reshape2::melt(df, id.vars = 'x', value.name = 'y')
   
   # Return plot
   ggplot(data = df_melt) + 
@@ -446,8 +449,9 @@ encode <- function(object, newdata, compression.layer = NULL) {
     warning("Object is not an autoencoder")
   }
   
-  # Extract meta
+  # Extract meta, hidden_layers
   meta <- object$meta
+  hidden_layers <- meta$hidden_layers
   
   # Convert X to matrix
   X <- as.matrix(newdata)
@@ -471,7 +475,6 @@ encode <- function(object, newdata, compression.layer = NULL) {
   if ( is.null(compression.layer) ) {
     
     # Compression layer is hidden layer with minimum number of nodes
-    hidden_layers <- meta$hidden_layers
     compression.layer <- which.min( hidden_layers )
     
     # (ERROR) Ambiguous compression layer
@@ -492,20 +495,50 @@ encode <- function(object, newdata, compression.layer = NULL) {
 #' @description Decompress low-dimensional representation resulting from the nodes
 #' of the middle layer. Output are the reconstructed inputs to function \code{encode}
 #' @param object Object of class \code{ANN}
-#' @param compressed Data to decompress
+#' @param compressed Compressed data
+#' @param compression.layer Integer specifying which hidden layer is the 
+#' compression layer. If NULL this parameter is inferred from the structure 
+#' of the network (hidden layer with smallest number of nodes)
 #' @export
-decode <- function(object, compressed){
-  if (!object$reconstruct) {
-    stop("Object is not of type autoencoder or replicator")
+decode <- function(object, compressed, compression.layer = NULL) {
+  
+  if ( !attr(object, 'autoencoder') ) {
+    warning("Object is not an autoencoder")
   }
-  compressed   <- as.matrix(compressed)
-  nHidden      <- length(object$hiddenLayers)
-  middleLayer  <- ceiling(nHidden/2)
-  finalLayer   <- nHidden + 1
-  NN_pred      <- object$pred
-  finalLayerIO <- partialForward(NN_pred, compressed, FALSE, NN_pred$standardize, middleLayer, finalLayer)
-  decompressed <- finalLayerIO$activation
-  colnames(decompressed) <- NN_pred$y_names
-  return(decompressed)
+  
+  # Extract meta, hidden_layers vector
+  meta <- object$meta
+  hidden_layers <- meta$hidden_layers
+  
+  # Convert X to matrix
+  X <- as.matrix(compressed)
+  
+  # (ERROR) missing values in X
+  if ( any(is.na(X)) ) {
+    stop('compressed contain missing values', call. = FALSE)
+  }
+  
+  # (ERROR) matrix X all numeric columns
+  if ( !all(apply(X, 2, is.numeric)) ) {
+    stop('compressed should be numeric', call. = FALSE)
+  }
+  
+  # Determine compression layer
+  if ( is.null(compression.layer) ) {
+    
+    # Compression layer is hidden layer with minimum number of nodes
+    compression.layer <- which.min( hidden_layers )
+    
+    # (ERROR) Ambiguous compression layer
+    if ( sum( hidden_layers[compression.layer] == hidden_layers) > 1 ) {
+      stop('Ambiguous compression layer, specify compression.layer', call. = FALSE)
+    } 
+  }
+  
+  # Predict and set column names
+  fit <- object$Rcpp_ANN$partialForward(X, compression.layer, meta$n_hidden + 1)
+  colnames(fit) <- meta$names
+  
+  return( fit )
 }
 
