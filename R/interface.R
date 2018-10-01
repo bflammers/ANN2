@@ -313,6 +313,11 @@ reconstruct <- function(object, X, mahalanobis = TRUE) {
     stop('X should be numeric', call. = FALSE)
   }
   
+  # (ERROR) incorrect number of columns of input data
+  if ( ncol(X) != meta$n_in ) {
+    stop('Input data incorrect number of columns', call. = FALSE)
+  }
+  
   # Make reconstruction, calculate errors
   fit <- object$Rcpp_ANN$predict(X)
   colnames(fit) <- meta$names
@@ -363,40 +368,6 @@ predict.ANN <- function(object, newdata, ...) {
   # For classification return predicted classes and probabilities (fit)
   predictions <- meta$classes[apply(fit, 1, which.max)]
   return( list(predictions = predictions, probabilities = fit) )
-}
-
-#' @title Plot training and validation loss
-#' @description \code{plot} Generate plots of the loss against epochs
-#' @details A genereric function for training neural nets
-#' @param x Object of class \code{ANN}
-#' @param ... further arguments to be passed to plot
-#' @return Plots
-#' @method plot ANN
-#' @export
-plot.ANN <- function(x, ...) {
-
-  # Obtain training history from ANN object
-  train_hist <- x$Rcpp_ANN$getTrainHistory()
-  
-  # Make a vector x
-  x_seq <- c(unlist(sapply(unique(train_hist$epoch), function(xx) {
-    n <- sum(train_hist$epoch==xx) + 1
-    xx + seq(from = 0, to = 1, length.out = n)[-n]
-  })))
-  
-  # Make df, add validation loss if applicable
-  df <- data.frame(x = x_seq, Training = train_hist$train_loss)
-  if ( train_hist$validate ) df$Validation <- train_hist$val_loss 
-  
-  # Meld df
-  df_melt <- reshape2::melt(df, id.vars = 'x', value.name = 'y')
-  
-  # Return plot
-  ggplot(data = df_melt) + 
-    geom_path(aes(x = x, y = y, color = variable)) + 
-    labs(x = 'Epoch', y = 'Loss') + 
-    theme(legend.title = element_blank()) + 
-    scale_color_manual(values = c('Training' = 'orange', 'Validation' = 'blue'))
 }
 
 #' @title Plot mahalanobis distances of reconstructed errors
