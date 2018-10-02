@@ -99,3 +99,48 @@ recPlot <- function(object, X, colors = NULL) {
     labs(x = NULL, y = NULL) + 
     gg_color
 }
+
+#' @title Compression plot
+#' @description 
+#' \code{comprPlot} plot compressed observation in pairwise dimensions
+#' @details Matrix plot of pairwise dimensions 
+#' @param object autoencoder object of class \code{ANN} 
+#' @param X data matrix with original values to be compressed and plotted
+#' @param colors optional vector of discrete colors
+#' @return Plots
+#' @export
+comprPlot <- function(object, X, colors = NULL) {
+  
+  # X as matrix and reconstuct
+  X  <- as.matrix(X)
+  cX <- encode(object, X)
+  
+  # Extract meta, set derived constants
+  meta  <- object$meta
+  n_row <- nrow(X)
+  n_col <- ncol(cX)
+  dim_names <- colnames(cX)
+  
+  # Create data.frame containing points for compressed values
+  # This created the matrix like structure for pairwise plotting of dimensions
+  dim_combinations <- as.matrix( expand.grid(seq_len(n_col), seq_len(n_col)) )
+  compr   <- apply( dim_combinations, 2, function(dc) cX[,dc] )
+  dims    <- matrix( dim_names[rep(dim_combinations, each = n_row)], ncol = 2)
+  df_plot <- data.frame(dims, compr)
+  colnames(df_plot) <- c('x_dim', 'y_dim', 'x_compr', 'y_compr')
+  
+  if ( !is.null(colors) || !all(is.na(colors)) ) {
+    df_plot$col <- colors
+    gg_color    <- scale_color_viridis_d(name = NULL)
+  } else {
+    df_plot$col <- 'a'
+    gg_color    <- scale_color_viridis_d(guide = FALSE)
+  }
+  
+  # Create and return plot
+  ggplot(data = df_plot) +
+    geom_point(aes(x = x_compr, y = y_compr, color = col)) +
+    facet_grid(y_dim ~ x_dim, scales = "free") + 
+    labs(x = NULL, y = NULL) + 
+    gg_color
+}
