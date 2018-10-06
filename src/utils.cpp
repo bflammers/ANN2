@@ -7,6 +7,8 @@ using namespace arma;
 // ---------------------------------------------------------------------------//
 // Tracker class
 // ---------------------------------------------------------------------------//
+Tracker::Tracker () {}
+
 Tracker::Tracker (bool verbose_)
   : k(0), curr_progress(0), one_percent(100), verbose(verbose_) {}
 
@@ -63,7 +65,7 @@ void Tracker::track (int epoch, double train_loss, double val_loss) {
   }
 
   // Add train and validation loss to matrix
-  rowvec loss_vec = {epoch, train_loss, val_loss};
+  rowvec loss_vec = {double(epoch), train_loss, val_loss};
   train_history.row(k) = loss_vec;
   
   // Increment counter
@@ -76,6 +78,8 @@ void Tracker::endLine () { if ( verbose ) Rcout << std::endl; }
 // ---------------------------------------------------------------------------//
 // Scaler class
 // ---------------------------------------------------------------------------//
+
+Scaler::Scaler () {}
 
 Scaler::Scaler (mat z, bool standardize_)
   : standardize(standardize_), 

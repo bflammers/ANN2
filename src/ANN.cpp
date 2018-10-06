@@ -1,8 +1,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include "utils.h"
-#include "loss.h"
-#include "layer.h"
+#include "Loss.h"
+#include "Layer.h"
 using namespace Rcpp;
 using namespace arma;
 
@@ -11,15 +11,16 @@ using namespace arma;
 class ANN 
 {
 private:
-  std::list<layer> layers;
-  std::list<layer>::iterator it;
-  std::list<layer>::reverse_iterator rit;
+  std::list<Layer> layers;
+  std::list<Layer>::iterator it;
+  std::list<Layer>::reverse_iterator rit;
   Scaler sX, sY;
-  loss *L;
+  Loss *L;
   Tracker tracker;
   int epoch;
   
 public:
+  ANN(); // Default constructor needed for boost serialization
   ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
       List activ_param_);
   mat forwardPass (mat X);
@@ -32,6 +33,8 @@ public:
   List getTrainHistory ();
 };
 
+ANN::ANN() {};
+
 // ANN class constructor
 ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
     List activ_param_)
@@ -42,7 +45,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
 {
   
   // Set loss
-  lossFactory lFact(loss_param_); 
+  LossFactory lFact(loss_param_); 
   L = lFact.createLoss();
   
   // Set iterable vectors for number of nodes, activation type and learn_rates
@@ -58,7 +61,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
   for(int i = 1; i!=num_nodes.size(); i++){
     activ_param["type"] = activ_types(i);
     optim_param["learn_rate"] = learn_rates(i);
-    layer l(num_nodes(i-1), num_nodes(i), activ_param, optim_param);
+    Layer l(num_nodes(i-1), num_nodes(i), activ_param, optim_param);
     layers.push_back(l);
   }
   
@@ -87,9 +90,9 @@ mat ANN::partialForward (mat X, int i_start, int i_stop)
 {
   
   // Set start & stop point iterators
-  std::list<layer>::iterator start_it = layers.begin();
+  std::list<Layer>::iterator start_it = layers.begin();
   std::advance(start_it, i_start);
-  std::list<layer>::iterator stop_it = layers.begin();
+  std::list<Layer>::iterator stop_it = layers.begin();
   std::advance(stop_it, i_stop);
   
   // If input layer: standardize
