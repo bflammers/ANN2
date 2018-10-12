@@ -6,6 +6,25 @@ using namespace Rcpp;
 using namespace arma;
 
 // ---------------------------------------------------------------------------//
+// Armadillo matrix wrapper for serialization
+// ---------------------------------------------------------------------------//
+class MatSerializer 
+{
+private:
+  int ncol, nrow;
+  std::vector< std::vector<double> > X_holder;
+  
+public:
+  MatSerializer ();
+  MatSerializer (mat X);
+  mat getMat ();
+  
+  template<typename Archive>
+  void serialize(Archive& ar);
+};
+
+
+// ---------------------------------------------------------------------------//
 // Scaler class
 // ---------------------------------------------------------------------------//
 class Scaler 
@@ -64,6 +83,13 @@ public:
   void setTracker(int n_passes_, bool validate_, List train_param_);
   void track (int epoch, double train_loss, double val_loss);
   void endLine ();
+  
+  template<class Archive>
+  void save(Archive & archive) const;
+  
+  template<class Archive>
+  void load(Archive & archive);
+  
 };
 
 #endif

@@ -20,9 +20,17 @@ private:
 public:
   int n_nodes;
   std::string activ_type;
+  
+  Layer ();
   Layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_);
   mat forward (mat X);
   mat backward (mat E); 
+  
+  template<class Archive>
+  void save(Archive & archive) const;
+  
+  template<class Archive>
+  void load(Archive & archive);
 };
 
 #endif

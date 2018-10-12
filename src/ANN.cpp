@@ -1,10 +1,21 @@
+// Enable C++11 via this plugin 
+// [[Rcpp::plugins("cpp11")]]
+
+// [[Rcpp::depends(Rcereal)]]
+// [[Rcpp::depends(BH)]]
 // [[Rcpp::depends(RcppArmadillo)]]
+
 #include <RcppArmadillo.h>
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/types/list.hpp>
+
 #include "utils.h"
 #include "Loss.h"
 #include "Layer.h"
+
 using namespace Rcpp;
 using namespace arma;
+
 
 // Class ANN
 //' @export ANN
@@ -20,7 +31,7 @@ private:
   int epoch;
   
 public:
-  ANN(); // Default constructor needed for boost serialization
+  ANN(); // Default constructor needed for serialization
   ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
       List activ_param_);
   mat forwardPass (mat X);
@@ -31,7 +42,20 @@ public:
   void train (List data, List train_param);
   void print (bool print_epochs);
   List getTrainHistory ();
+  void saveANN (const char* fileName);
+  void loadANN (const char* fileName);
+  
+  // This method lets cereal know which data members to serialize
+  template<class Archive>
+  void serialize(Archive & archive);
+
 };
+
+// Serialize
+template<class Archive>
+void ANN::serialize(Archive & archive) {
+  archive( tracker ); 
+}
 
 ANN::ANN() {};
 
@@ -213,6 +237,28 @@ List ANN::getTrainHistory ( ) {
   
 }
 
+void ANN::saveANN (const char* fileName) {
+  
+  // Create an output archive
+  {
+    std::ofstream ofs(fileName, std::ios::binary);
+    cereal::PortableBinaryOutputArchive oarchive(ofs);
+    ANN::serialize(oarchive);
+  }
+  
+}
+
+void ANN::loadANN (const char* fileName) {
+  
+  {
+    std::ifstream ifs(fileName, std::ios::binary);
+    cereal::PortableBinaryInputArchive iarchive(ifs);
+    ANN::serialize(iarchive);
+  }
+  
+  Rcout << "Epoch: " << epoch;
+}
+
 RCPP_MODULE(ANN) {
   using namespace Rcpp ;
   class_<ANN>( "ANN" )
@@ -222,6 +268,8 @@ RCPP_MODULE(ANN) {
   .method( "train", &ANN::train)
   .method( "print", &ANN::print)
   .method( "getTrainHistory", &ANN::getTrainHistory)
+  .method( "saveANN", &ANN::saveANN)
+  .method( "loadANN", &ANN::loadANN)
   ;
 }
 

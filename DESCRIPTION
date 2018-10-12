@@ -19,6 +19,6 @@ Encoding: UTF-8
 LazyData: true
 Imports: Rcpp (>= 0.12.18), stats (>= 3.5.1), graphics (>= 3.5.1), 
     reshape2 (>= 1.4.3), ggplot2 (>= 3.0.0), viridisLite (>= 0.3.0)
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo, BH, Rcereal
 Suggests: 
 RoxygenNote: 6.1.0
