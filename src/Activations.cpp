@@ -4,12 +4,12 @@
 using namespace Rcpp;
 using namespace arma;
 
-// ---------------------------------------------------------------------------//
-// Base Activation clas
-// ---------------------------------------------------------------------------//
-
-mat Activation::eval(mat X) { return X.ones(); }
-mat Activation::grad(mat X) { return X.ones(); }
+// // ---------------------------------------------------------------------------//
+// // Base Activation clas
+// // ---------------------------------------------------------------------------//
+// 
+// mat Activation::eval(mat X) { return X.ones(); }
+// mat Activation::grad(mat X) { return X.ones(); }
 
 // ---------------------------------------------------------------------------//
 // Activation classes

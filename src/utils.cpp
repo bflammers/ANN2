@@ -1,41 +1,10 @@
-// Enable C++11 via this plugin 
-// [[Rcpp::plugins("cpp11")]]
-
-// [[Rcpp::depends(Rcereal)]]
-// [[Rcpp::depends(BH)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
-#include <cereal/types/vector.hpp>
-#include <cereal/archives/portable_binary.hpp>
 #include "utils.h"
+
 using namespace Rcpp;
 using namespace arma;
-
-// ---------------------------------------------------------------------------//
-// Armadillo matrix wrapper for serialization
-// ---------------------------------------------------------------------------//
-MatSerializer::MatSerializer () {}
-
-MatSerializer::MatSerializer (mat X) : ncol(X.n_cols), nrow(X.n_rows) {
-  X_holder.resize(ncol);
-  for (size_t i = 0; i < ncol; ++i) {
-    X_holder[i] = arma::conv_to< std::vector<double> >::from( X.col(i) );
-  };
-}
-
-mat MatSerializer::getMat () {
-  mat X(nrow, ncol);
-  for (size_t i = 0; i < ncol; ++i) {
-    X.col(i) = arma::conv_to< colvec >::from( X_holder[i] );
-  };
-  return X;
-}
-
-template<typename Archive>
-void MatSerializer::serialize(Archive& ar) {
-  ar( nrow , ncol , X_holder );
-}
 
 // ---------------------------------------------------------------------------//
 // Tracker class
@@ -108,23 +77,6 @@ void Tracker::track (int epoch, double train_loss, double val_loss) {
 // End the line after
 void Tracker::endLine () { if ( verbose ) Rcout << std::endl; }
 
-// Serialize
-template<class Archive>
-void Tracker::save(Archive & archive) const
-{
-  MatSerializer ser_train_history(train_history);
-  archive( ser_train_history , verbose, k ); 
-}
-
-// Deserialze
-template<class Archive>
-void Tracker::load(Archive & archive)
-{
-  MatSerializer ser_train_history(train_history);
-  archive( ser_train_history , verbose, k );
-  train_history = ser_train_history.getMat();
-}
-
 // ---------------------------------------------------------------------------//
 // Scaler class
 // ---------------------------------------------------------------------------//
@@ -165,6 +117,7 @@ mat Scaler::unscale(mat z)
 // ---------------------------------------------------------------------------//
 // Sampler class
 // ---------------------------------------------------------------------------//
+
 Sampler::Sampler (mat X_, mat Y_, List train_param)
 {
   // Training parameters 
@@ -240,35 +193,4 @@ mat Sampler::getYv ()
 { 
   return Y_val; 
 }
-
-// 
-// // [[Rcpp::export]]
-// void write (const char* fileName) {
-//   // Create an output archive
-//   Tracker t(true);
-//   t.setTracker(2, true, List::create(Rcpp::Named("vec") = 1));
-//   {
-//     std::ofstream ofs(fileName, std::ios::binary);
-//     cereal::PortableBinaryOutputArchive oarchive(ofs);
-//     t.save(oarchive);
-//   }
-// }
-// 
-// // [[Rcpp::export]]
-// void read (const char* fileName) {
-//   Tracker tt; {
-//     std::ifstream ifs(fileName, std::ios::binary);
-//     cereal::PortableBinaryInputArchive iarchive(ifs);
-//     tt.load(iarchive);
-//   }
-//   Rcout << tt.train_history;
-// }
-// 
-// 
-// /*** R
-// write("/home/bart/Documents/R/ANN2/src/test.bin")
-// read("/home/bart/Documents/R/ANN2/src/test.bin")
-// */
-// 
-
 

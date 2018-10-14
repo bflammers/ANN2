@@ -2,27 +2,8 @@
 #define UTILS_H
 
 #include <RcppArmadillo.h>
-using namespace Rcpp;
-using namespace arma;
-
-// ---------------------------------------------------------------------------//
-// Armadillo matrix wrapper for serialization
-// ---------------------------------------------------------------------------//
-class MatSerializer 
-{
-private:
-  int ncol, nrow;
-  std::vector< std::vector<double> > X_holder;
-  
-public:
-  MatSerializer ();
-  MatSerializer (mat X);
-  mat getMat ();
-  
-  template<typename Archive>
-  void serialize(Archive& ar);
-};
-
+#include <cereal/archives/binary.hpp>
+#include "arma_serialization.h"
 
 // ---------------------------------------------------------------------------//
 // Scaler class
@@ -30,15 +11,31 @@ public:
 class Scaler 
 {
 private:
-  rowvec z_mu, z_sd;
+  arma::rowvec z_mu, z_sd;
   bool standardize;
   
 public:
   int n_col;
   Scaler(); // Default constructor needed for serialization
-  Scaler (mat z, bool standardize_);
-  mat scale(mat z);
-  mat unscale(mat z);
+  Scaler (arma::mat z, bool standardize_);
+  arma::mat scale(arma::mat z);
+  arma::mat unscale(arma::mat z);
+  
+  template<class Archive>
+  void save(Archive & archive) const
+  {
+    RowVecSerializer ser_z_mu(z_mu), ser_z_sd(z_sd);
+    archive( ser_z_mu, ser_z_sd, standardize ); 
+  }
+  
+  template<class Archive>
+  void load(Archive & archive)
+  {
+    RowVecSerializer ser_z_mu, ser_z_sd;
+    archive( ser_z_mu, ser_z_sd, standardize ); 
+    z_mu = ser_z_mu.getRowVec();
+    z_sd = ser_z_sd.getRowVec();
+  }
 };
 
 // ---------------------------------------------------------------------------//
@@ -48,19 +45,19 @@ class Sampler
 {
 private:
   int n_train;
-  mat X_train, Y_train, X_val, Y_val;
-  std::list<uvec> indices;
-  std::list<uvec>::iterator Xit;
-  std::list<uvec>::iterator Yit;
+  arma::mat X_train, Y_train, X_val, Y_val;
+  std::list<arma::uvec> indices;
+  std::list<arma::uvec>::iterator Xit;
+  std::list<arma::uvec>::iterator Yit;
 public:
   int n_batch;
   bool validate;
-  Sampler (mat X_, mat y_, List train_param);
+  Sampler (arma::mat X_, arma::mat y_, Rcpp::List train_param);
   void shuffle();
-  mat nextXb();
-  mat nextYb();
-  mat getXv();
-  mat getYv();
+  arma::mat nextXb();
+  arma::mat nextYb();
+  arma::mat getXv();
+  arma::mat getYv();
 };
 
 // ---------------------------------------------------------------------------//
@@ -79,16 +76,27 @@ public:
   
   Tracker(); // Default constructor needed for serialization
   Tracker(bool verbose_);
-  mat train_history;
-  void setTracker(int n_passes_, bool validate_, List train_param_);
+  arma::mat train_history;
+  void setTracker(int n_passes_, bool validate_, Rcpp::List train_param_);
   void track (int epoch, double train_loss, double val_loss);
   void endLine ();
   
+  // Serialize
   template<class Archive>
-  void save(Archive & archive) const;
+  void save(Archive & archive) const
+  {
+    MatSerializer ser_train_history(train_history);
+    archive( ser_train_history, verbose, k ); 
+  }
   
+  // Deserialze
   template<class Archive>
-  void load(Archive & archive);
+  void load(Archive & archive)
+  {
+    MatSerializer ser_train_history(train_history);
+    archive( ser_train_history, verbose, k );
+    train_history = ser_train_history.getMat();
+  }
   
 };
 

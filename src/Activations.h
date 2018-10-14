@@ -2,14 +2,12 @@
 #define ACTIVATIONS
 
 #include <RcppArmadillo.h>
-using namespace Rcpp;
-using namespace arma;
 
 // Base class Activation
 class Activation {
 public: 
-  virtual mat eval(mat X);
-  virtual mat grad(mat X);
+  virtual arma::mat eval(arma::mat X) = 0;
+  virtual arma::mat grad(arma::mat X) = 0;
 };
 
 // Class for creating Activation classes that inherit from base class
@@ -17,9 +15,9 @@ class ActivationFactory
 {
 public:
   std::string type;
-  List activ_param;
+  Rcpp::List activ_param;
   ActivationFactory ();
-  ActivationFactory (List activ_param_);
+  ActivationFactory (Rcpp::List activ_param_);
   Activation *createActivation ();
 };
 

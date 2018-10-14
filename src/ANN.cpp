@@ -6,8 +6,9 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/types/list.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/polymorphic.hpp>
+// #include <cereal/types/list.hpp>
 
 #include "utils.h"
 #include "Loss.h"
@@ -54,7 +55,7 @@ public:
 // Serialize
 template<class Archive>
 void ANN::serialize(Archive & archive) {
-  archive( tracker ); 
+  archive( tracker, sX, sY ); 
 }
 
 ANN::ANN() {};
@@ -217,6 +218,8 @@ void ANN::print ( bool print_epochs ) {
     print_stream << it->activ_type << " \n";
   }
   
+  print_stream << "With loss type: " << L->type << " \n";
+  
   // Add the amount of training (in epochs) to stream
   if ( print_epochs ) print_stream << "Trained for " << epoch << " epochs \n"; 
   
@@ -242,7 +245,7 @@ void ANN::saveANN (const char* fileName) {
   // Create an output archive
   {
     std::ofstream ofs(fileName, std::ios::binary);
-    cereal::PortableBinaryOutputArchive oarchive(ofs);
+    cereal::BinaryOutputArchive oarchive(ofs);
     ANN::serialize(oarchive);
   }
   
@@ -252,7 +255,7 @@ void ANN::loadANN (const char* fileName) {
   
   {
     std::ifstream ifs(fileName, std::ios::binary);
-    cereal::PortableBinaryInputArchive iarchive(ifs);
+    cereal::BinaryInputArchive iarchive(ifs);
     ANN::serialize(iarchive);
   }
   

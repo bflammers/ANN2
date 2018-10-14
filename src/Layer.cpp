@@ -1,13 +1,7 @@
-// Enable C++11 via this plugin 
-// [[Rcpp::plugins("cpp11")]]
-
-// [[Rcpp::depends(Rcereal)]]
-// [[Rcpp::depends(BH)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
-#include <cereal/types/vector.hpp>
-#include <cereal/archives/portable_binary.hpp>
+
 #include "Layer.h"
 using namespace Rcpp;
 using namespace arma;
@@ -36,22 +30,22 @@ Layer::Layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_
   
 }
 
-// Serialize
-template<class Archive>
-void Layer::save(Archive & archive) const
-{
-  MatSerializer serW(W);
-  archive( serW, activ_type, n_nodes ); 
-}
-
-// Deserialze
-template<class Archive>
-void Layer::load(Archive & archive)
-{
-  MatSerializer serW;
-  archive( serW, activ_type, n_nodes );
-  W = serW.getMat();
-}
+// // Serialize
+// template<class Archive>
+// void Layer::save(Archive & archive) const
+// {
+//   MatSerializer serW(W);
+//   archive( serW, activ_type, n_nodes ); 
+// }
+// 
+// // Deserialze
+// template<class Archive>
+// void Layer::load(Archive & archive)
+// {
+//   MatSerializer serW;
+//   archive( serW, activ_type, n_nodes );
+//   W = serW.getMat();
+// }
   
 mat Layer::forward (mat X) 
 {
