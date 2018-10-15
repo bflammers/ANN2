@@ -4,7 +4,4 @@
 # ANN2
 Artificial Neural Networks package for R 
 
-Training of general classification and regression neural networks using gradient descent. 
-Special features include a function for training autoencoders and a step and ramp activation function for training replicator neural networks, for details see Hawkins et al. (2012). Multiple activation and cost functions (including Huber and pseudo-Huber) are included, 
-as well as L1 and L2 regularization, momentum, early stopping and the possibility to specify a learning rate schedule. 
-The package contains a vectorized gradient descent implementation which facilitates faster training through batch learning.
+Training of general classification and regression neural networks using gradient descent. Special features include a function for training autoencoders and a step and ramp activation function for training replicator neural networks, for details see Hawkins et al. (2012) <doi.org/10.1007/3-540-46145-0_17>. Multiple activation and loss functions (including Huber and pseudo-Huber) are included, as well as L1 and L2 regularization and momentum. The package contains a vectorized gradient descent implementation which facilitates fast training through batch learning.
