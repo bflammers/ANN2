@@ -8,7 +8,7 @@
 #include <RcppArmadillo.h>
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/polymorphic.hpp>
-// #include <cereal/types/list.hpp>
+#include <cereal/types/list.hpp>
 
 #include "utils.h"
 #include "Loss.h"
@@ -27,7 +27,7 @@ private:
   std::list<Layer>::iterator it;
   std::list<Layer>::reverse_iterator rit;
   Scaler sX, sY;
-  Loss *L;
+  std::unique_ptr<Loss> L;
   Tracker tracker;
   int epoch;
   
@@ -55,7 +55,7 @@ public:
 // Serialize
 template<class Archive>
 void ANN::serialize(Archive & archive) {
-  archive( tracker, sX, sY ); 
+  archive( epoch, tracker, sX, sY, L, layers ); 
 }
 
 ANN::ANN() {};
@@ -70,8 +70,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
 {
   
   // Set loss
-  LossFactory lFact(loss_param_); 
-  L = lFact.createLoss();
+  L = LossFactory(loss_param_); 
   
   // Set iterable vectors for number of nodes, activation type and learn_rates
   ivec num_nodes = net_param_["num_nodes"];
@@ -215,7 +214,7 @@ void ANN::print ( bool print_epochs ) {
   // Get number of nodes and activation type for each layer and add to stream
   for(it = layers.begin(); it != layers.end(); ++it) {
     print_stream << "  Layer - " << it->n_nodes << " nodes - "; 
-    print_stream << it->activ_type << " \n";
+    print_stream << it->g->type << " \n";
   }
   
   print_stream << "With loss type: " << L->type << " \n";

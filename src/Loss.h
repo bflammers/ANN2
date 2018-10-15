@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/archives/binary.hpp>
+#include <memory>
 
 // ---------------------------------------------------------------------------//
 // Base loss class
@@ -35,7 +36,7 @@ public:
 
 // Register class for serialization
 CEREAL_REGISTER_TYPE(LogLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, LogLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, LogLoss);
 
 
 // ---------------------------------------------------------------------------//
@@ -57,7 +58,7 @@ public:
 
 // Register class for serialization
 CEREAL_REGISTER_TYPE(SquaredLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, SquaredLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, SquaredLoss);
 
 // ---------------------------------------------------------------------------//
 // Absolute loss class
@@ -78,7 +79,7 @@ public:
 
 // Register class for serialization
 CEREAL_REGISTER_TYPE(AbsoluteLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, AbsoluteLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, AbsoluteLoss);
 
 // ---------------------------------------------------------------------------//
 // Huber loss class
@@ -102,7 +103,7 @@ public:
 
 // Register class for serialization
 CEREAL_REGISTER_TYPE(HuberLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, HuberLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, HuberLoss);
 
 // ---------------------------------------------------------------------------//
 // Pseudo-Huber loss class
@@ -126,20 +127,12 @@ public:
 
 // Register class for serialization
 CEREAL_REGISTER_TYPE(PseudoHuberLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, PseudoHuberLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, PseudoHuberLoss);
 
 // ---------------------------------------------------------------------------//
-// Loss class factory
+// Loss factory
 // ---------------------------------------------------------------------------//
-class LossFactory
-{
-public:
-  std::string type;
-  Rcpp::List loss_param;
-  LossFactory ();
-  LossFactory (Rcpp::List loss_param_);
-  Loss *createLoss ();
-};
 
+std::unique_ptr<Loss> LossFactory (Rcpp::List loss_param_);
 
 #endif

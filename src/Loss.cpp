@@ -104,24 +104,17 @@ mat PseudoHuberLoss::grad(mat y, mat y_fit) {
 }
 
 // ---------------------------------------------------------------------------//
-// Methods for Loss factory 
+// Loss factory 
 // ---------------------------------------------------------------------------//
 
-// Constructor
-LossFactory::LossFactory (List loss_param_) : loss_param(loss_param_) 
+std::unique_ptr<Loss> LossFactory (List loss_param)
 {
-  // Set optimization type
-  type = as<std::string>(loss_param["type"]);
-}
-
-// Method for creating optimizers
-Loss *LossFactory::createLoss () 
-{
-  if      (type == "log")         return new LogLoss();
-  else if (type == "squared")     return new SquaredLoss();
-  else if (type == "absolute")    return new AbsoluteLoss();
-  else if (type == "huber")       return new HuberLoss(loss_param);
-  else if (type == "pseudoHuber") return new PseudoHuberLoss(loss_param);
+  std::string type = as<std::string>(loss_param["type"]);
+  if      (type == "log")         return std::unique_ptr<LogLoss>(new LogLoss());
+  else if (type == "squared")     return std::unique_ptr<SquaredLoss>(new SquaredLoss());
+  else if (type == "absolute")    return std::unique_ptr<AbsoluteLoss>(new AbsoluteLoss());
+  else if (type == "huber")       return std::unique_ptr<HuberLoss>(new HuberLoss(loss_param));
+  else if (type == "pseudoHuber") return std::unique_ptr<PseudoHuberLoss>(new PseudoHuberLoss(loss_param));
   else                            return NULL;
 }
 
