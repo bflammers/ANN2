@@ -199,6 +199,7 @@ void ANN::train (List data, List train_param)
   
   // End printing on the same line
   tracker.endLine();
+  
 }
 
 // Class method for printing NN information

@@ -20,8 +20,7 @@ Layer::Layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_
   b = zeros<vec>(nodes_out_);
   
   // Set optimizer
-  OptimizerFactory oFact(W, b, optim_param_);
-  O = oFact.createOptimizer();
+  O = OptimizerFactory (W, b, optim_param_);
   
   // Set activation function
   g = ActivationFactory (activ_param_);
