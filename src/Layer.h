@@ -41,7 +41,7 @@ public:
   {
     MatSerializer ser_W;
     VecSerializer ser_b;
-    archive( ser_W, ser_b, g, n_nodes );
+    archive( ser_W, ser_b, g, O, n_nodes );
     W = ser_W.getMat();
     b = ser_b.getVec();
   }
