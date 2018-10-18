@@ -222,6 +222,6 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, RampActivation);
 // Activation factory
 // ---------------------------------------------------------------------------//
 
-std::shared_ptr<Activation> ActivationFactory (Rcpp::List activ_param);
+std::unique_ptr<Activation> ActivationFactory (Rcpp::List activ_param);
 
 #endif

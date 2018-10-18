@@ -43,21 +43,18 @@ public:
   void train (List data, List train_param);
   void print (bool print_epochs);
   List getTrainHistory ();
-  void saveANN (const char* fileName);
-  void loadANN (const char* fileName);
+  void write (const char* fileName);
+  void read (const char* fileName);
   
-  // This method lets cereal know which data members to serialize
+  // Serialize
   template<class Archive>
-  void serialize(Archive & archive);
+  void serialize(Archive & archive) {
+    archive( epoch, tracker, sX, sY, L, layers ); 
+  }
 
 };
 
-// Serialize
-template<class Archive>
-void ANN::serialize(Archive & archive) {
-  archive( epoch, tracker, sX, sY, L, layers ); 
-}
-
+// Default constructor needed for serialization
 ANN::ANN() {};
 
 // ANN class constructor
@@ -86,7 +83,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
     activ_param["type"] = activ_types(i);
     optim_param["learn_rate"] = learn_rates(i);
     Layer l(num_nodes(i-1), num_nodes(i), activ_param, optim_param);
-    layers.push_back(l);
+    layers.push_back(std::move(l)); // std::move needed with use of unique_ptr
   }
   
   // Print NN info if verbose
@@ -214,8 +211,7 @@ void ANN::print ( bool print_epochs ) {
   
   // Get number of nodes and activation type for each layer and add to stream
   for(it = layers.begin(); it != layers.end(); ++it) {
-    print_stream << "  Layer - " << it->n_nodes << " nodes - "; 
-    print_stream << it->g->type << " \n";
+    print_stream << it->print();
   }
   
   print_stream << "With loss type: " << L->type << " \n";
@@ -240,7 +236,7 @@ List ANN::getTrainHistory ( ) {
   
 }
 
-void ANN::saveANN (const char* fileName) {
+void ANN::write (const char* fileName) {
   
   // Create an output archive
   {
@@ -251,7 +247,7 @@ void ANN::saveANN (const char* fileName) {
   
 }
 
-void ANN::loadANN (const char* fileName) {
+void ANN::read (const char* fileName) {
   
   {
     std::ifstream ifs(fileName, std::ios::binary);
@@ -259,7 +255,6 @@ void ANN::loadANN (const char* fileName) {
     ANN::serialize(iarchive);
   }
   
-  Rcout << "Epoch: " << epoch;
 }
 
 RCPP_MODULE(ANN) {
@@ -271,8 +266,8 @@ RCPP_MODULE(ANN) {
   .method( "train", &ANN::train)
   .method( "print", &ANN::print)
   .method( "getTrainHistory", &ANN::getTrainHistory)
-  .method( "saveANN", &ANN::saveANN)
-  .method( "loadANN", &ANN::loadANN)
+  .method( "write", &ANN::write)
+  .method( "read", &ANN::read)
   ;
 }
 

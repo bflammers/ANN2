@@ -66,7 +66,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, SGD);
 // Optimizer factory 
 // ---------------------------------------------------------------------------//
 
-std::shared_ptr<Optimizer> OptimizerFactory (arma::mat W_templ, arma::mat b_templ, Rcpp::List optim_param);
+std::unique_ptr<Optimizer> OptimizerFactory (arma::mat W_templ, arma::mat b_templ, Rcpp::List optim_param);
 
 
 #endif

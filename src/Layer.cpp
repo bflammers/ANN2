@@ -42,3 +42,9 @@ mat Layer::backward (mat E)
   b = O->updateb(b, D);
   return D * W;
 }
+
+std::string Layer::print() {
+  std::stringstream out;
+  out << "  Layer - " << n_nodes << " nodes - " << g->type << " \n";
+  return out.str();
+}

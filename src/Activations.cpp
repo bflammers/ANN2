@@ -174,15 +174,15 @@ mat RampActivation::grad(mat X)
 // Activation factory
 // ---------------------------------------------------------------------------//
 
-std::shared_ptr<Activation> ActivationFactory (List activ_param) {
+std::unique_ptr<Activation> ActivationFactory (List activ_param) {
   std::string type = as<std::string>(activ_param["type"]);
-  if      (type == "tanh")    return std::shared_ptr<Activation>(new TanhActivation());
-  else if (type == "sigmoid") return std::shared_ptr<Activation>(new SigmoidActivation());
-  else if (type == "relu")    return std::shared_ptr<Activation>(new ReluActivation());
-  else if (type == "linear")  return std::shared_ptr<Activation>(new LinearActivation());
-  else if (type == "softmax") return std::shared_ptr<Activation>(new SoftMaxActivation());
-  else if (type == "ramp")    return std::shared_ptr<Activation>(new RampActivation());
-  else if (type == "step")    return std::shared_ptr<Activation>(new StepActivation(activ_param));
+  if      (type == "tanh")    return std::unique_ptr<Activation>(new TanhActivation());
+  else if (type == "sigmoid") return std::unique_ptr<Activation>(new SigmoidActivation());
+  else if (type == "relu")    return std::unique_ptr<Activation>(new ReluActivation());
+  else if (type == "linear")  return std::unique_ptr<Activation>(new LinearActivation());
+  else if (type == "softmax") return std::unique_ptr<Activation>(new SoftMaxActivation());
+  else if (type == "ramp")    return std::unique_ptr<Activation>(new RampActivation());
+  else if (type == "step")    return std::unique_ptr<Activation>(new StepActivation(activ_param));
   else                        return NULL;
 }
 

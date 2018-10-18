@@ -39,9 +39,9 @@ vec SGD::updateb(vec b, mat D) {
 // Optimizer factory 
 // ---------------------------------------------------------------------------//
 
-std::shared_ptr<Optimizer> OptimizerFactory (mat W_templ, mat b_templ, List optim_param) {
+std::unique_ptr<Optimizer> OptimizerFactory (mat W_templ, mat b_templ, List optim_param) {
   std::string type = as<std::string>(optim_param["type"]);
-  if    (type == "sgd") return std::shared_ptr<Optimizer>(new SGD(W_templ, b_templ, optim_param));
+  if    (type == "sgd") return std::unique_ptr<Optimizer>(new SGD(W_templ, b_templ, optim_param));
   else                  return NULL;
 }
 
