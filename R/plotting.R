@@ -55,7 +55,7 @@ recPlot <- function(object, X, colors = NULL) {
   rX  <- rec$reconstructed
   
   # Extract meta, set derived constants
-  meta  <- object$meta
+  meta  <- object$Rcpp_ANN$getMeta()
   n_row <- nrow(X)
   n_col <- meta$n_in
   dim_names <- meta$names
@@ -116,7 +116,7 @@ comprPlot <- function(object, X, colors = NULL) {
   cX <- encode(object, X)
   
   # Extract meta, set derived constants
-  meta  <- object$meta
+  meta  <- object$Rcpp_ANN$getMeta()
   n_row <- nrow(X)
   n_col <- ncol(cX)
   dim_names <- colnames(cX)

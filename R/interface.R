@@ -95,7 +95,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(meta = meta, Rcpp_ANN = Rcpp_ANN)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN)
   class(ANN) <- 'ANN'
   attr(ANN, 'autoencoder') <- FALSE
 
@@ -193,7 +193,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(meta = meta, Rcpp_ANN = Rcpp_ANN)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN)
   class(ANN) <- 'ANN'
   attr(ANN, 'autoencoder') <- TRUE
   
@@ -263,7 +263,7 @@ train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
                   drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
   # Extract meta from object
-  meta <- object$meta
+  meta <- object$Rcpp_ANN$getMeta()
   
   # Perform checks on data, set meta data
   data <- setData(X, Y, meta$regression)
@@ -293,7 +293,7 @@ train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
 reconstruct <- function(object, X, mahalanobis = TRUE) {
 
   # Extract meta
-  meta <- object$meta
+  meta <- object$Rcpp_ANN$getMeta()
   
   # Convert X to matrix
   X <- as.matrix(X)
@@ -341,7 +341,7 @@ reconstruct <- function(object, X, mahalanobis = TRUE) {
 predict.ANN <- function(object, newdata, ...) {
   
   # Extract meta
-  meta <- object$meta
+  meta <- object$Rcpp_ANN$getMeta()
   
   # Convert X to matrix
   X <- as.matrix(newdata)

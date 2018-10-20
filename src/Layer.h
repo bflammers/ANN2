@@ -26,6 +26,7 @@ public:
   arma::mat forward (arma::mat X);
   arma::mat backward (arma::mat E);
   std::string print();
+  void setOptimizer(Rcpp::List optim_param);
   
   // Serialize
   template<class Archive>

@@ -58,11 +58,8 @@ setData <- function(X, Y, regression) {
       stop('Y should be numeric for regression', call. = FALSE)
     }
     
-    # Set classes to NULL (only relevant for classification)
-    classes <- NULL
-    
     # Set names to class names (used in predict.ANN() )
-    names <- colnames(Y)
+    y_names <- colnames(Y)
     
   } else {
     
@@ -82,11 +79,8 @@ setData <- function(X, Y, regression) {
     Y <- as.matrix(Y)
     
     # One-hot encode Y and store classes
-    classes <- sort(unique(Y))
-    Y <- 1 * outer(c(Y), classes, '==')
-    
-    # Set names to class names (used in predict.ANN() )
-    names <- paste0('class_', classes)
+    y_names <- sort(unique(Y))
+    Y <- 1 * outer(c(Y), y_names, '==')
     
   }
   
@@ -99,7 +93,7 @@ setData <- function(X, Y, regression) {
   }
   
   # Collect parameters in list
-  return ( list(X = X, Y = Y, classes = classes, names = names, n_obs = n_obs) )
+  return ( list(X = X, Y = Y, y_names = y_names, n_obs = n_obs) )
 }
 
 # Set and check network parameter list
@@ -134,7 +128,7 @@ setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
 
   # Collect parameters in list
   return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_Y = stand_Y, 
-                verbose = verbose) )
+                verbose = verbose, regression = meta$regression) )
 }
 
 # Set and check activation parameter list

@@ -9,6 +9,7 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/list.hpp>
+#include <cereal/types/vector.hpp>
 
 #include "utils.h"
 #include "Loss.h"
@@ -30,11 +31,14 @@ private:
   std::unique_ptr<Loss> L;
   Tracker tracker;
   int epoch;
+  std::vector<std::string> y_names;
+  std::vector<int> num_nodes;
+  bool regression;
   
 public:
   ANN(); // Default constructor needed for serialization
-  ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
-      List activ_param_);
+  ANN(List data_, List net_param_, List loss_param_, List activ_param_, List optim_param_);
+  void setOptimizers(Rcpp::List optim_param);
   mat forwardPass (mat X);
   void backwardPass (mat Y, mat Y_fit);
   mat partialForward (mat X, int i_start, int i_stop);
@@ -45,11 +49,12 @@ public:
   List getTrainHistory ();
   void write (const char* fileName);
   void read (const char* fileName);
+  Rcpp::List getMeta();
   
   // Serialize
   template<class Archive>
   void serialize(Archive & archive) {
-    archive( epoch, tracker, sX, sY, L, layers ); 
+    archive( epoch, tracker, sX, sY, L, layers, num_nodes, y_names, regression ); 
   }
 
 };
@@ -58,8 +63,7 @@ public:
 ANN::ANN() {};
 
 // ANN class constructor
-ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, 
-    List activ_param_)
+ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List activ_param_)
   : sX(as<mat>(data_["X"]), as<bool>(net_param_["stand_X"])),
     sY(as<mat>(data_["Y"]), as<bool>(net_param_["stand_Y"])),
     tracker(as<bool>(net_param_["verbose"])),
@@ -67,10 +71,14 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
 {
   
   // Set loss
-  L = LossFactory(loss_param_); 
+  L = LossFactory(loss_param_);
   
-  // Set iterable vectors for number of nodes, activation type and learn_rates
-  ivec num_nodes = net_param_["num_nodes"];
+  // Set meta data
+  num_nodes = as<std::vector<int>>(net_param_["num_nodes"]);
+  y_names = as<std::vector<std::string>>(data_["y_names"]);
+  regression = as<bool>(net_param_["regression"]);
+  
+  // Set iterable vectors for activation type and learn_rates
   StringVector activ_types = activ_param_["types"];
   vec learn_rates = optim_param_["learn_rates"];
   
@@ -82,12 +90,29 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_,
   for(int i = 1; i!=num_nodes.size(); i++){
     activ_param["type"] = activ_types(i);
     optim_param["learn_rate"] = learn_rates(i);
-    Layer l(num_nodes(i-1), num_nodes(i), activ_param, optim_param);
+    Layer l(num_nodes[i-1], num_nodes[i], activ_param, optim_param);
     layers.push_back(std::move(l)); // std::move needed with use of unique_ptr
   }
   
   // Print NN info if verbose
   if ( as<bool>(net_param_["verbose"]) ) print( false );
+}
+
+void ANN::setOptimizers(Rcpp::List optim_param_) 
+{
+  // Set parameter list to be passed to Layer::setOptimizer()
+  List optim_param = optim_param_;
+  
+  // Set vector of learn rate to iterate over
+  vec learn_rates = optim_param_["learn_rates"];
+  
+  // Iterate over layers and set optimizer
+  it = layers.begin();
+  for(int i = 0; i!=layers.size(); i++){
+    optim_param["learn_rate"] = learn_rates(i);
+    it->setOptimizer(optim_param);
+    std::next(it);
+  }
 }
 
 mat ANN::forwardPass (mat X) 
@@ -238,6 +263,15 @@ List ANN::getTrainHistory ( ) {
 
 void ANN::write (const char* fileName) {
   
+  // // Extract elements of meta List to separate variables
+  // bool no_hidden = as<bool>(meta["no_hidden"]);
+  // bool regression = as<bool>(meta["regression"]);
+  // int n_hidden = as<int>(meta["n_hidden"]);
+  // int n_out = as<int>(meta["n_out"]);
+  // int n_obs = as<int>(meta["n_obs"]);
+  // std::vector<std::string> classes = as<std::vector<std::string>>(meta["classes"]);
+  // std::vector<std::string> names = as<std::vector<std::string>>(meta["names"]);
+
   // Create an output archive
   {
     std::ofstream ofs(fileName, std::ios::binary);
@@ -254,7 +288,19 @@ void ANN::read (const char* fileName) {
     cereal::BinaryInputArchive iarchive(ifs);
     ANN::serialize(iarchive);
   }
-  
+}
+
+List ANN::getMeta()
+{
+  int n_layers = num_nodes.size();
+
+  return List::create(Named("no_hidden") = n_layers == 2,
+                      Named("n_hidden") = n_layers - 2,
+                      Named("n_in") = num_nodes[0], 
+                      Named("n_out") = num_nodes[n_layers - 1], 
+                      Named("regression") = regression,
+                      Named("y_names") = y_names,
+                      Named("num_nodes") = num_nodes);
 }
 
 RCPP_MODULE(ANN) {
@@ -268,6 +314,7 @@ RCPP_MODULE(ANN) {
   .method( "getTrainHistory", &ANN::getTrainHistory)
   .method( "write", &ANN::write)
   .method( "read", &ANN::read)
+  .method( "getMeta", &ANN::getMeta)
   ;
 }
 
