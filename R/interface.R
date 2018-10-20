@@ -266,7 +266,7 @@ train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
   meta <- object$Rcpp_ANN$getMeta()
   
   # Perform checks on data, set meta data
-  data <- setData(X, Y, meta$regression)
+  data <- setData(X, Y, meta$regression, meta$y_names)
   
   # Set and check training parameters
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)

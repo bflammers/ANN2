@@ -261,17 +261,21 @@ List ANN::getTrainHistory ( ) {
   
 }
 
+List ANN::getMeta()
+{
+  int n_layers = num_nodes.size();
+
+  return List::create(Named("no_hidden") = n_layers == 2,
+                      Named("n_hidden") = n_layers - 2,
+                      Named("n_in") = num_nodes[0], 
+                      Named("n_out") = num_nodes[n_layers - 1], 
+                      Named("regression") = regression,
+                      Named("y_names") = y_names,
+                      Named("num_nodes") = num_nodes);
+}
+
 void ANN::write (const char* fileName) {
   
-  // // Extract elements of meta List to separate variables
-  // bool no_hidden = as<bool>(meta["no_hidden"]);
-  // bool regression = as<bool>(meta["regression"]);
-  // int n_hidden = as<int>(meta["n_hidden"]);
-  // int n_out = as<int>(meta["n_out"]);
-  // int n_obs = as<int>(meta["n_obs"]);
-  // std::vector<std::string> classes = as<std::vector<std::string>>(meta["classes"]);
-  // std::vector<std::string> names = as<std::vector<std::string>>(meta["names"]);
-
   // Create an output archive
   {
     std::ofstream ofs(fileName, std::ios::binary);
@@ -288,19 +292,6 @@ void ANN::read (const char* fileName) {
     cereal::BinaryInputArchive iarchive(ifs);
     ANN::serialize(iarchive);
   }
-}
-
-List ANN::getMeta()
-{
-  int n_layers = num_nodes.size();
-
-  return List::create(Named("no_hidden") = n_layers == 2,
-                      Named("n_hidden") = n_layers - 2,
-                      Named("n_in") = num_nodes[0], 
-                      Named("n_out") = num_nodes[n_layers - 1], 
-                      Named("regression") = regression,
-                      Named("y_names") = y_names,
-                      Named("num_nodes") = num_nodes);
 }
 
 RCPP_MODULE(ANN) {

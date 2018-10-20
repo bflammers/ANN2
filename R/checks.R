@@ -26,7 +26,7 @@ setMeta <- function(data, hidden.layers, regression) {
 
 
 # Set and check data
-setData <- function(X, Y, regression) {
+setData <- function(X, Y, regression, y_names = NULL) {
   
   # Convert X to matrix
   X <- as.matrix(X)
@@ -78,8 +78,13 @@ setData <- function(X, Y, regression) {
     # Convert Y to matrix
     Y <- as.matrix(Y)
     
+    # If y_names NULL (first training run) then y_names should be derived
+    # from the data. If not NULL, y_names of first training run are used
+    if ( is.null(y_names) ) {
+      y_names <- sort(unique(Y))
+    }
+    
     # One-hot encode Y and store classes
-    y_names <- sort(unique(Y))
     Y <- 1 * outer(c(Y), y_names, '==')
     
   }
