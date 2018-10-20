@@ -38,7 +38,6 @@ private:
 public:
   ANN(); // Default constructor needed for serialization
   ANN(List data_, List net_param_, List loss_param_, List activ_param_, List optim_param_);
-  void setOptimizers(Rcpp::List optim_param);
   mat forwardPass (mat X);
   void backwardPass (mat Y, mat Y_fit);
   mat partialForward (mat X, int i_start, int i_stop);
@@ -96,23 +95,6 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List 
   
   // Print NN info if verbose
   if ( as<bool>(net_param_["verbose"]) ) print( false );
-}
-
-void ANN::setOptimizers(Rcpp::List optim_param_) 
-{
-  // Set parameter list to be passed to Layer::setOptimizer()
-  List optim_param = optim_param_;
-  
-  // Set vector of learn rate to iterate over
-  vec learn_rates = optim_param_["learn_rates"];
-  
-  // Iterate over layers and set optimizer
-  it = layers.begin();
-  for(int i = 0; i!=layers.size(); i++){
-    optim_param["learn_rate"] = learn_rates(i);
-    it->setOptimizer(optim_param);
-    std::next(it);
-  }
 }
 
 mat ANN::forwardPass (mat X) 

@@ -258,8 +258,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
 #' #For other examples see function example_NN()
 #'
 #' @export
-train <- function(object, X, Y, n.epochs = 500, learn.rates = 1e-04, 
-                  momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32, 
+train <- function(object, X, Y, n.epochs = 500, batch.size = 32, 
                   drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
   # Extract meta from object
