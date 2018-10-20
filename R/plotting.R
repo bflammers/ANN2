@@ -58,7 +58,7 @@ recPlot <- function(object, X, colors = NULL) {
   meta  <- object$Rcpp_ANN$getMeta()
   n_row <- nrow(X)
   n_col <- meta$n_in
-  dim_names <- meta$names
+  dim_names <- meta$y_names
   
   # Create data.frame containing points for original values and reconstructions
   # This created the matrix like structure for pairwise plotting of dimensions

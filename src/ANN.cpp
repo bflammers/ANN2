@@ -6,7 +6,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
-#include <cereal/archives/binary.hpp>
+#include <cereal/archives/portable_binary.hpp>
 #include <cereal/types/polymorphic.hpp>
 #include <cereal/types/list.hpp>
 #include <cereal/types/vector.hpp>
@@ -261,7 +261,7 @@ void ANN::write (const char* fileName) {
   // Create an output archive
   {
     std::ofstream ofs(fileName, std::ios::binary);
-    cereal::BinaryOutputArchive oarchive(ofs);
+    cereal::PortableBinaryOutputArchive oarchive(ofs);
     ANN::serialize(oarchive);
   }
   
@@ -271,7 +271,7 @@ void ANN::read (const char* fileName) {
   
   {
     std::ifstream ifs(fileName, std::ios::binary);
-    cereal::BinaryInputArchive iarchive(ifs);
+    cereal::PortableBinaryInputArchive iarchive(ifs);
     ANN::serialize(iarchive);
   }
 }

@@ -357,7 +357,7 @@ predict.ANN <- function(object, newdata, ...) {
   
   # Predict and set column names
   fit <- object$Rcpp_ANN$predict(X)
-  colnames(fit) <- meta$names
+  colnames(fit) <- paste0("class_", meta$y_names)
   
   # For regression return fitted values
   if ( meta$regression ) {
@@ -365,7 +365,7 @@ predict.ANN <- function(object, newdata, ...) {
   }
   
   # For classification return predicted classes and probabilities (fit)
-  predictions <- meta$classes[apply(fit, 1, which.max)]
+  predictions <- meta$y_names[apply(fit, 1, which.max)]
   return( list(predictions = predictions, probabilities = fit) )
 }
 
@@ -420,8 +420,8 @@ encode <- function(object, newdata, compression.layer = NULL) {
   }
   
   # Extract meta, hidden_layers
-  meta <- object$meta
-  hidden_layers <- meta$hidden_layers
+  meta <- object$Rcpp_ANN$getMeta()
+  hidden_layers <- meta$num_nodes[2:(1+meta$n_hidden)]
   
   # Convert X to matrix
   X <- as.matrix(newdata)
@@ -477,8 +477,8 @@ decode <- function(object, compressed, compression.layer = NULL) {
   }
   
   # Extract meta, hidden_layers vector
-  meta <- object$meta
-  hidden_layers <- meta$hidden_layers
+  meta <- object$Rcpp_ANN$getMeta()
+  hidden_layers <- meta$hidden_layers[2:(1+meta$n_hidden)]
   
   # Convert X to matrix
   X <- as.matrix(compressed)
@@ -507,7 +507,7 @@ decode <- function(object, compressed, compression.layer = NULL) {
   
   # Predict and set column names
   fit <- object$Rcpp_ANN$partialForward(X, compression.layer, meta$n_hidden + 1)
-  colnames(fit) <- meta$names
+  colnames(fit) <- meta$y_names
   
   return( fit )
 }

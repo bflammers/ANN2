@@ -2,7 +2,7 @@
 #define UTILS_H
 
 #include <RcppArmadillo.h>
-#include <cereal/archives/binary.hpp>
+#include <cereal/archives/portable_binary.hpp>
 #include "arma_serialization.h"
 
 // ---------------------------------------------------------------------------//
