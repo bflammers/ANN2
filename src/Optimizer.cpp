@@ -23,15 +23,13 @@ SGD::SGD (mat W_templ_, vec b_templ_, List optim_param_)
   mb = zeros<vec>(size(b_templ_));
 }
 
-mat SGD::updateW(mat W, mat D, mat A_prev) {
-  batch_size = A_prev.n_cols;
-  mat gW = A_prev * D / batch_size;
-  mW = m * mW - learn_rate * gW.t();
+mat SGD::updateW(mat W, mat dW) {
+  mW = m * mW - learn_rate * dW.t();
   return (1 - learn_rate * L2) * W - learn_rate * L1 * sign(W) + mW;
 }
 
-vec SGD::updateb(vec b, mat D) {
-  mb = m * mb - learn_rate * sum(D, 0).t() / batch_size;
+vec SGD::updateb(vec b, vec db) {
+  mb = m * mb - learn_rate * db;
   return b + mb;
 }
 

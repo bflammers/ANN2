@@ -16,8 +16,8 @@
 class Optimizer {
 public:
   std::string type;
-  virtual arma::mat updateW(arma::mat W, arma::mat D, arma::mat A_prev) = 0;
-  virtual arma::vec updateb(arma::vec b, arma::mat D) = 0;
+  virtual arma::mat updateW(arma::mat W, arma::mat dW) = 0;
+  virtual arma::vec updateb(arma::vec b, arma::vec db) = 0;
 };
 
 // ---------------------------------------------------------------------------//
@@ -28,14 +28,13 @@ class SGD : public Optimizer
 {
 private:
   double learn_rate, m, L1, L2;
-  int batch_size;
   arma::mat mW;
   arma::vec mb;
 public:
   SGD ();
   SGD (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
-  arma::mat updateW(arma::mat W, arma::mat D, arma::mat A_prev);
-  arma::vec updateb(arma::vec b, arma::mat D);
+  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::vec updateb(arma::vec b, arma::vec db);
   
   // Serialize
   template<class Archive>
