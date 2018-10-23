@@ -207,7 +207,7 @@ setActivParams <- function(activ.functions, H, k, meta) {
 
 # Set and check optimizer parameter list
 setOptimParams <- function(optim.type, learn.rates, momentum, L1, L2, meta) {
-  allowed_types <- c('sgd')
+  allowed_types <- c('sgd', 'rmsprop')
   
   # (ERROR) optim.type not of allowed type
   if ( !(optim.type %in% allowed_types) ) {

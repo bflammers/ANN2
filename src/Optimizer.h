@@ -27,7 +27,7 @@ public:
 class SGD : public Optimizer
 {
 private:
-  double learn_rate, m, L1, L2;
+  double learn_rate, momentum, L1, L2;
   arma::mat mW;
   arma::vec mb;
 public:
@@ -42,7 +42,7 @@ public:
   {
     MatSerializer ser_mW(mW);
     VecSerializer ser_mb(mb);
-    archive( ser_mW, ser_mb, learn_rate, m, L1, L2 );
+    archive( ser_mW, ser_mb, learn_rate, momentum, L1, L2 );
   }
   
   // Deserialze
@@ -51,9 +51,87 @@ public:
   {
     MatSerializer ser_mW;
     VecSerializer ser_mb;
-    archive( ser_mW, ser_mb, learn_rate, m, L1, L2 );
+    archive( ser_mW, ser_mb, learn_rate, momentum, L1, L2 );
     mW = ser_mW.getMat();
     mb = ser_mb.getVec();
+  }
+};
+
+// ---------------------------------------------------------------------------//
+// RMSprop optimizer
+// ---------------------------------------------------------------------------//
+
+class RMSprop : public Optimizer
+{
+private:
+  double learn_rate, decay, epsilon, L2;
+  arma::mat rmsW;
+  arma::vec rmsb;
+public:
+  RMSprop ();
+  RMSprop (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
+  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::vec updateb(arma::vec b, arma::vec db);
+  
+  // Serialize
+  template<class Archive>
+  void save(Archive & archive) const
+  {
+    MatSerializer ser_rmsW(rmsW);
+    VecSerializer ser_rmsb(rmsb);
+    archive( ser_rmsW, ser_rmsb, learn_rate, decay, epsilon, L2 );
+  }
+  
+  // Deserialze
+  template<class Archive>
+  void load(Archive & archive)
+  {
+    MatSerializer ser_rmsW;
+    VecSerializer ser_rmsb;
+    archive( ser_rmsW, ser_rmsb, learn_rate, decay, epsilon, L2 );
+    rmsW = ser_rmsW.getMat();
+    rmsb = ser_rmsb.getVec();
+  }
+};
+
+// ---------------------------------------------------------------------------//
+// Adam optimizer
+// ---------------------------------------------------------------------------//
+
+class Adam : public Optimizer
+{
+private:
+  double learn_rate, beta1, beta2, epsilon, L2;
+  arma::mat mW;
+  arma::mat vW;
+  arma::vec mb;
+  arma::vec vb;
+public:
+  Adam ();
+  Adam (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
+  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::vec updateb(arma::vec b, arma::vec db);
+  
+  // Serialize
+  template<class Archive>
+  void save(Archive & archive) const
+  {
+    MatSerializer ser_mW(mW), ser_vW(vW);
+    VecSerializer ser_mb(mb), ser_vb(vb);
+    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, L2 );
+  }
+  
+  // Deserialze
+  template<class Archive>
+  void load(Archive & archive)
+  {
+    MatSerializer ser_mW(mW), ser_vW(vW);
+    VecSerializer ser_mb(mb), ser_vb(vb);
+    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, L2 );
+    mW = ser_mW.getMat();
+    vW = ser_vW.getMat();
+    mb = ser_mb.getVec();
+    vb = ser_vb.getVec();
   }
 };
 
