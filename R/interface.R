@@ -65,10 +65,11 @@
 #'
 #' @export
 neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE, 
-                          loss.type = "log", delta.huber = 1, 
-                          activ.functions = "tanh", H = 5, k = 100,
+                          loss.type = "log", huber.delta = 1, 
+                          activ.functions = "tanh", step.H = 5, step.k = 100,
                           optim.type = "sgd", n.epochs = 1000, 
-                          learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
+                          learn.rates = 1e-04, L1 = 0, L2 = 0, sgd.momentum = 0.9,
+                          rmsprop.decay = 0.9, adam.beta1 = 0.9, adam.beta2 = 0.999,
                           batch.size = 32, standardize = TRUE, drop.last = TRUE,
                           val.prop = 0.1, verbose = TRUE) {
   
@@ -81,9 +82,10 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   
   # Set and check parameters
   net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
-  activ_param <- setActivParams(activ.functions, H, k, meta)
-  optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
-  loss_param  <- setLossParams(loss.type, delta.huber, meta)
+  activ_param <- setActivParams(activ.functions, step.H, step.k, meta)
+  optim_param <- setOptimParams(optim.type, learn.rates, L1, L2, sgd.momentum, 
+                                rmsprop.decay, adam.beta1, adam.beta2, meta)
+  loss_param  <- setLossParams(loss.type, huber.delta, meta)
   
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)

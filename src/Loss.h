@@ -88,7 +88,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, AbsoluteLoss);
 class HuberLoss : public Loss
 {
 private:
-  double delta_huber;
+  double huber_delta;
 public:
   HuberLoss();
   HuberLoss(Rcpp::List loss_param_);
@@ -97,7 +97,7 @@ public:
   
   template<class Archive>
   void serialize( Archive & archive ) {
-    archive( type, delta_huber ); 
+    archive( type, huber_delta ); 
   }
 };
 
@@ -112,7 +112,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, HuberLoss);
 class PseudoHuberLoss : public Loss
 {
 private:
-  double delta_huber;
+  double huber_delta;
 public:
   PseudoHuberLoss();
   PseudoHuberLoss(Rcpp::List loss_param_);
@@ -121,7 +121,7 @@ public:
   
   template<class Archive>
   void serialize( Archive & archive ) {
-    archive( type, delta_huber ); 
+    archive( type, huber_delta ); 
   }
 };
 

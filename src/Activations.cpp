@@ -121,9 +121,8 @@ StepActivation::StepActivation () { type = "step"; }
 
 // Constructor 
 StepActivation::StepActivation (List activ_param_)
-  : H(activ_param_["H"]), 
-    k(activ_param_["k"]) 
-{
+  : H ( activ_param_["step_H"] ), 
+    k ( activ_param_["step_k"] ) {
   type = "step"; 
   seqH = linspace(1, (H - 1), (H - 1))/ H;
 }

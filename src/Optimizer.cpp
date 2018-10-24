@@ -12,8 +12,10 @@ using namespace arma;
 SGD::SGD () { type = "SGD"; } 
 
 SGD::SGD (mat W_templ_, vec b_templ_, List optim_param_) 
-  : learn_rate( optim_param_["learn_rate"]), momentum(optim_param_["m"]),
-    L1(optim_param_["L1"]), L2(optim_param_["L2"]) {
+  : learn_rate ( optim_param_["learn_rate"]   ), 
+    L1         ( optim_param_["L1"]           ), 
+    L2         ( optim_param_["L2"]           ),
+    momentum   ( optim_param_["sgd_momentum"] ) {
   
   // Set optimizer type  
   type = "SGD";
@@ -50,11 +52,13 @@ vec SGD::updateb(vec b, vec db) {
 // Default constructor needed for serialization
 RMSprop::RMSprop () { type = "RMSprop"; } 
 
+// Actually used constructor
 RMSprop::RMSprop (mat W_templ_, vec b_templ_, List optim_param_) 
-  : learn_rate( optim_param_["learn_rate"]), 
-    decay(0.9),
-    epsilon(0.0001),
-    L2(optim_param_["L2"]) {
+  : learn_rate ( optim_param_["learn_rate"]      ),
+    L1         ( optim_param_["L1"]              ), 
+    L2         ( optim_param_["L2"]              ),
+    decay      ( optim_param_["rmsprop_decay"]   ),
+    epsilon    ( 1E-8 ) {
   
   // Set optimizer type  
   type = "RMSprop";
@@ -64,14 +68,30 @@ RMSprop::RMSprop (mat W_templ_, vec b_templ_, List optim_param_)
   rmsb = zeros<vec>(size(b_templ_));
 }
 
+// Update step WEIGHTS
 mat RMSprop::updateW(mat W, mat dW) {
+  
+  // Calculate leaky RMS metric of squared dW to scale dW by before update step
   rmsW = decay * rmsW + (1 - decay) * square(dW.t());
-  return (1 - learn_rate * L2) * W - learn_rate / sqrt(rmsW + epsilon) % dW.t();
+  
+  // Calculate gradient descent step to take
+  mat W_step = ( learn_rate / (sqrt(rmsW) + epsilon) ) % dW.t();
+  
+  // Update W with W_step - includes L1 and L2 regularization
+  return (1 - learn_rate * L2) * W - learn_rate * L1 * sign(W) - W_step;
 }
 
+// Update step BIASES
 vec RMSprop::updateb(vec b, vec db) {
+  
+  // Calculate leaky RMS metric of squared db 
   rmsb = decay * rmsb + (1 - decay) * square(db);
-  return b - learn_rate / sqrt(rmsb + epsilon) % db;
+  
+  // Calculate gradient descent step to take
+  vec b_step = ( learn_rate / sqrt(rmsb + epsilon) ) % db;
+  
+  // Return updated bias vector, no regularization for these
+  return b - b_step;
 }
 
 // ---------------------------------------------------------------------------//
@@ -82,11 +102,15 @@ vec RMSprop::updateb(vec b, vec db) {
 Adam::Adam () { type = "Adam"; } 
 
 Adam::Adam (mat W_templ_, vec b_templ_, List optim_param_) 
-  : learn_rate( optim_param_["learn_rate"]), 
-    beta1(0.9),
-    beta2(0.999),
-    epsilon(1e-8),
-    L2(optim_param_["L2"]) {
+  : learn_rate ( optim_param_["learn_rate"] ),
+    L1         ( optim_param_["L1"]         ), 
+    L2         ( optim_param_["L2"]         ),
+    beta1      ( optim_param_["adam_beta1"] ),
+    beta2      ( optim_param_["adam_beta2"] ),
+    epsilon    ( 1E-8 ),
+    tW         ( 1 ),
+    tb         ( 1 )
+{
   
   // Set optimizer type  
   type = "Adam";
@@ -100,28 +124,46 @@ Adam::Adam (mat W_templ_, vec b_templ_, List optim_param_)
   vb = zeros<vec>(size(b_templ_));
 }
 
+// Update step WEIGHTS
 mat Adam::updateW(mat W, mat dW) {
   
   // Calculate mW and bias corrected mW
   mW = beta1 * mW + (1 - beta1) * dW.t();
-  mat bc_mW = mW / (1-std::pow(beta1, 10));
+  mat bc_mW = mW / (1-std::pow(beta1, tW));
   
   // Calculate mW and bias corrected mW
   vW = beta2 * vW + (1 - beta2) * square(dW.t());
-  mat bc_vW = vW / (1-std::pow(beta2, 10));
-  return (1 - learn_rate * L2) * W - learn_rate / sqrt(bc_vW + epsilon) % bc_mW;
+  mat bc_vW = vW / (1-std::pow(beta2, tW));
+  
+  // Calculate gradient descent step to take
+  mat W_step = ( learn_rate / (sqrt(bc_vW) + epsilon) ) % bc_mW;
+  
+  // Increase counter for number of updates (used for bias correction)
+  tW++;
+  
+  // Update W with W_step - includes L1 and L2 regularization
+  return (1 - learn_rate * L2) * W - learn_rate * L1 * sign(W) - W_step;
 }
 
+// Update step BIASES
 vec Adam::updateb(vec b, vec db) {
   
   // Calculate mW and bias corrected mW
   mb = beta1 * mb + (1 - beta1) * db;
-  vec bc_mb = mb / (1-std::pow(beta1, 10));
+  vec bc_mb = mb / (1-std::pow(beta1, tb));
   
   // Calculate mW and bias corrected mW
   vb = beta2 * vb + (1 - beta2) * square(db);
-  vec bc_vb = vb / (1-std::pow(beta2, 10));
-  return b - learn_rate / sqrt(bc_vb + epsilon) % bc_mb;
+  vec bc_vb = vb / (1-std::pow(beta2, tb));
+  
+  // Calculate gradient descent step to take
+  mat b_step = ( learn_rate / (sqrt(bc_vb) + epsilon) ) % bc_mb;
+  
+  // Increase counter for number of updates (used for bias correction)
+  tb++;
+  
+  // Return updated bias vector, no regularization for these
+  return b - b_step;
 }
 
 // ---------------------------------------------------------------------------//
@@ -136,47 +178,47 @@ std::unique_ptr<Optimizer> OptimizerFactory (mat W_templ, mat b_templ, List opti
   else                      return NULL;
 }
 
-// [[Rcpp::export]]
-vec rosenbrock (vec x, vec y) {
-  return square(1 - x) + 100 * square(y - square(x));
-}
-
-// [[Rcpp::export]]
-vec drosenbrock_x (vec x, vec y) {
-  return -400 * x * (y - square(x)) - 2 * (1 - x);
-}
-
-// [[Rcpp::export]]
-vec drosenbrock_y (vec x, vec y) {
-  return 200 * (y - square(x));
-}
-
-RCPP_MODULE(SGD) {
-  using namespace Rcpp ;
-  class_<SGD>( "SGD" )
-    .constructor<mat, vec, List>()
-    .method( "updateW", &SGD::updateW)
-    .method( "updateb", &SGD::updateb)
-  ;
-}
-
-RCPP_MODULE(RMSprop) {
-  using namespace Rcpp ;
-  class_<RMSprop>( "RMSprop" )
-    .constructor<mat, vec, List>()
-    .method( "updateW", &RMSprop::updateW)
-    .method( "updateb", &RMSprop::updateb)
-  ;
-}
-
-RCPP_MODULE(Adam) {
-  using namespace Rcpp ;
-  class_<Adam>( "Adam" )
-    .constructor<mat, vec, List>()
-    .method( "updateW", &Adam::updateW)
-    .method( "updateb", &Adam::updateb)
-  ;
-}
+// // [[Rcpp::export]]
+// vec rosenbrock (vec x, vec y) {
+//   return square(1 - x) + 100 * square(y - square(x));
+// }
+// 
+// // [[Rcpp::export]]
+// vec drosenbrock_x (vec x, vec y) {
+//   return -400 * x * (y - square(x)) - 2 * (1 - x);
+// }
+// 
+// // [[Rcpp::export]]
+// vec drosenbrock_y (vec x, vec y) {
+//   return 200 * (y - square(x));
+// }
+// 
+// RCPP_MODULE(SGD) {
+//   using namespace Rcpp ;
+//   class_<SGD>( "SGD" )
+//     .constructor<mat, vec, List>()
+//     .method( "updateW", &SGD::updateW)
+//     .method( "updateb", &SGD::updateb)
+//   ;
+// }
+// 
+// RCPP_MODULE(RMSprop) {
+//   using namespace Rcpp ;
+//   class_<RMSprop>( "RMSprop" )
+//     .constructor<mat, vec, List>()
+//     .method( "updateW", &RMSprop::updateW)
+//     .method( "updateb", &RMSprop::updateb)
+//   ;
+// }
+// 
+// RCPP_MODULE(Adam) {
+//   using namespace Rcpp ;
+//   class_<Adam>( "Adam" )
+//     .constructor<mat, vec, List>()
+//     .method( "updateW", &Adam::updateW)
+//     .method( "updateb", &Adam::updateb)
+//   ;
+// }
 
 
 

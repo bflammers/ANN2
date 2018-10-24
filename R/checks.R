@@ -137,7 +137,7 @@ setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
 }
 
 # Set and check activation parameter list
-setActivParams <- function(activ.functions, H, k, meta) {
+setActivParams <- function(activ.functions, step.H, step.k, meta) {
   allowed_types <- c('tanh', 'sigmoid', 'relu', 'linear', 'ramp', 'step')
   
   # Determine output type
@@ -191,38 +191,29 @@ setActivParams <- function(activ.functions, H, k, meta) {
   if ( 'step' %in% activ.functions ) {
     
     # (ERROR) number of steps H should be a whole number larger than zero
-    if ( H %% 1 != 0  || H < 1 ) {
-      stop('H should be an integer larger than zero', call. = FALSE)
+    if ( step.H %% 1 != 0  || step.H < 1 ) {
+      stop('step.H should be an integer larger than zero', call. = FALSE)
     }
     
     # (ERROR) smoothing parameter k should be and integer larger than zero
-    if ( k %% 1 != 0  || k < 1 ) {
-      stop('k should be an integer larger than zero', call. = FALSE)
+    if ( step.k %% 1 != 0  || step.k < 1 ) {
+      stop('step.k should be an integer larger than zero', call. = FALSE)
     }
   }
   
   # Collect parameters in list
-  return ( list(types = types, H = H, k = k) )
+  return ( list(types = types, step_H = step.H, step_k = step.k) )
 }
 
 # Set and check optimizer parameter list
-setOptimParams <- function(optim.type, learn.rates, momentum, L1, L2, meta) {
-  allowed_types <- c('sgd', 'rmsprop')
+setOptimParams <- function(optim.type, learn.rates, L1, L2, sgd.momentum, 
+                           rmsprop.decay, adam.beta1, adam.beta2, meta) {
+  # Allowed optimizer types
+  allowed_types <- c('sgd', 'rmsprop', 'adam')
   
   # (ERROR) optim.type not of allowed type
   if ( !(optim.type %in% allowed_types) ) {
-    stop('currently only optim.type "sgd" supported', call. = FALSE)
-    # stop('optim.type not one of types ', paste(allowed_types, collapse = ', '))
-  }
-  
-  # (ERROR) momentum incorrect value
-  if ( momentum >= 1 || momentum < 0 ) {
-    stop('momentum larger than or equal to one or smaller than zero', call. = FALSE)
-  }
-  
-  # (ERROR) L1 and/or L2 incorrect value(s)
-  if ( L1 < 0 || L2 < 0 ) {
-    stop('L1 and/or L2 negative', call. = FALSE)
+    stop('optim.type not one of types ', paste(allowed_types, collapse = ', '))
   }
   
   # (ERROR) missing learn.rates
@@ -233,6 +224,45 @@ setOptimParams <- function(optim.type, learn.rates, momentum, L1, L2, meta) {
   # (ERROR) learn.rate incorrect value
   if ( any(learn.rates <= 0) ) {
     stop('learn rates should be larger than 0', call. = FALSE)
+  }
+  
+  # (ERROR) L1 and/or L2 incorrect value(s)
+  if ( L1 < 0 || L2 < 0 ) {
+    stop('L1 and/or L2 negative', call. = FALSE)
+  }
+  
+  # Checks specific to SGD optimizer
+  if ( optim.type == 'sgd' ) {
+   
+    # (ERROR) momentum incorrect value
+    if ( sgd.momentum >= 1 || sgd.momentum < 0 ) {
+      stop('sgd.momentum larger than or equal to one or smaller than zero', call. = FALSE)
+    }
+  
+  # Checks specific to RMSprop optimizer  
+  } else if ( optim.type == 'rmsprop' ) {
+    
+    # (ERROR) rmsprop.decay incorrect value
+    if ( rmsprop.decay >= 1 || rmsprop.decay <= 0 ) {
+      stop('rmsprop.decay should be between zero and one', call. = FALSE)
+    }
+    
+  # Checks specific to ADAM optimizer
+  } else if ( optim.type == 'adam' ) {
+    
+    # (ERROR) adam.beta1 incorrect value
+    if ( adam.beta1 >= 1 || adam.beta1 <= 0 ) {
+      stop('adam.beta1 should be between zero and one', call. = FALSE)
+    }
+    
+    # (ERROR) adam.beta2 incorrect value
+    if ( adam.beta1 >= 2 || adam.beta2 <= 0 ) {
+      stop('adam.beta2 should be between zero and one', call. = FALSE)
+    }
+    
+  } else {
+    # Not implemented optimizer
+    stop('optim.type not supported')
   }
   
   # Length of learn.rates does not mach number of optimizers
@@ -260,11 +290,13 @@ setOptimParams <- function(optim.type, learn.rates, momentum, L1, L2, meta) {
   }
   
   # Collect parameters in list
-  return ( list(type = optim.type, learn_rates = rates, m = momentum, L1 = L1, L2 = L2) )
+  return ( list(type = optim.type, learn_rates = rates, L1 = L1, L2 = L2, 
+                sgd_momentum = sgd.momentum, rmsprop_decay = rmsprop.decay, 
+                adam_beta1 = adam.beta1, adam_beta2 = adam.beta2) )
 }
 
 # Set and check loss parameter list
-setLossParams <- function(loss.type, delta.huber, meta) {
+setLossParams <- function(loss.type, huber.delta, meta) {
   allowed_types <- c('log', 'squared', 'absolute', 'huber', 'pseudo-huber')
   
   # (ERROR) loss.type one of allowed types
@@ -287,19 +319,19 @@ setLossParams <- function(loss.type, delta.huber, meta) {
   if ( loss.type %in% c('huber', 'pseudo-huber') ) {
     
     # (ERROR) delta should be non-negative
-    if ( delta.huber < 0 ) {
-      stop('delta.huber smaller than zero', call. = FALSE)
+    if ( huber.delta < 0 ) {
+      stop('huber.delta smaller than zero', call. = FALSE)
     }
     
     # (WARN) use absolute loss if delta equals zero
-    if ( delta.huber == 0 ) {
-      warning ('delta.huber equal to zero, this is equivalent to using absolute loss but less efficient', 
+    if ( huber.delta == 0 ) {
+      warning ('huber.delta equal to zero, this is equivalent to using absolute loss but less efficient', 
                call. = FALSE)
     }
   }
   
   # Collect parameters in list
-  return ( list(type = loss.type, delta_huber = delta.huber) )
+  return ( list(type = loss.type, huber_delta = huber.delta) )
 }
 
 # Set training parameters

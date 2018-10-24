@@ -66,20 +66,20 @@ mat AbsoluteLoss::grad(mat y, mat y_fit) {
 HuberLoss::HuberLoss () { type = "huber"; }
 
 HuberLoss::HuberLoss(List loss_param_)
-    : delta_huber(loss_param_["delta_huber"]) { type = "huber"; }
+    : huber_delta( loss_param_["huber_delta"] ) { type = "huber"; }
   
 double HuberLoss::eval(mat y, mat y_fit) {
   mat E   = abs(y_fit - y);
-  mat l   = delta_huber * (E - delta_huber/2);
-  uvec iE = find(E <= delta_huber);
+  mat l   = huber_delta * (E - huber_delta/2);
+  uvec iE = find(E <= huber_delta);
   l(iE)   = pow(E(iE), 2)/2;
   return accu( l ) / y.n_rows;
 }
 
 mat HuberLoss::grad(mat y, mat y_fit) { 
   mat E   = y_fit - y;
-  mat dl  = delta_huber * sign(E);
-  uvec iE = find(abs(E) <= delta_huber);
+  mat dl  = huber_delta * sign(E);
+  uvec iE = find(abs(E) <= huber_delta);
   dl(iE)  = E(iE);
   return dl;
 }
@@ -91,16 +91,16 @@ mat HuberLoss::grad(mat y, mat y_fit) {
 PseudoHuberLoss::PseudoHuberLoss () { type = "pseudo-huber"; }
 
 PseudoHuberLoss::PseudoHuberLoss (List loss_param_)
-    : delta_huber(loss_param_["delta_huber"]) { type = "pseudo-huber"; }
+    : huber_delta( loss_param_["huber_delta"] ) { type = "pseudo-huber"; }
   
 double PseudoHuberLoss::eval(mat y, mat y_fit) {
-  mat l = sqrt(1 + pow( (y_fit - y) / delta_huber, 2)) - 1;
+  mat l = sqrt(1 + pow( (y_fit - y) / huber_delta, 2)) - 1;
   return accu( l ) / y.n_rows;
 }
 
 mat PseudoHuberLoss::grad(mat y, mat y_fit) { 
   mat E = y_fit - y;
-  return E % ( 1 / sqrt(1 + pow(E/delta_huber, 2)) );
+  return E % ( 1 / sqrt(1 + pow(E/huber_delta, 2)) );
 }
 
 // ---------------------------------------------------------------------------//
