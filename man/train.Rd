@@ -4,42 +4,36 @@
 \alias{train}
 \title{Continue training of a Neural Network}
 \usage{
-train(object, X, Y, n.epochs = 500, learn.rates = 1e-04,
-  momentum = 0.2, L1 = 0, L2 = 0, batch.size = 32,
+train(object, X, Y = NULL, n.epochs = 20, batch.size = 32,
   drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
 }
 \arguments{
-\item{object}{object of class \code{ANN}}
+\item{object}{object of class \code{ANN} produced by \code{neuralnetwork()} 
+or \code{autoencoder()}}
 
 \item{X}{matrix with explanatory variables}
 
-\item{momentum}{numeric value specifying how much momentum should be
-used. Set to zero for no momentum, otherwise a value between zero and one.}
+\item{Y}{matrix with dependent variables. Not required if object is an autoencoder}
 
-\item{L1}{L1 regularization. Non-negative number. Set to zero for no regularization.}
+\item{n.epochs}{the number of epochs to train. This parameter largely determines
+the training time (one epoch is a single iteration through the training data).}
 
-\item{L2}{L2 regularization. Non-negative number. Set to zero for no regularization.}
-
-\item{verbose}{logical indicating if additional information (such as lifesign)
-should be printed to console during training.}
-
-\item{y}{matrix with dependent variables}
-
-\item{learnRate}{the size of the steps made in gradient descent. If set too large,
-optimization can become unstable. Is set too small, convergence will be slow.}
-
-\item{maxEpochs}{the maximum number of epochs (one iteration through training
-data).}
-
-\item{batchSize}{the number of observations to use in each batch. Batch learning
+\item{batch.size}{the number of observations to use in each batch. Batch learning
 is computationally faster than stochastic gradient descent. However, large
-batches might not result in optimal learning, see Le Cun for details.}
+batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+for details.}
 
-\item{validLoss}{logical indicating if loss should be monitored during training.
-If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-drawn from full training set. Use function \code{plot} to assess convergence.}
+\item{drop.last}{logical. Only applicable if the size of the training set is not 
+perfectly devisible by the batch size. Determines if the last chosen observations
+should be discarded (in the current epoch) or should constitute a smaller batch. 
+Note that a smaller batch leads to a noisier approximation of the gradient.}
 
-\item{validProp}{proportion of training data to use for validation}
+\item{val.prop}{proportion of training data to use for tracking the loss on a 
+validation set during training. Useful for assessing the training process and
+identifying possible overfitting. Set to zero for only tracking the loss on the 
+training data.}
+
+\item{verbose}{logical indicating if additional information should be printed}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess
@@ -47,34 +41,12 @@ loss on training and optionally validation data during training process. Use
 function \code{predict(<object>, <newdata>)} for prediction.
 }
 \description{
-Train a Multilayer Neural Network using Stohastic Gradient
-Descent with optional batch learning. Functions \code{autoencoder}
-and \code{replicator} are special cases of this general function.
+Continue training of a neural network object returned by \code{neuralnetwork()} 
+or \code{autoencoder()}
 }
 \details{
-A genereric function for training Neural Networks for classification and
-regression problems. Various types of activation and cost functions are
-supported, as well as  L1 and L2 regularization. Additional options are
-early stopping, momentum and the specification of a learning rate schedule.
-See function \code{example_NN} for some visualized examples on toy data.
-}
-\examples{
-# Example on iris dataset:
-randDraw <- sample(1:nrow(iris), size = 100)
-train    <- iris[randDraw,]
-test     <- iris[setdiff(1:nrow(iris), randDraw),]
-
-plot(iris[,1:4], pch = as.numeric(iris$Species))
-
-NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-                    momentum = 0.8, learnRate = 0.001, verbose = FALSE)
-plot(NN)
-pred <- predict(NN, newdata = test[,-5])
-plot(test[,-5], pch = as.numeric(test$Species),
-     col = as.numeric(test$Species == pred$predictions)+2)
-
-#For other examples see function example_NN()
-
+A new validation set is randomly chosen. This can result in irregular jumps
+in the plot given by \code{plot.ANN()}.
 }
 \references{
 LeCun, Yann A., et al. "Efficient backprop." Neural networks:

@@ -15,19 +15,18 @@ class Layer
 private:
   arma::mat W, A_prev, Z;
   arma::vec b;
-  std::unique_ptr<Optimizer> O;
   
 public:
   int n_nodes;
   std::unique_ptr<Activation> g;
+  std::unique_ptr<Optimizer> O;
   
   Layer ();
   Layer(int nodes_in_, int nodes_out_, Rcpp::List activ_param_, Rcpp::List optim_param_);
   arma::mat forward (arma::mat X);
   arma::mat backward (arma::mat E);
   std::string print();
-  void setOptimizer(Rcpp::List optim_param);
-  
+
   // Serialize
   template<class Archive>
   void save(Archive & archive) const

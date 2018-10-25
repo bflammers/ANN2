@@ -9,11 +9,8 @@
 \packageDescription{ANN2}
 }
 \details{
-
-The DESCRIPTION file:
-\packageDESCRIPTION{ANN2}
-\packageIndices{ANN2}
-~~ An overview of how to use the package, including the most important functions ~~
+Package for training neural networks. Special options for detecting and plotting 
+anomalies using autoencoding neural networks. 
 }
 \author{
 \packageAuthor{ANN2}
@@ -21,13 +18,32 @@ The DESCRIPTION file:
 Maintainer: \packageMaintainer{ANN2}
 }
 \references{
-~~ Literature or other references for background information ~~
+Add links to references. Efficient Backprop Le Cun
 }
 \keyword{ package }
-\seealso{
-~~ Optional links to other man pages, e.g. ~~
-~~ \code{\link[<pkg>:<pkg>-package]{<pkg>}} ~~
-}
 \examples{
-~~ simple examples of the most important functions ~~
+# Example on iris dataset:
+
+# Plot full data
+plot(iris, pch = as.numeric(iris$Species))
+
+# Prepare test and train sets
+random_draw <- sample(1:nrow(iris), size = 100)
+X_train     <- iris[random_draw, 1:4]
+Y_train     <- iris[random_draw, 5]
+X_test      <- iris[setdiff(1:nrow(iris), randDraw), 1:4]
+Y_test      <- iris[setdiff(1:nrow(iris), randDraw), 5]
+
+# Train neural network on classification task
+NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
+                    optim.type = 'adam', learn.rates = 0.01, val.prop = 0)
+
+# Plot the loss during training
+plot(NN)
+
+# Make predictions
+Y_pred <- predict(NN, newdata = X_test)
+
+# Plot predictions
+plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
 }

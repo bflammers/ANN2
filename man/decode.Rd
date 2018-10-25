@@ -17,5 +17,5 @@ of the network (hidden layer with smallest number of nodes)}
 }
 \description{
 Decompress low-dimensional representation resulting from the nodes
-of the middle layer. Output are the reconstructed inputs to function \code{encode}
+of the middle layer. Output are the reconstructed inputs to function \code{encode()}
 }

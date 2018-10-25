@@ -9,10 +9,13 @@ using namespace arma;
 // ---------------------------------------------------------------------------//
 // Layer class
 // ---------------------------------------------------------------------------//
+
+// Default constructor needed for serialization
 Layer::Layer () {}
 
+// Constructor actually used
 Layer::Layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_)
-  : n_nodes(nodes_out_)
+  : n_nodes( nodes_out_ )
 {
   
   // Initialize weight matrix and biasvector
@@ -26,7 +29,8 @@ Layer::Layer(int nodes_in_, int nodes_out_, List activ_param_, List optim_param_
   O = OptimizerFactory (W, b, optim_param_);
   
 }
-  
+
+// Make a forward pass through the network
 mat Layer::forward (mat X) 
 {
   /* This method applies the transformation A = g( W * A_prev + b * iota )
@@ -46,6 +50,7 @@ mat Layer::forward (mat X)
   return g->eval(Z);
 }
 
+// Make a backward pass
 mat Layer::backward (mat E) 
 {
   /* This method propagated the errors backward through the network

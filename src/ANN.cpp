@@ -6,57 +6,10 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
-#include <cereal/archives/portable_binary.hpp>
-#include <cereal/types/polymorphic.hpp>
-#include <cereal/types/list.hpp>
-#include <cereal/types/vector.hpp>
-
-#include "utils.h"
-#include "Loss.h"
-#include "Layer.h"
+#include "ANN.h"
 
 using namespace Rcpp;
 using namespace arma;
-
-
-// Class ANN
-//' @export ANN
-class ANN 
-{
-private:
-  std::list<Layer> layers;
-  std::list<Layer>::iterator it;
-  std::list<Layer>::reverse_iterator rit;
-  Scaler sX, sY;
-  std::unique_ptr<Loss> L;
-  Tracker tracker;
-  int epoch;
-  std::vector<std::string> y_names;
-  std::vector<int> num_nodes;
-  bool regression;
-  
-public:
-  ANN(); // Default constructor needed for serialization
-  ANN(List data_, List net_param_, List loss_param_, List activ_param_, List optim_param_);
-  mat forwardPass (mat X);
-  void backwardPass (mat Y, mat Y_fit);
-  mat partialForward (mat X, int i_start, int i_stop);
-  mat predict (mat X);
-  double evalLoss(mat Y, mat X);
-  void train (List data, List train_param);
-  void print (bool print_epochs);
-  List getTrainHistory ();
-  void write (const char* fileName);
-  void read (const char* fileName);
-  Rcpp::List getMeta();
-  
-  // Serialize
-  template<class Archive>
-  void serialize(Archive & archive) {
-    archive( epoch, tracker, sX, sY, L, layers, num_nodes, y_names, regression ); 
-  }
-
-};
 
 // Default constructor needed for serialization
 ANN::ANN() {};
@@ -69,7 +22,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List 
     epoch(0)
 {
   
-  // Set loss
+  // Set loss using factory design pattern based on user input
   L = LossFactory(loss_param_);
   
   // Set meta data
@@ -97,6 +50,9 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List 
   if ( as<bool>(net_param_["verbose"]) ) print( false );
 }
 
+// Forward pass through the network 
+// Does not take care of data scaling: this happens before calling forwardPass()
+// in train() and predict() methods
 mat ANN::forwardPass (mat X) 
 {
   X = X.t();
@@ -106,6 +62,9 @@ mat ANN::forwardPass (mat X)
   return X.t();
 }
 
+// Forward pass through the network 
+// Error matrix E is propagated backwards through the network
+// Layer member method backward() also performs parameter updates
 void ANN::backwardPass (mat Y, mat Y_fit) 
 {
   mat E = L->grad(Y, Y_fit);
@@ -114,6 +73,10 @@ void ANN::backwardPass (mat Y, mat Y_fit)
   }
 }
 
+// Method to make a partial forward pass
+// This is useful for calculating the hidden layer representation for a given
+// input matrix but also for going from a given hidden layer representation
+// to the fitted values (neural network output)
 mat ANN::partialForward (mat X, int i_start, int i_stop) 
 {
   
@@ -157,6 +120,7 @@ double ANN::evalLoss(mat Y, mat X)
   return accu( L->eval(Y, forwardPass(X)) );
 }
 
+// Train the network!
 void ANN::train (List data, List train_param)
 {
   
@@ -196,7 +160,7 @@ void ANN::train (List data, List train_param)
       tracker.track(epoch, batch_loss, val_loss);
       
       // Check for interrupt
-      checkUserInterrupt();
+      Rcpp::checkUserInterrupt();
       
     }
   }
@@ -221,7 +185,9 @@ void ANN::print ( bool print_epochs ) {
     print_stream << it->print();
   }
   
-  print_stream << "With loss type: " << L->type << " \n";
+  // Print loss type and optimizer type
+  print_stream << "With " << L->type << " loss and " << 
+    layers.front().O->type << " optimizer \n";
   
   // Add the amount of training (in epochs) to stream
   if ( print_epochs ) print_stream << "Trained for " << epoch << " epochs \n"; 
@@ -243,6 +209,10 @@ List ANN::getTrainHistory ( ) {
   
 }
 
+// Method for accessing network meta info
+// It is nice to store all this information in the C++ object, and not at the 
+// R level because now we can use pure C++ serialization when writing the 
+// ANN object to a file - should give the same output as setMeta() in checks.R
 List ANN::getMeta()
 {
   int n_layers = num_nodes.size();
@@ -258,7 +228,6 @@ List ANN::getMeta()
 
 void ANN::write (const char* fileName) {
   
-  // Create an output archive
   {
     std::ofstream ofs(fileName, std::ios::binary);
     cereal::PortableBinaryOutputArchive oarchive(ofs);
@@ -274,20 +243,5 @@ void ANN::read (const char* fileName) {
     cereal::PortableBinaryInputArchive iarchive(ifs);
     ANN::serialize(iarchive);
   }
-}
-
-RCPP_MODULE(ANN) {
-  using namespace Rcpp ;
-  class_<ANN>( "ANN" )
-  .constructor<List, List, List, List, List>()
-  .method( "predict", &ANN::predict)
-  .method( "partialForward", &ANN::partialForward)
-  .method( "train", &ANN::train)
-  .method( "print", &ANN::print)
-  .method( "getTrainHistory", &ANN::getTrainHistory)
-  .method( "write", &ANN::write)
-  .method( "read", &ANN::read)
-  .method( "getMeta", &ANN::getMeta)
-  ;
 }
 

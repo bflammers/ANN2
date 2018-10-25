@@ -2,19 +2,17 @@
 % Please edit documentation in R/interface.R
 \name{reconstruct}
 \alias{reconstruct}
-\title{Reconstruct data using trained Autoencoder or Replicator object}
+\title{Reconstruct data using trained ANN object of type autoencoder}
 \usage{
-reconstruct(object, X, mahalanobis = TRUE)
+reconstruct(object, X)
 }
 \arguments{
-\item{object}{Object of class \code{ANN} created with autoencoder()}
+\item{object}{Object of class \code{ANN} created with \code{autoencoder()}}
 
-\item{X}{data (matrix) to reconstruct}
-
-\item{mahalanobis}{logical indicating if Mahalanobis distance should be calculated}
+\item{X}{data matrix to reconstruct}
 }
 \value{
-Reconstructed observations and optional Mahalanobis distances
+Reconstructed observations and reconstruction errors
 }
 \description{
 \code{reconstruct} takes new data as input and reconstructs the observations using

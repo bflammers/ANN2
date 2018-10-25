@@ -108,8 +108,8 @@ Adam::Adam (mat W_templ_, vec b_templ_, List optim_param_)
     beta1      ( optim_param_["adam_beta1"] ),
     beta2      ( optim_param_["adam_beta2"] ),
     epsilon    ( 1E-8 ),
-    tW         ( 1 ),
-    tb         ( 1 )
+    tW         ( 1    ),
+    tb         ( 1    )
 {
   
   // Set optimizer type  

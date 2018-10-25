@@ -5,56 +5,94 @@
 \title{Train a Neural Network}
 \usage{
 neuralnetwork(X, Y, hidden.layers, regression = FALSE,
-  loss.type = "log", delta.huber = 1, activ.functions = "tanh",
-  H = 5, k = 100, optim.type = "sgd", n.epochs = 1000,
-  learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0,
-  batch.size = 32, standardize = TRUE, drop.last = TRUE,
-  val.prop = 0.1, verbose = TRUE)
+  standardize = TRUE, loss.type = "log", huber.delta = 1,
+  activ.functions = "tanh", step.H = 5, step.k = 100,
+  optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0,
+  sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9,
+  adam.beta2 = 0.999, n.epochs = 100, batch.size = 32,
+  drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
 
-\item{hidden.layers}{vector specifying the number of nodes in each layer. Set
-to \code{NA} for a Network without any hidden layers}
+\item{Y}{matrix with dependent variables. For classification this should be 
+a one-columns matrix containing the classes - classes will be one-hot encoded.}
+
+\item{hidden.layers}{vector specifying the number of nodes in each layer. The
+number of hidden layers in the network is implicitly defined by the length of
+this vector. Set \code{hidden.layers} to \code{NA} for a network with no hidden 
+layers}
 
 \item{regression}{logical indicating regression or classification}
 
-\item{momentum}{numeric value specifying how much momentum should be
-used. Set to zero for no momentum, otherwise a value between zero and one.}
+\item{standardize}{logical indicating if X and Y should be standardized before
+training the network. Recommended to leave at \code{TRUE} for faster
+convergence.}
+
+\item{loss.type}{which loss function should be used. Options are "log",
+"quadratic", "absolute", "huber" and "pseudo-huber"}
+
+\item{huber.delta}{used only in case of loss functions "huber" and "pseudo-huber".
+This parameter controls the cut-off point between quadratic and absolute loss.}
+
+\item{activ.functions}{character vector of activation functions to be used in 
+each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
+'ramp' and 'step'. Should be either the size of the number of hidden layers
+or equal to one. If a single avtivation type is specified, this type will be 
+broadcasted across the hidden layers.}
+
+\item{step.H}{number of steps of the step activation function. Only applicable 
+if activ.functions includes 'step'}
+
+\item{step.k}{parameter controlling the smoothness of the step activation 
+function. Larger values lead to a less smooth step function. Only applicable 
+if activ.functions includes 'step'.}
+
+\item{optim.type}{type of optimizer to use for updating the parameters. Options 
+are 'sgd', 'rmsprop' and 'adam'. SGD is implemented with momentum.}
+
+\item{learn.rates}{the size of the steps to make in gradient descent. If set 
+too large, the optimization might not converge to optimal values. If set too 
+small, convergence will be slow. Should be either the size of the number of 
+hidden layers plus one or equal to one. If a single learn rate is specified, 
+this learn rate will be broadcasted across the layers.}
 
 \item{L1}{L1 regularization. Non-negative number. Set to zero for no regularization.}
 
 \item{L2}{L2 regularization. Non-negative number. Set to zero for no regularization.}
 
-\item{standardize}{logical indicating if X and y should be standardized before
-training the network. Recommended to leave at \code{TRUE} for faster
-convergence.}
+\item{sgd.momentum}{numeric value specifying how much momentum should be
+used. Set to zero for no momentum, otherwise a value between zero and one.}
 
-\item{verbose}{logical indicating if additional information (such as lifesign)}
+\item{rmsprop.decay}{level of decay in the rms term. Controls the strength
+of the exponential decay of the squared gradients in the term that scales the
+gradient before the parameter update. Common values are 0.9, 0.99 and 0.999}
 
-\item{y}{matrix with dependent variables}
+\item{adam.beta1}{level of decay in the first moment estimate (the mean). 
+The recommended value is 0.9}
 
-\item{lossFunction}{which loss function should be used. Options are "log",
-"quadratic", "absolute", "huber" and "pseudo-huber"}
+\item{adam.beta2}{level of decay in the second moment estimate (the uncentered
+variance). The recommended value is 0.999}
 
-\item{dHuber}{used only in case of loss functions "huber" and "pseudo-huber".
-This parameter controls the cut-off point between quadratic and absolute loss.}
+\item{n.epochs}{the number of epochs to train. This parameter largely determines
+the training time (one epoch is a single iteration through the training data).}
 
-\item{learnRate}{the size of the steps made in gradient descent. If set too large,
-optimization can become unstable. Is set too small, convergence will be slow.}
-
-\item{maxEpochs}{the maximum number of epochs (one iteration through training
-data).}
-
-\item{batchSize}{the number of observations to use in each batch. Batch learning
+\item{batch.size}{the number of observations to use in each batch. Batch learning
 is computationally faster than stochastic gradient descent. However, large
-batches might not result in optimal learning, see Le Cun for details.}
+batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+for details.}
 
-\item{validLoss}{logical indicating if loss should be monitored during training.
-If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-drawn from full training set. Use function \code{plot} to assess convergence.}
+\item{drop.last}{logical. Only applicable if the size of the training set is not 
+perfectly devisible by the batch size. Determines if the last chosen observations
+should be discarded (in the current epoch) or should constitute a smaller batch. 
+Note that a smaller batch leads to a noisier approximation of the gradient.}
 
-\item{validProp}{proportion of training data to use for validation}
+\item{val.prop}{proportion of training data to use for tracking the loss on a 
+validation set during training. Useful for assessing the training process and
+identifying possible overfitting. Set to zero for only tracking the loss on the 
+training data.}
+
+\item{verbose}{logical indicating if additional information should be printed}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess
@@ -62,33 +100,39 @@ loss on training and optionally validation data during training process. Use
 function \code{predict(<object>, <newdata>)} for prediction.
 }
 \description{
-Train a Multilayer Neural Network using Stohastic Gradient
-Descent with optional batch learning. Functions \code{autoencoder}
-and \code{replicator} are special cases of this general function.
+Define and train a Multilayer Neural Network for regression or classification.
 }
 \details{
 A genereric function for training Neural Networks for classification and
 regression problems. Various types of activation and cost functions are
-supported, as well as  L1 and L2 regularization. Additional options are
-early stopping, momentum and the specification of a learning rate schedule.
-See function \code{example_NN} for some visualized examples on toy data.
+supported, as well as  L1 and L2 regularization. Possible optimizer include
+SGD (with or without momentum), RMSprop and Adam.
 }
 \examples{
 # Example on iris dataset:
-randDraw <- sample(1:nrow(iris), size = 100)
-train    <- iris[randDraw,]
-test     <- iris[setdiff(1:nrow(iris), randDraw),]
 
-plot(iris[,1:4], pch = as.numeric(iris$Species))
+# Plot full data
+plot(iris, pch = as.numeric(iris$Species))
 
-NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-                    momentum = 0.8, learnRate = 0.001, verbose = FALSE)
+# Prepare test and train sets
+random_draw <- sample(1:nrow(iris), size = 100)
+X_train     <- iris[random_draw, 1:4]
+Y_train     <- iris[random_draw, 5]
+X_test      <- iris[setdiff(1:nrow(iris), randDraw), 1:4]
+Y_test      <- iris[setdiff(1:nrow(iris), randDraw), 5]
+
+# Train neural network on classification task
+NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
+                    optim.type = 'adam', learn.rates = 0.01, val.prop = 0)
+
+# Plot the loss during training
 plot(NN)
-pred <- predict(NN, newdata = test[,-5])
-plot(test[,-5], pch = as.numeric(test$Species),
-     col = as.numeric(test$Species == pred$predictions)+2)
 
-#For other examples see function example_NN()
+# Make predictions
+Y_pred <- predict(NN, newdata = X_test)
+
+# Plot predictions
+plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
 
 }
 \references{

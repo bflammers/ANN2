@@ -1,77 +1,112 @@
 #' @title Train a Neural Network
 #'
 #' @description
-#' Train a Multilayer Neural Network using Stohastic Gradient
-#' Descent with optional batch learning. Functions \code{autoencoder}
-#' and \code{replicator} are special cases of this general function.
+#' Define and train a Multilayer Neural Network for regression or classification. 
 #'
 #' @details
 #' A genereric function for training Neural Networks for classification and
 #' regression problems. Various types of activation and cost functions are
-#' supported, as well as  L1 and L2 regularization. Additional options are
-#' early stopping, momentum and the specification of a learning rate schedule.
-#' See function \code{example_NN} for some visualized examples on toy data.
+#' supported, as well as  L1 and L2 regularization. Possible optimizer include
+#' SGD (with or without momentum), RMSprop and Adam. 
 #'
 #' @references LeCun, Yann A., et al. "Efficient backprop." Neural networks:
 #' Tricks of the trade. Springer Berlin Heidelberg, 2012. 9-48.
 #'
 #' @param X matrix with explanatory variables
-#' @param y matrix with dependent variables
-#' @param hidden.layers vector specifying the number of nodes in each layer. Set
-#' to \code{NA} for a Network without any hidden layers
-#' @param lossFunction which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
-#' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
-#' This parameter controls the cut-off point between quadratic and absolute loss.
+#' @param Y matrix with dependent variables. For classification this should be 
+#' a one-columns matrix containing the classes - classes will be one-hot encoded.
+#' @param hidden.layers vector specifying the number of nodes in each layer. The
+#' number of hidden layers in the network is implicitly defined by the length of
+#' this vector. Set \code{hidden.layers} to \code{NA} for a network with no hidden 
+#' layers
 #' @param regression logical indicating regression or classification
-#' @param standardize logical indicating if X and y should be standardized before
+#' @param standardize logical indicating if X and Y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
-#' @param learnRate the size of the steps made in gradient descent. If set too large,
-#' optimization can become unstable. Is set too small, convergence will be slow.
-#' @param maxEpochs the maximum number of epochs (one iteration through training
-#' data).
-#' @param batchSize the number of observations to use in each batch. Batch learning
-#' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Le Cun for details.
-#' @param momentum numeric value specifying how much momentum should be
-#' used. Set to zero for no momentum, otherwise a value between zero and one.
+#' @param loss.type which loss function should be used. Options are "log",
+#' "quadratic", "absolute", "huber" and "pseudo-huber"
+#' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
+#' This parameter controls the cut-off point between quadratic and absolute loss.
+#' @param activ.functions character vector of activation functions to be used in 
+#' each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
+#' 'ramp' and 'step'. Should be either the size of the number of hidden layers
+#' or equal to one. If a single avtivation type is specified, this type will be 
+#' broadcasted across the hidden layers. 
+#' @param step.H number of steps of the step activation function. Only applicable 
+#' if activ.functions includes 'step'
+#' @param step.k parameter controlling the smoothness of the step activation 
+#' function. Larger values lead to a less smooth step function. Only applicable 
+#' if activ.functions includes 'step'.
+#' @param optim.type type of optimizer to use for updating the parameters. Options 
+#' are 'sgd', 'rmsprop' and 'adam'. SGD is implemented with momentum.
+#' @param learn.rates the size of the steps to make in gradient descent. If set 
+#' too large, the optimization might not converge to optimal values. If set too 
+#' small, convergence will be slow. Should be either the size of the number of 
+#' hidden layers plus one or equal to one. If a single learn rate is specified, 
+#' this learn rate will be broadcasted across the layers. 
 #' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
 #' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
-#' @param validLoss logical indicating if loss should be monitored during training.
-#' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-#' drawn from full training set. Use function \code{plot} to assess convergence.
-#' @param validProp proportion of training data to use for validation
-#' @param verbose logical indicating if additional information (such as lifesign)
+#' @param sgd.momentum numeric value specifying how much momentum should be
+#' used. Set to zero for no momentum, otherwise a value between zero and one.
+#' @param rmsprop.decay level of decay in the rms term. Controls the strength
+#' of the exponential decay of the squared gradients in the term that scales the
+#' gradient before the parameter update. Common values are 0.9, 0.99 and 0.999
+#' @param adam.beta1 level of decay in the first moment estimate (the mean). 
+#' The recommended value is 0.9
+#' @param adam.beta2 level of decay in the second moment estimate (the uncentered
+#' variance). The recommended value is 0.999
+#' @param n.epochs the number of epochs to train. This parameter largely determines
+#' the training time (one epoch is a single iteration through the training data).
+#' @param batch.size the number of observations to use in each batch. Batch learning
+#' is computationally faster than stochastic gradient descent. However, large
+#' batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+#' for details.
+#' @param drop.last logical. Only applicable if the size of the training set is not 
+#' perfectly devisible by the batch size. Determines if the last chosen observations
+#' should be discarded (in the current epoch) or should constitute a smaller batch. 
+#' Note that a smaller batch leads to a noisier approximation of the gradient.
+#' @param val.prop proportion of training data to use for tracking the loss on a 
+#' validation set during training. Useful for assessing the training process and
+#' identifying possible overfitting. Set to zero for only tracking the loss on the 
+#' training data.
+#' @param verbose logical indicating if additional information should be printed
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
 #' # Example on iris dataset:
-#' randDraw <- sample(1:nrow(iris), size = 100)
-#' train    <- iris[randDraw,]
-#' test     <- iris[setdiff(1:nrow(iris), randDraw),]
+#' 
+#' # Plot full data
+#' plot(iris, pch = as.numeric(iris$Species))
 #'
-#' plot(iris[,1:4], pch = as.numeric(iris$Species))
-#'
-#' NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-#'                     momentum = 0.8, learnRate = 0.001, verbose = FALSE)
+#' # Prepare test and train sets
+#' random_draw <- sample(1:nrow(iris), size = 100)
+#' X_train     <- iris[random_draw, 1:4]
+#' Y_train     <- iris[random_draw, 5]
+#' X_test      <- iris[setdiff(1:nrow(iris), randDraw), 1:4]
+#' Y_test      <- iris[setdiff(1:nrow(iris), randDraw), 5]
+#' 
+#' # Train neural network on classification task
+#' NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
+#'                     optim.type = 'adam', learn.rates = 0.01, val.prop = 0)
+#' 
+#' # Plot the loss during training
 #' plot(NN)
-#' pred <- predict(NN, newdata = test[,-5])
-#' plot(test[,-5], pch = as.numeric(test$Species),
-#'      col = as.numeric(test$Species == pred$predictions)+2)
-#'
-#' #For other examples see function example_NN()
+#' 
+#' # Make predictions
+#' Y_pred <- predict(NN, newdata = X_test)
+#' 
+#' # Plot predictions
+#' plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
 #'
 #' @export
 neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE, 
-                          loss.type = "log", huber.delta = 1, 
+                          standardize = TRUE, loss.type = "log", huber.delta = 1, 
                           activ.functions = "tanh", step.H = 5, step.k = 100,
-                          optim.type = "sgd", n.epochs = 1000, 
-                          learn.rates = 1e-04, L1 = 0, L2 = 0, sgd.momentum = 0.9,
-                          rmsprop.decay = 0.9, adam.beta1 = 0.9, adam.beta2 = 0.999,
-                          batch.size = 32, standardize = TRUE, drop.last = TRUE,
-                          val.prop = 0.1, verbose = TRUE) {
+                          optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0, 
+                          sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9, 
+                          adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
+                          drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
   # Store function call
   NN_call <- match.call()
@@ -97,7 +132,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(Rcpp_ANN = Rcpp_ANN)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN, call = NN_call)
   class(ANN) <- 'ANN'
   attr(ANN, 'autoencoder') <- FALSE
 
@@ -109,68 +144,92 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' @description
 #' Trains an Autoencoder by setting explanatory variables X as dependent variables
 #' in training. The number of nodes in the middle layer should be smaller than
-#' the number of variables in X. During training, the networks will learn a
-#' generalised representation of the data (generalised since the middle layer
-#' functions as a bottleneck, resulting in reproduction of only the most
-#' important features of the data).
+#' the number of variables in X to create a bottleneck layer. 
 #'
 #' @details
-#' A function for training Autoencoders. To be used in conjunction with function
-#' \code{reproduce(<object>, <newdata>)}.
+#' A function for training Autoencoders. During training, the network will learn a
+#' generalised representation of the data (generalised since the middle layer
+#' functions as a bottleneck, resulting in reproduction of only the most
+#' important features of the data). As such, the network models the normal state 
+#' of the data and therefore has a denoising property. This property can be 
+#' exploited to detect anomalies. 
 #'
 #' @param X matrix with explanatory variables
-#' @param hiddenLayers vector specifying the number of nodes in each layer. Set
-#' to \code{NA} for a Network without any hidden layers
-#' @param lossFunction which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
-#' @param dHuber used only in case of loss functions "huber" and "pseudo-huber".
-#' This parameter controls the cut-off point between quadratic and absolute loss.
-#' @param H numeric integer specifying number of steps of the step function
-#' @param k numeric indicating the smoothness of the step function.
-#' Smaller values result in smoother steps. Recommended to keep below 50 for
-#' stability. If set to high, the derivative of the stepfunction will also be large
-#' @param standardize logical indicating if X and y should be standardized before
+#' @param hidden.layers vector specifying the number of nodes in each layer. The
+#' number of hidden layers in the network is implicitly defined by the length of
+#' this vector. Set \code{hidden.layers} to \code{NA} for a network with no hidden 
+#' layers
+#' @param regression logical indicating regression or classification
+#' @param standardize logical indicating if X and Y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
-#' @param learnRate the size of the steps made in gradient descent. If set too large,
-#' optimization can become unstable. Is set too small, convergence will be slow.
-#' @param maxEpochs the maximum number of epochs (one iteration through training
-#' data).
-#' @param batchSize the number of observations to use in each batch. Batch learning
-#' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Le Cun for details.
-#' @param momentum numeric value specifying how much momentum should be
-#' used. Set to zero for no momentum, otherwise a value between zero and one.
+#' @param loss.type which loss function should be used. Options are "log",
+#' "quadratic", "absolute", "huber" and "pseudo-huber"
+#' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
+#' This parameter controls the cut-off point between quadratic and absolute loss.
+#' @param activ.functions character vector of activation functions to be used in 
+#' each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
+#' 'ramp' and 'step'. Should be either the size of the number of hidden layers
+#' or equal to one. If a single avtivation type is specified, this type will be 
+#' broadcasted across the hidden layers. 
+#' @param step.H number of steps of the step activation function. Only applicable 
+#' if activ.functions includes 'step'
+#' @param step.k parameter controlling the smoothness of the step activation 
+#' function. Larger values lead to a less smooth step function. Only applicable 
+#' if activ.functions includes 'step'.
+#' @param optim.type type of optimizer to use for updating the parameters. Options 
+#' are 'sgd', 'rmsprop' and 'adam'. SGD is implemented with momentum.
+#' @param learn.rates the size of the steps to make in gradient descent. If set 
+#' too large, the optimization might not converge to optimal values. If set too 
+#' small, convergence will be slow. Should be either the size of the number of 
+#' hidden layers plus one or equal to one. If a single learn rate is specified, 
+#' this learn rate will be broadcasted across the layers. 
 #' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
 #' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
-#' @param validLoss logical indicating if loss should be monitored during training.
-#' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-#' drawn from full training set. Use function \code{plot} to assess convergence.
-#' @param validProp proportion of training data to use for validation
-#' @param verbose logical indicating if additional information (such as lifesign)
-#' should be printed to console during training.
-#' @param robErrorCov logical indicating if robust covariance should be estimated in 
-#' order to assess Mahalanobis distances of reconstruction errors
+#' @param sgd.momentum numeric value specifying how much momentum should be
+#' used. Set to zero for no momentum, otherwise a value between zero and one.
+#' @param rmsprop.decay level of decay in the rms term. Controls the strength
+#' of the exponential decay of the squared gradients in the term that scales the
+#' gradient before the parameter update. Common values are 0.9, 0.99 and 0.999
+#' @param adam.beta1 level of decay in the first moment estimate (the mean). 
+#' The recommended value is 0.9
+#' @param adam.beta2 level of decay in the second moment estimate (the uncentered
+#' variance). The recommended value is 0.999
+#' @param n.epochs the number of epochs to train. This parameter largely determines
+#' the training time (one epoch is a single iteration through the training data).
+#' @param batch.size the number of observations to use in each batch. Batch learning
+#' is computationally faster than stochastic gradient descent. However, large
+#' batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+#' for details.
+#' @param drop.last logical. Only applicable if the size of the training set is not
+#' perfectly devisible by the batch size. Determines if the last chosen observations
+#' should be discarded (in the current epoch) or should constitute a smaller batch. 
+#' Note that a smaller batch leads to a noisier approximation of the gradient.
+#' @param val.prop proportion of training data to use for tracking the loss on a 
+#' validation set during training. Useful for assessing the training process and
+#' identifying possible overfitting. Set to zero for only tracking the loss on the 
+#' training data.
+#' @param verbose logical indicating if additional information should be printed
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @examples
 #' # Autoencoder
-#' aeNN <- autoencoder(faithful, hiddenLayers = c(4,1,4), batchSize = 5,
-#'                     learnRate = 1e-5, momentum = 0.5, L1 = 1e-3, L2 = 1e-3,
-#'                     robErrorCov = TRUE)
-#' plot(aeNN)
-#'
-#' rX <- reconstruct(aeNN, faithful)
-#' plot(rX, alpha = 0.05)
-#' plot(faithful, col = (rX$mah_p < 0.05)+1, pch = 16)
+#' AE <- autoencoder(X = iris[,1:4], hidden.layers = c(4,2,4), optim.type = 'adam', 
+#'                   learn.rates = 0.01, val.prop = 0.2)
+#' plot(AE)
+#' 
+#' rX <- reconstruct(AE, iris[,1:4])
+#' recPlot(AE, iris[,1:4])
+#' plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
 #' @export
-autoencoder <- function(X, hidden.layers, loss.type = "squared", 
-                        delta.huber = 1, activ.functions = "tanh", H = 5, k = 100,
-                        optim.type = "sgd", n.epochs = 1000, 
-                        learn.rates = 1e-04, momentum = 0.2, L1 = 0, L2 = 0, 
-                        batch.size = 32, standardize = TRUE, drop.last = TRUE,
-                        val.prop = 0.1, verbose = TRUE) {
+autoencoder <- function(X, hidden.layers, standardize = TRUE, 
+                        loss.type = "squared", huber.delta = 1, 
+                        activ.functions = "tanh", step.H = 5, step.k = 100,
+                        optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0, 
+                        sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9, 
+                        adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
+                        drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
   # Store function call
   NN_call <- match.call()
@@ -181,9 +240,10 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   
   # Set and check parameters
   net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
-  activ_param <- setActivParams(activ.functions, H, k, meta)
-  optim_param <- setOptimParams(optim.type, learn.rates, momentum, L1, L2, meta)
-  loss_param  <- setLossParams(loss.type, delta.huber, meta)
+  activ_param <- setActivParams(activ.functions, step.H, step.k, meta)
+  optim_param <- setOptimParams(optim.type, learn.rates, L1, L2, sgd.momentum, 
+                                rmsprop.decay, adam.beta1, adam.beta2, meta)
+  loss_param  <- setLossParams(loss.type, huber.delta, meta)
   
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
@@ -195,7 +255,7 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(Rcpp_ANN = Rcpp_ANN)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN, call = NN_call)
   class(ANN) <- 'ANN'
   attr(ANN, 'autoencoder') <- TRUE
   
@@ -205,66 +265,65 @@ autoencoder <- function(X, hidden.layers, loss.type = "squared",
 #' @title Continue training of a Neural Network
 #'
 #' @description
-#' Train a Multilayer Neural Network using Stohastic Gradient
-#' Descent with optional batch learning. Functions \code{autoencoder}
-#' and \code{replicator} are special cases of this general function.
+#' Continue training of a neural network object returned by \code{neuralnetwork()} 
+#' or \code{autoencoder()}
 #'
 #' @details
-#' A genereric function for training Neural Networks for classification and
-#' regression problems. Various types of activation and cost functions are
-#' supported, as well as  L1 and L2 regularization. Additional options are
-#' early stopping, momentum and the specification of a learning rate schedule.
-#' See function \code{example_NN} for some visualized examples on toy data.
+#' A new validation set is randomly chosen. This can result in irregular jumps
+#' in the plot given by \code{plot.ANN()}.
 #'
 #' @references LeCun, Yann A., et al. "Efficient backprop." Neural networks:
 #' Tricks of the trade. Springer Berlin Heidelberg, 2012. 9-48.
 #'
-#' @param object object of class \code{ANN}
+#' @param object object of class \code{ANN} produced by \code{neuralnetwork()} 
+#' or \code{autoencoder()}
 #' @param X matrix with explanatory variables
-#' @param y matrix with dependent variables
-#' @param learnRate the size of the steps made in gradient descent. If set too large,
-#' optimization can become unstable. Is set too small, convergence will be slow.
-#' @param maxEpochs the maximum number of epochs (one iteration through training
-#' data).
-#' @param batchSize the number of observations to use in each batch. Batch learning
+#' @param Y matrix with dependent variables. Not required if object is an autoencoder
+#' @param n.epochs the number of epochs to train. This parameter largely determines
+#' the training time (one epoch is a single iteration through the training data).
+#' @param batch.size the number of observations to use in each batch. Batch learning
 #' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Le Cun for details.
-#' @param momentum numeric value specifying how much momentum should be
-#' used. Set to zero for no momentum, otherwise a value between zero and one.
-#' @param L1 L1 regularization. Non-negative number. Set to zero for no regularization.
-#' @param L2 L2 regularization. Non-negative number. Set to zero for no regularization.
-#' @param validLoss logical indicating if loss should be monitored during training.
-#' If \code{TRUE}, a validation set of proportion \code{validProp} is randomly
-#' drawn from full training set. Use function \code{plot} to assess convergence.
-#' @param validProp proportion of training data to use for validation
-#' @param verbose logical indicating if additional information (such as lifesign)
-#' should be printed to console during training.
+#' batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+#' for details.
+#' @param drop.last logical. Only applicable if the size of the training set is not 
+#' perfectly devisible by the batch size. Determines if the last chosen observations
+#' should be discarded (in the current epoch) or should constitute a smaller batch. 
+#' Note that a smaller batch leads to a noisier approximation of the gradient.
+#' @param val.prop proportion of training data to use for tracking the loss on a 
+#' validation set during training. Useful for assessing the training process and
+#' identifying possible overfitting. Set to zero for only tracking the loss on the 
+#' training data.
+#' @param verbose logical indicating if additional information should be printed
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
-#' @examples
-#' # Example on iris dataset:
-#' randDraw <- sample(1:nrow(iris), size = 100)
-#' train    <- iris[randDraw,]
-#' test     <- iris[setdiff(1:nrow(iris), randDraw),]
-#'
-#' plot(iris[,1:4], pch = as.numeric(iris$Species))
-#'
-#' NN <- neuralnetwork(train[,-5], train$Species, hiddenLayers = c(5, 5),
-#'                     momentum = 0.8, learnRate = 0.001, verbose = FALSE)
-#' plot(NN)
-#' pred <- predict(NN, newdata = test[,-5])
-#' plot(test[,-5], pch = as.numeric(test$Species),
-#'      col = as.numeric(test$Species == pred$predictions)+2)
-#'
-#' #For other examples see function example_NN()
-#'
+#' 
 #' @export
-train <- function(object, X, Y, n.epochs = 500, batch.size = 32, 
+train <- function(object, X, Y = NULL, n.epochs = 20, batch.size = 32, 
                   drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
   # Extract meta from object
   meta <- object$Rcpp_ANN$getMeta()
+  
+  # Checks for different behavior autoencoder and normal neural net
+  if ( attr(object, 'autoencoder') ) {
+    
+    # Autoencoder but also Y specified
+    if ( !is.null(Y) ) {
+      stop('Object of type autoencoder but Y is given', call. = FALSE)
+    }
+    
+    # Set Y equal to X
+    Y = X
+    
+  } else {
+    
+    # Not an autoencoder but no Y given
+    if ( is.null(Y) ) {
+      stop('Y matrix of dependent variables needed', call. = FALSE)
+    }
+    
+  }
   
   # Perform checks on data, set meta data
   data <- setData(X, Y, meta$regression, meta$y_names)
@@ -277,7 +336,7 @@ train <- function(object, X, Y, n.epochs = 500, batch.size = 32,
 
 }
 
-#' @title Reconstruct data using trained Autoencoder or Replicator object
+#' @title Reconstruct data using trained ANN object of type autoencoder
 #'
 #' @description
 #' \code{reconstruct} takes new data as input and reconstructs the observations using
@@ -286,12 +345,11 @@ train <- function(object, X, Y, n.epochs = 500, batch.size = 32,
 #' @details
 #' A genereric function for training neural nets
 #'
-#' @param object Object of class \code{ANN} created with autoencoder()
-#' @param X data (matrix) to reconstruct
-#' @param mahalanobis logical indicating if Mahalanobis distance should be calculated
-#' @return Reconstructed observations and optional Mahalanobis distances
+#' @param object Object of class \code{ANN} created with \code{autoencoder()}
+#' @param X data matrix to reconstruct
+#' @return Reconstructed observations and reconstruction errors
 #' @export
-reconstruct <- function(object, X, mahalanobis = TRUE) {
+reconstruct <- function(object, X) {
 
   # Extract meta
   meta <- object$Rcpp_ANN$getMeta()
@@ -371,30 +429,6 @@ predict.ANN <- function(object, newdata, ...) {
   return( list(predictions = predictions, probabilities = fit) )
 }
 
-#' @title Plot mahalanobis distances of reconstructed errors
-#' @description \code{plot} Generate plots of the mahalanobis distances for each reconstructed observation
-#' @details A genereric function for training neural nets
-#' @param x Object of class \code{rX}
-#' @param alpha significance level for determining cut-off point of squared
-#' Mahalanobis distanced using the chi-square distribution
-#' @param ... further arguments to be passed to plot
-#' @return Plots
-#' @method plot rANN
-#' @export
-plot.rANN <- function(x, alpha = 0.05, ...) {
-  nObs    <- length(x$mah_sq)
-  maxMah  <- max(x$mah_sq)
-  stats::qqplot(stats::qchisq(p = stats::ppoints(500), df = x$dfChiSq), x$mah_sq,
-                main = "Chi-Square QQ-plot Mahalanobis Squared",
-                xlab = "Theoretical Quantiles", ylab = "Observed Quantiles", ...)
-  graphics::lines(c(0, maxMah), c(0, maxMah), col = "blue")
-  invisible(readline(prompt = "Press [enter] for next plot..."))
-  ChiSqBound <- stats::qchisq(p = 1 - alpha, df = x$dfChiSq)
-  graphics::plot(seq.int(1, nObs), x$mah_sq, col = (x$mah_p <= alpha) + 1,
-      main = "Mahalanobis Distance Squared", xlab = "Index", ylab = "Distance", ...)
-  graphics::abline(h = ChiSqBound, col = "darkgrey")
-}
-
 #' @title Print ANN
 #' @description Print info on trained Neural Network
 #' @param x Object of class \code{ANN}
@@ -465,7 +499,7 @@ encode <- function(object, newdata, compression.layer = NULL) {
 
 #' @title Decoding step 
 #' @description Decompress low-dimensional representation resulting from the nodes
-#' of the middle layer. Output are the reconstructed inputs to function \code{encode}
+#' of the middle layer. Output are the reconstructed inputs to function \code{encode()}
 #' @param object Object of class \code{ANN}
 #' @param compressed Compressed data
 #' @param compression.layer Integer specifying which hidden layer is the 
