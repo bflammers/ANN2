@@ -222,6 +222,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' rX <- reconstruct(AE, iris[,1:4])
 #' recPlot(AE, iris[,1:4])
 #' plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
+#' 
 #' @export
 autoencoder <- function(X, hidden.layers, standardize = TRUE, 
                         loss.type = "squared", huber.delta = 1, 
@@ -348,6 +349,7 @@ train <- function(object, X, Y = NULL, n.epochs = 20, batch.size = 32,
 #' @param object Object of class \code{ANN} created with \code{autoencoder()}
 #' @param X data matrix to reconstruct
 #' @return Reconstructed observations and reconstruction errors
+#' 
 #' @export
 reconstruct <- function(object, X) {
 
@@ -396,6 +398,7 @@ reconstruct <- function(object, X) {
 #' @param ... further arguments (not in use)
 #' @return A list with predicted classes for classification and fitted probabilities
 #' @method predict ANN
+#' 
 #' @export
 predict.ANN <- function(object, newdata, ...) {
   
@@ -434,6 +437,7 @@ predict.ANN <- function(object, newdata, ...) {
 #' @param x Object of class \code{ANN}
 #' @param ... Further arguments
 #' @method print ANN
+#' 
 #' @export
 print.ANN <- function(x, ...){
   x$Rcpp_ANN$print( TRUE )
@@ -448,6 +452,7 @@ print.ANN <- function(x, ...){
 #' @param compression.layer Integer specifying which hidden layer is the 
 #' compression layer. If NULL this parameter is inferred from the structure 
 #' of the network (hidden layer with smallest number of nodes)
+#' 
 #' @export
 encode <- function(object, newdata, compression.layer = NULL) {
   
@@ -505,6 +510,7 @@ encode <- function(object, newdata, compression.layer = NULL) {
 #' @param compression.layer Integer specifying which hidden layer is the 
 #' compression layer. If NULL this parameter is inferred from the structure 
 #' of the network (hidden layer with smallest number of nodes)
+#' 
 #' @export
 decode <- function(object, compressed, compression.layer = NULL) {
   

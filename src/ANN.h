@@ -12,7 +12,7 @@
 #include <cereal/types/vector.hpp>
 
 // Class ANN
-//' @export ANN
+//' @export
 class ANN 
 {
 private:

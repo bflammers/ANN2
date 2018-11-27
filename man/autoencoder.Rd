@@ -118,4 +118,5 @@ plot(AE)
 rX <- reconstruct(AE, iris[,1:4])
 recPlot(AE, iris[,1:4])
 plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
+
 }
