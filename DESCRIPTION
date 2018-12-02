@@ -16,9 +16,8 @@ License: GPL (>= 3)
 URL: https://github.com/bflammers/ANN2
 Encoding: UTF-8
 LazyData: true
-Imports: Rcpp (>= 0.12.18), stats (>= 3.5.1), graphics (>= 3.5.1), 
-    reshape2 (>= 1.4.3), ggplot2 (>= 3.0.0), viridisLite (>= 0.3.0),
-    methods (>= 3.5.1)
+Imports: Rcpp (>= 0.12.18), reshape2 (>= 1.4.3), ggplot2 (>= 3.0.0), 
+    viridisLite (>= 0.3.0), methods (>= 3.5.1)
 LinkingTo: Rcpp, RcppArmadillo, BH, Rcereal
 Suggests: 
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

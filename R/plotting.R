@@ -30,7 +30,7 @@ plot.ANN <- function(x, ...) {
   
   # Return plot
   ggplot(data = df_melt) + 
-    geom_path(aes(x = x, y = y, color = variable)) + 
+    geom_path(aes_string(x = 'x', y = 'y', color = 'variable')) + 
     labs(x = 'Epoch', y = 'Loss') + 
     scale_color_manual(name = NULL, values = c('Training' = viridis_cols[1], 
                                                'Validation' = viridis_cols[2]))
@@ -91,10 +91,11 @@ recPlot <- function(object, X, colors = NULL) {
   
   # Create and return plot
   ggplot(data = df_plot) +
-    geom_point(aes(x = x_val, y = y_val), color = 'darkgrey') +
-    geom_path(data = df_lin, aes(x = value.x, y = value.y, group = obs), 
+    geom_point(aes_string(x = 'x_val', y = 'y_val'), color = 'darkgrey') +
+    geom_path(data = df_lin, 
+              aes_string(x = 'value.x', y = 'value.y', group = 'obs'), 
               color = 'darkgrey') +
-    geom_point(aes(x = x_rec, y = y_rec, color = col)) +
+    geom_point(aes_string(x = 'x_rec', y = 'y_rec', color = 'col')) +
     facet_grid(y_dim ~ x_dim, scales = "free") + 
     labs(x = NULL, y = NULL) + 
     gg_color
@@ -139,7 +140,7 @@ comprPlot <- function(object, X, colors = NULL) {
   
   # Create and return plot
   ggplot(data = df_plot) +
-    geom_point(aes(x = x_compr, y = y_compr, color = col)) +
+    geom_point(aes_string(x = 'x_compr', y = 'y_compr', color = 'col')) +
     facet_grid(y_dim ~ x_dim, scales = "free") + 
     labs(x = NULL, y = NULL) + 
     gg_color

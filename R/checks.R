@@ -1,5 +1,7 @@
-
-# Set network meta info
+#' @title Sets list with meta info, to be used in other checks
+#' @description 
+#' Set network meta info
+#' @keywords internal
 setMeta <- function(data, hidden.layers, regression) {
   
   # Check if network has no hidden layers, set n_hidden layers accordingly
@@ -24,8 +26,10 @@ setMeta <- function(data, hidden.layers, regression) {
                hidden_layers = hidden.layers) )
 }
 
-
-# Set and check data
+#' @title Check the input data
+#' @description 
+#' Set and check data
+#' @keywords internal
 setData <- function(X, Y, regression, y_names = NULL) {
   
   # Convert X to matrix
@@ -101,7 +105,10 @@ setData <- function(X, Y, regression, y_names = NULL) {
   return ( list(X = X, Y = Y, y_names = y_names, n_obs = n_obs) )
 }
 
-# Set and check network parameter list
+#' @title Check user input related to network structure
+#' @description 
+#' Set and check network parameter list
+#' @keywords internal
 setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
   
   # Booleans for standardizing X and Y
@@ -136,7 +143,10 @@ setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
                 verbose = verbose, regression = meta$regression) )
 }
 
-# Set and check activation parameter list
+#' @title Check user input related to activation functions
+#' @description 
+#' Set and check activation parameter list
+#' @keywords internal
 setActivParams <- function(activ.functions, step.H, step.k, meta) {
   allowed_types <- c('tanh', 'sigmoid', 'relu', 'linear', 'ramp', 'step')
   
@@ -205,7 +215,10 @@ setActivParams <- function(activ.functions, step.H, step.k, meta) {
   return ( list(types = types, step_H = step.H, step_k = step.k) )
 }
 
-# Set and check optimizer parameter list
+#' @title Check user input related to optimizer
+#' @description 
+#' Set and check optimizer parameter list
+#' @keywords internal
 setOptimParams <- function(optim.type, learn.rates, L1, L2, sgd.momentum, 
                            rmsprop.decay, adam.beta1, adam.beta2, meta) {
   # Allowed optimizer types
@@ -295,7 +308,10 @@ setOptimParams <- function(optim.type, learn.rates, L1, L2, sgd.momentum,
                 adam_beta1 = adam.beta1, adam_beta2 = adam.beta2) )
 }
 
-# Set and check loss parameter list
+#' @title Check user input related to loss function
+#' @description 
+#' Set and check loss parameter list
+#' @keywords internal
 setLossParams <- function(loss.type, huber.delta, meta) {
   allowed_types <- c('log', 'squared', 'absolute', 'huber', 'pseudo-huber')
   
@@ -334,7 +350,10 @@ setLossParams <- function(loss.type, huber.delta, meta) {
   return ( list(type = loss.type, huber_delta = huber.delta) )
 }
 
-# Set training parameters
+#' @title Check user input related to training
+#' @description 
+#' Set training parameters
+#' @keywords internal
 setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, data) {
   
   # (ERROR) n.epochs not positive

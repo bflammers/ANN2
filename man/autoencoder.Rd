@@ -88,8 +88,6 @@ identifying possible overfitting. Set to zero for only tracking the loss on the
 training data.}
 
 \item{verbose}{logical indicating if additional information should be printed}
-
-\item{regression}{logical indicating regression or classification}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess

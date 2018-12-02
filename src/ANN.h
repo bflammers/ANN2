@@ -11,7 +11,6 @@
 #include <cereal/types/list.hpp>
 #include <cereal/types/vector.hpp>
 
-// Class ANN
 //' @export
 class ANN 
 {

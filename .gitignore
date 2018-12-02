@@ -6,3 +6,4 @@
 *.so
 *.dll
 *.o
+.Rproj.user

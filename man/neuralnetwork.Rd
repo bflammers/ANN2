@@ -111,15 +111,12 @@ SGD (with or without momentum), RMSprop and Adam.
 \examples{
 # Example on iris dataset:
 
-# Plot full data
-plot(iris, pch = as.numeric(iris$Species))
-
 # Prepare test and train sets
 random_draw <- sample(1:nrow(iris), size = 100)
 X_train     <- iris[random_draw, 1:4]
 Y_train     <- iris[random_draw, 5]
-X_test      <- iris[setdiff(1:nrow(iris), randDraw), 1:4]
-Y_test      <- iris[setdiff(1:nrow(iris), randDraw), 5]
+X_test      <- iris[setdiff(1:nrow(iris), random_draw), 1:4]
+Y_test      <- iris[setdiff(1:nrow(iris), random_draw), 5]
 
 # Train neural network on classification task
 NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
