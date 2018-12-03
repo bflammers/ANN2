@@ -4,7 +4,7 @@
 \alias{decode}
 \title{Decoding step}
 \usage{
-\method{decode}{ANN}(object, compressed, compression.layer = NULL)
+decode(object, compressed, compression.layer = NULL)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}

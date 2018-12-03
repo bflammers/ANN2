@@ -1,5 +1,6 @@
 #' @useDynLib ANN2, .registration=TRUE
-#' @importFrom Rcpp loadModule
 #' @importFrom methods new
-#' @import ggplot2 reshape2
+#' @import ggplot2 
+#' @import reshape2 
+#' @import Rcpp
 NULL

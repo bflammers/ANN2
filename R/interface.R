@@ -438,7 +438,6 @@ print.ANN <- function(x, ...){
 #' @description Compress data according to trained replicator or autoencoder.
 #' Outputs are the activations of the nodes in the middle layer for each 
 #' observation in \code{newdata}
-#' @method encode ANN
 #' @param object Object of class \code{ANN}
 #' @param newdata Data to compress
 #' @param compression.layer Integer specifying which hidden layer is the 
@@ -496,7 +495,6 @@ encode <- function(object, newdata, compression.layer = NULL) {
 #' @title Decoding step 
 #' @description Decompress low-dimensional representation resulting from the nodes
 #' of the middle layer. Output are the reconstructed inputs to function \code{encode()}
-#' @method decode ANN
 #' @param object Object of class \code{ANN}
 #' @param compressed Compressed data
 #' @param compression.layer Integer specifying which hidden layer is the 
