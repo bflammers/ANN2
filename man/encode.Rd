@@ -4,7 +4,7 @@
 \alias{encode}
 \title{Encoding step}
 \usage{
-encode(object, newdata, compression.layer = NULL)
+\method{encode}{ANN}(object, newdata, compression.layer = NULL)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}

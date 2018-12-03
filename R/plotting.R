@@ -2,6 +2,7 @@
 #' @title Plot training and validation loss
 #' @description \code{plot} Generate plots of the loss against epochs
 #' @details A genereric function for training neural nets
+#' @method plot ANN
 #' @param x Object of class \code{ANN}
 #' @param ... further arguments to be passed to plot
 #' @return Plots

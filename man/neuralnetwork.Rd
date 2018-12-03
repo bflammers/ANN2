@@ -130,7 +130,6 @@ Y_pred <- predict(NN, newdata = X_test)
 
 # Plot predictions
 plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
-
 }
 \references{
 LeCun, Yann A., et al. "Efficient backprop." Neural networks:
