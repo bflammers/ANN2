@@ -216,7 +216,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' plot(AE)
 #' 
 #' rX <- reconstruct(AE, iris[,1:4])
-#' recPlot(AE, iris[,1:4])
+#' reconstruction_plot(AE, iris[,1:4])
 #' plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
 autoencoder <- function(X, hidden.layers, standardize = TRUE, 
                         loss.type = "squared", huber.delta = 1, 
@@ -388,7 +388,7 @@ reconstruct <- function(object, X) {
 #' @method predict ANN
 #' @param object Object of class \code{ANN}
 #' @param newdata Data to make predictions on
-#' @param ... further arguments (not in use)
+#' @param \dots further arguments (not in use)
 #' @return A list with predicted classes for classification and fitted probabilities
 #' @export
 predict.ANN <- function(object, newdata, ...) {
@@ -427,7 +427,7 @@ predict.ANN <- function(object, newdata, ...) {
 #' @description Print info on trained Neural Network
 #' @method print ANN
 #' @param x Object of class \code{ANN}
-#' @param ... Further arguments
+#' @param \dots Further arguments
 #' @method print ANN
 #' @export
 print.ANN <- function(x, ...){
@@ -443,8 +443,14 @@ print.ANN <- function(x, ...){
 #' @param compression.layer Integer specifying which hidden layer is the 
 #' compression layer. If NULL this parameter is inferred from the structure 
 #' of the network (hidden layer with smallest number of nodes)
+#' @param \dots arguments to be passed down
 #' @export
-encode <- function(object, newdata, compression.layer = NULL) {
+encode <- function(object, ...) UseMethod("encode")
+
+#' @rdname encode
+#' @method encode ANN
+#' @export
+encode.ANN <- function(object, newdata, compression.layer = NULL, ...) {
   
   if ( !attr(object, 'autoencoder') ) {
     warning("Object is not an autoencoder")
@@ -500,8 +506,14 @@ encode <- function(object, newdata, compression.layer = NULL) {
 #' @param compression.layer Integer specifying which hidden layer is the 
 #' compression layer. If NULL this parameter is inferred from the structure 
 #' of the network (hidden layer with smallest number of nodes)
+#' @param \dots arguments to be passed down
 #' @export
-decode <- function(object, compressed, compression.layer = NULL) {
+decode <- function(object, ...) UseMethod("decode")
+
+#' @rdname decode
+#' @method decode ANN
+#' @export
+decode.ANN <- function(object, compressed, compression.layer = NULL, ...) {
   
   if ( !attr(object, 'autoencoder') ) {
     warning("Object is not an autoencoder")

@@ -2,12 +2,17 @@
 % Please edit documentation in R/interface.R
 \name{decode}
 \alias{decode}
+\alias{decode.ANN}
 \title{Decoding step}
 \usage{
-decode(object, compressed, compression.layer = NULL)
+decode(object, ...)
+
+\method{decode}{ANN}(object, compressed, compression.layer = NULL, ...)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}
+
+\item{\dots}{arguments to be passed down}
 
 \item{compressed}{Compressed data}
 

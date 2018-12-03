@@ -39,16 +39,22 @@ plot.ANN <- function(x, ...) {
 
 #' @title Reconstruction plot
 #' @description 
-#' \code{recPlot} plot original and reconstructed data points in a single plot 
-#' with connecting lines between original value and corresponding reconstruction
+#' plots original and reconstructed data points in a single plot with connecting 
+#' lines between original value and corresponding reconstruction
 #' @details Matrix plot of pairwise dimensions 
 #' @param object autoencoder object of class \code{ANN} 
 #' @param X data matrix with original values to be reconstructed and plotted
 #' @param colors optional vector of discrete colors. The reconstruction errors
 #' are are used as color if this argument is not specified
+#' @param \dots arguments to be passed down
 #' @return Plots
 #' @export
-recPlot <- function(object, X, colors = NULL) {
+reconstruction_plot <- function(object, ...) UseMethod("reconstruction_plot")
+
+#' @rdname reconstruction_plot
+#' @method reconstruction_plot ANN
+#' @export
+reconstruction_plot.ANN <- function(object, X, colors = NULL, ...) {
   
   # X as matrix and reconstuct
   X   <- as.matrix(X)
@@ -80,7 +86,8 @@ recPlot <- function(object, X, colors = NULL) {
   # Melt data.frames and merge for connection lines
   df_lin_x <- melt(df_x, id.vars = c('obs', 'x_dim', 'y_dim'))
   df_lin_y <- melt(df_y, id.vars = c('obs', 'x_dim', 'y_dim'))
-  df_lin <- merge(df_lin_x, df_lin_y, by = c('obs', 'x_dim', 'y_dim', 'variable'))
+  df_lin   <- merge(df_lin_x, df_lin_y, 
+                    by = c('obs', 'x_dim', 'y_dim', 'variable'))
   
   if ( !is.null(colors) || !all(is.na(colors)) ) {
     df_plot$col <- colors
@@ -104,14 +111,20 @@ recPlot <- function(object, X, colors = NULL) {
 
 #' @title Compression plot
 #' @description 
-#' \code{comprPlot} plot compressed observation in pairwise dimensions
+#' plot compressed observation in pairwise dimensions
 #' @details Matrix plot of pairwise dimensions 
 #' @param object autoencoder object of class \code{ANN} 
 #' @param X data matrix with original values to be compressed and plotted
 #' @param colors optional vector of discrete colors
+#' @param \dots arguments to be passed down
 #' @return Plots
 #' @export
-comprPlot <- function(object, X, colors = NULL) {
+compression_plot <- function(object, ...) UseMethod("compression_plot")
+
+#' @rdname compression_plot
+#' @method compression_plot ANN
+#' @export
+compression_plot.ANN <- function(object, X, colors = NULL, ...) {
   
   # X as matrix and reconstuct
   X  <- as.matrix(X)

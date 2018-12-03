@@ -2,12 +2,17 @@
 % Please edit documentation in R/interface.R
 \name{encode}
 \alias{encode}
+\alias{encode.ANN}
 \title{Encoding step}
 \usage{
-encode(object, newdata, compression.layer = NULL)
+encode(object, ...)
+
+\method{encode}{ANN}(object, newdata, compression.layer = NULL, ...)
 }
 \arguments{
 \item{object}{Object of class \code{ANN}}
+
+\item{\dots}{arguments to be passed down}
 
 \item{newdata}{Data to compress}
 

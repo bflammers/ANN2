@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{Object of class \code{ANN}}
 
-\item{...}{Further arguments}
+\item{\dots}{Further arguments}
 }
 \description{
 Print info on trained Neural Network

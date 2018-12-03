@@ -11,7 +11,7 @@
 
 \item{newdata}{Data to make predictions on}
 
-\item{...}{further arguments (not in use)}
+\item{\dots}{further arguments (not in use)}
 }
 \value{
 A list with predicted classes for classification and fitted probabilities
