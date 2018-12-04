@@ -12,7 +12,7 @@ reconstruct(object, X)
 \item{X}{data matrix to reconstruct}
 }
 \value{
-Reconstructed observations and reconstruction errors
+Reconstructed observations and anomaly scores (reconstruction errors)
 }
 \description{
 \code{reconstruct} takes new data as input and reconstructs the observations using

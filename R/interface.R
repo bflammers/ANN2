@@ -341,7 +341,7 @@ train <- function(object, X, Y = NULL, n.epochs = 20, batch.size = 32,
 #'
 #' @param object Object of class \code{ANN} created with \code{autoencoder()}
 #' @param X data matrix to reconstruct
-#' @return Reconstructed observations and reconstruction errors
+#' @return Reconstructed observations and anomaly scores (reconstruction errors)
 #' @export
 reconstruct <- function(object, X) {
 
@@ -371,13 +371,13 @@ reconstruct <- function(object, X) {
     stop('Input data incorrect number of columns', call. = FALSE)
   }
   
-  # Make reconstruction, calculate errors
+  # Make reconstruction, calculate the anomaly scores
   fit <- object$Rcpp_ANN$predict(X)
   colnames(fit) <- meta$names
   err <- rowSums( (fit - X)^2 ) / meta$n_out
   
   # Construct function output
-  return( list(reconstructed = fit, errors = err) )
+  return( list(reconstructed = fit, anomaly_scores = err) )
   
 }
 
@@ -521,7 +521,7 @@ decode.ANN <- function(object, compressed, compression.layer = NULL, ...) {
   
   # Extract meta, hidden_layers vector
   meta <- object$Rcpp_ANN$getMeta()
-  hidden_layers <- meta$hidden_layers[2:(1+meta$n_hidden)]
+  hidden_layers <- meta$num_nodes[2:(1+meta$n_hidden)]
   
   # Convert X to matrix
   X <- as.matrix(compressed)

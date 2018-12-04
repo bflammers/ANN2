@@ -93,17 +93,17 @@ reconstruction_plot.ANN <- function(object, X, colors = NULL, ...) {
     df_plot$col <- colors
     gg_color <- scale_color_viridis_d(name = NULL)
   } else {
-    df_plot$col <- rec$errors
+    df_plot$col <- rec$anomaly_scores
     gg_color <- scale_color_viridis_c(name = 'Rec. Err.')
   }
   
   # Create and return plot
   ggplot(data = df_plot) +
-    geom_point(aes_string(x = 'x_val', y = 'y_val'), color = 'darkgrey') +
     geom_path(data = df_lin, 
               aes_string(x = 'value.x', y = 'value.y', group = 'obs'), 
               color = 'darkgrey') +
-    geom_point(aes_string(x = 'x_rec', y = 'y_rec', color = 'col')) +
+    geom_point(aes_string(x = 'x_rec', y = 'y_rec'), color = 'darkgrey') +
+    geom_point(aes_string(x = 'x_val', y = 'y_val', color = 'col')) +
     facet_grid(y_dim ~ x_dim, scales = "free") + 
     labs(x = NULL, y = NULL) + 
     gg_color
