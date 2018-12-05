@@ -4,10 +4,13 @@
 \alias{plot.ANN}
 \title{Plot training and validation loss}
 \usage{
-\method{plot}{ANN}(x, ...)
+\method{plot}{ANN}(x, max.points = 1000, ...)
 }
 \arguments{
 \item{x}{Object of class \code{ANN}}
+
+\item{max.points}{Maximum number of points to plot, set to NA, NULL or Inf to
+include all points in the plot}
 
 \item{...}{further arguments to be passed to plot}
 }

@@ -7,16 +7,21 @@
 \usage{
 compression_plot(object, ...)
 
-\method{compression_plot}{ANN}(object, X, colors = NULL, ...)
+\method{compression_plot}{ANN}(object, X, colors = NULL,
+  jitter = FALSE, ...)
 }
 \arguments{
 \item{object}{autoencoder object of class \code{ANN}}
 
-\item{\dots}{arguments to be passed down}
+\item{\dots}{arguments to be passed to \code{jitter()}}
 
 \item{X}{data matrix with original values to be compressed and plotted}
 
 \item{colors}{optional vector of discrete colors}
+
+\item{jitter}{logical specifying whether to apply jitter to the compressed 
+values. Especially useful whith step activation function that clusters the 
+compressions and reconstructions.}
 }
 \value{
 Plots

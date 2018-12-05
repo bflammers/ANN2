@@ -4,7 +4,7 @@
 \alias{neuralnetwork}
 \title{Train a Neural Network}
 \usage{
-neuralnetwork(X, Y, hidden.layers, regression = FALSE,
+neuralnetwork(X, y, hidden.layers, regression = FALSE,
   standardize = TRUE, loss.type = "log", huber.delta = 1,
   activ.functions = "tanh", step.H = 5, step.k = 100,
   optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0,
@@ -15,7 +15,7 @@ neuralnetwork(X, Y, hidden.layers, regression = FALSE,
 \arguments{
 \item{X}{matrix with explanatory variables}
 
-\item{Y}{matrix with dependent variables. For classification this should be 
+\item{y}{matrix with dependent variables. For classification this should be 
 a one-columns matrix containing the classes - classes will be one-hot encoded.}
 
 \item{hidden.layers}{vector specifying the number of nodes in each layer. The
@@ -109,27 +109,27 @@ supported, as well as  L1 and L2 regularization. Possible optimizer include
 SGD (with or without momentum), RMSprop and Adam.
 }
 \examples{
-# Example on iris dataset:
-
+# Example on iris dataset
 # Prepare test and train sets
 random_draw <- sample(1:nrow(iris), size = 100)
 X_train     <- iris[random_draw, 1:4]
-Y_train     <- iris[random_draw, 5]
+y_train     <- iris[random_draw, 5]
 X_test      <- iris[setdiff(1:nrow(iris), random_draw), 1:4]
-Y_test      <- iris[setdiff(1:nrow(iris), random_draw), 5]
+y_test      <- iris[setdiff(1:nrow(iris), random_draw), 5]
 
 # Train neural network on classification task
-NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
+NN <- neuralnetwork(X = X_train, y = y_train, hidden.layers = c(5, 5),
                     optim.type = 'adam', learn.rates = 0.01, val.prop = 0)
 
 # Plot the loss during training
 plot(NN)
 
 # Make predictions
-Y_pred <- predict(NN, newdata = X_test)
+y_pred <- predict(NN, newdata = X_test)
 
 # Plot predictions
-plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
+correct <- (y_test == y_pred$predictions)
+plot(X_test, pch = as.numeric(y_test), col = correct + 2)
 }
 \references{
 LeCun, Yann A., et al. "Efficient backprop." Neural networks:

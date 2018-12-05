@@ -13,7 +13,7 @@
 #' Tricks of the trade. Springer Berlin Heidelberg, 2012. 9-48.
 #'
 #' @param X matrix with explanatory variables
-#' @param Y matrix with dependent variables. For classification this should be 
+#' @param y matrix with dependent variables. For classification this should be 
 #' a one-columns matrix containing the classes - classes will be one-hot encoded.
 #' @param hidden.layers vector specifying the number of nodes in each layer. The
 #' number of hidden layers in the network is implicitly defined by the length of
@@ -75,28 +75,28 @@
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @export
 #' @examples
-#' # Example on iris dataset:
-#'
+#' # Example on iris dataset
 #' # Prepare test and train sets
 #' random_draw <- sample(1:nrow(iris), size = 100)
 #' X_train     <- iris[random_draw, 1:4]
-#' Y_train     <- iris[random_draw, 5]
+#' y_train     <- iris[random_draw, 5]
 #' X_test      <- iris[setdiff(1:nrow(iris), random_draw), 1:4]
-#' Y_test      <- iris[setdiff(1:nrow(iris), random_draw), 5]
+#' y_test      <- iris[setdiff(1:nrow(iris), random_draw), 5]
 #' 
 #' # Train neural network on classification task
-#' NN <- neuralnetwork(X = X_train, Y = Y_train, hidden.layers = c(5, 5),
+#' NN <- neuralnetwork(X = X_train, y = y_train, hidden.layers = c(5, 5),
 #'                     optim.type = 'adam', learn.rates = 0.01, val.prop = 0)
 #' 
 #' # Plot the loss during training
 #' plot(NN)
 #' 
 #' # Make predictions
-#' Y_pred <- predict(NN, newdata = X_test)
+#' y_pred <- predict(NN, newdata = X_test)
 #' 
 #' # Plot predictions
-#' plot(X_test, pch = as.numeric(Y_test), col = (Y_test == Y_pred$predictions) + 2)
-neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE, 
+#' correct <- (y_test == y_pred$predictions)
+#' plot(X_test, pch = as.numeric(y_test), col = correct + 2)
+neuralnetwork <- function(X, y, hidden.layers, regression = FALSE, 
                           standardize = TRUE, loss.type = "log", huber.delta = 1, 
                           activ.functions = "tanh", step.H = 5, step.k = 100,
                           optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0, 
@@ -108,7 +108,7 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
   NN_call <- match.call()
   
   # Perform checks on data, set meta data
-  data <- setData(X, Y, regression)
+  data <- setData(X, y, regression)
   meta <- setMeta(data, hidden.layers, regression)
   
   # Set and check parameters
@@ -210,14 +210,24 @@ neuralnetwork <- function(X, Y, hidden.layers, regression = FALSE,
 #' function \code{predict(<object>, <newdata>)} for prediction.
 #' @export
 #' @examples
-#' # Autoencoder
-#' AE <- autoencoder(X = iris[,1:4], hidden.layers = c(4,2,4), optim.type = 'adam', 
-#'                   learn.rates = 0.01, val.prop = 0.2)
+#' # Autoencoder example
+#' X <- USArrests
+#' AE <- autoencoder(X, c(10,2,10), loss.type = 'pseudo-huber',
+#'                  activ.functions = 'relu',
+#'                   batch.size = 8, optim.type = 'adam', 
+#'                   n.epochs = 2000, val.prop = 0)
+#' 
+#' # Plot loss during training
 #' plot(AE)
 #' 
-#' rX <- reconstruct(AE, iris[,1:4])
-#' reconstruction_plot(AE, iris[,1:4])
-#' plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
+#' # Make reconstruction and compression plots
+#' reconstruction_plot(AE, X)
+#' compression_plot(AE, X)
+#' 
+#' # Reconstruct data and show states with highest anomaly scores
+#' recX <- reconstruct(AE, X)
+#' sort(recX$anomaly_scores, decreasing = TRUE)[1:5]
+#' 
 autoencoder <- function(X, hidden.layers, standardize = TRUE, 
                         loss.type = "squared", huber.delta = 1, 
                         activ.functions = "tanh", step.H = 5, step.k = 100,

@@ -4,24 +4,41 @@
 #' @details A genereric function for training neural nets
 #' @method plot ANN
 #' @param x Object of class \code{ANN}
+#' @param max.points Maximum number of points to plot, set to NA, NULL or Inf to
+#' include all points in the plot
 #' @param ... further arguments to be passed to plot
 #' @return Plots
 #' @method plot ANN
 #' @export
-plot.ANN <- function(x, ...) {
+plot.ANN <- function(x, max.points = 1000, ...) {
+  
+  if ( class(x)!='ANN' ) {
+    stop('Object not of class ANN', call. = FALSE)
+  }
   
   # Obtain training history from ANN object
   train_hist <- x$Rcpp_ANN$getTrainHistory()
   
-  # Make a vector x
-  x_seq <- c(unlist(sapply(unique(train_hist$epoch), function(xx) {
-    n <- sum(train_hist$epoch==xx) + 1
-    xx + seq(from = 0, to = 1, length.out = n)[-n]
-  })))
+  # Set maximum number of points to plot
+  max.points <- min(train_hist$n_eval, max.points, na.rm = TRUE)
+  
+  # Select points to plot
+  idx <- round(seq(1, train_hist$n_eval, length.out = max.points))
+  epochs <- train_hist$epoch[idx]
+  
+  # Interpolate duplicate epochs
+  if (any(duplicated(epochs))) {
+    epochs <- c(unlist(sapply(unique(epochs), function(xx) {
+      n <- sum(epochs==xx)+1
+      seq(from = xx, to = xx+1, length.out = n)[-n]
+    })))
+  }
   
   # Make df, add validation loss if applicable
-  df <- data.frame(x = x_seq, Training = train_hist$train_loss)
-  if ( train_hist$validate ) df$Validation <- train_hist$val_loss 
+  df <- data.frame(x = epochs, Training = train_hist$train_loss[idx])
+  if ( train_hist$validate ) {
+    df$Validation <- train_hist$val_loss[idx]
+  }
   
   # Meld df
   df_melt <- reshape2::melt(df, id.vars = 'x', value.name = 'y')
@@ -116,7 +133,10 @@ reconstruction_plot.ANN <- function(object, X, colors = NULL, ...) {
 #' @param object autoencoder object of class \code{ANN} 
 #' @param X data matrix with original values to be compressed and plotted
 #' @param colors optional vector of discrete colors
-#' @param \dots arguments to be passed down
+#' @param jitter logical specifying whether to apply jitter to the compressed 
+#' values. Especially useful whith step activation function that clusters the 
+#' compressions and reconstructions.
+#' @param \dots arguments to be passed to \code{jitter()}
 #' @return Plots
 #' @export
 compression_plot <- function(object, ...) UseMethod("compression_plot")
@@ -124,11 +144,18 @@ compression_plot <- function(object, ...) UseMethod("compression_plot")
 #' @rdname compression_plot
 #' @method compression_plot ANN
 #' @export
-compression_plot.ANN <- function(object, X, colors = NULL, ...) {
+compression_plot.ANN <- function(object, X, colors = NULL, jitter = FALSE, ...) {
   
   # X as matrix and reconstuct
   X  <- as.matrix(X)
   cX <- encode(object, X)
+  
+  # Apply jitter, arguments passed in ellipsis are passed to jitter
+  if (jitter) {
+    # Jitter function with new default arguments
+    custom_jitter <- function(x, factor=1, amount=0) jitter(x, factor, amount)
+    cX <- custom_jitter(cX, ...) 
+  }
   
   # Extract meta, set derived constants
   meta  <- object$Rcpp_ANN$getMeta()
