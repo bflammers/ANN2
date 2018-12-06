@@ -73,7 +73,6 @@
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
-#' @export
 #' @examples
 #' # Example on iris dataset
 #' # Prepare test and train sets
@@ -96,6 +95,8 @@
 #' # Plot predictions
 #' correct <- (y_test == y_pred$predictions)
 #' plot(X_test, pch = as.numeric(y_test), col = correct + 2)
+#' 
+#' @export
 neuralnetwork <- function(X, y, hidden.layers, regression = FALSE, 
                           standardize = TRUE, loss.type = "log", huber.delta = 1, 
                           activ.functions = "tanh", step.H = 5, step.k = 100,
@@ -208,14 +209,13 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
-#' @export
 #' @examples
 #' # Autoencoder example
 #' X <- USArrests
 #' AE <- autoencoder(X, c(10,2,10), loss.type = 'pseudo-huber',
-#'                  activ.functions = 'relu',
-#'                   batch.size = 8, optim.type = 'adam', 
-#'                   n.epochs = 2000, val.prop = 0)
+#'                   activ.functions = c('tanh','linear','tanh'),
+#'                   batch.size = 8, optim.type = 'adam',
+#'                   n.epochs = 1000, val.prop = 0)
 #' 
 #' # Plot loss during training
 #' plot(AE)
@@ -228,6 +228,7 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' recX <- reconstruct(AE, X)
 #' sort(recX$anomaly_scores, decreasing = TRUE)[1:5]
 #' 
+#' @export
 autoencoder <- function(X, hidden.layers, standardize = TRUE, 
                         loss.type = "squared", huber.delta = 1, 
                         activ.functions = "tanh", step.H = 5, step.k = 100,
@@ -302,6 +303,22 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
+#' @examples 
+#' # Train a neural network on the iris dataset
+#' X <- iris[,1:4]
+#' y <- iris$Species
+#' NN <- neuralnetwork(X, y, hidden.layers = 10, sgd.momentum = 0.9, 
+#'                     learn.rates = 0.01, val.prop = 0.3, n.epochs = 100)
+#' 
+#' # Plot training and validation loss during training
+#' plot(NN)
+#' 
+#' # Continue training for 1000 epochs
+#' train(NN, X, y, n.epochs = 1000, val.prop = 0.3)
+#' 
+#' # Again plot the loss - note the jump in the validation loss at the 100th epoch
+#' # This is due to the random selection of a new validation set
+#' plot(NN)
 #' @export
 train <- function(object, X, Y = NULL, n.epochs = 20, batch.size = 32, 
                   drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
