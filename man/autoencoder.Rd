@@ -108,12 +108,22 @@ of the data and therefore has a denoising property. This property can be
 exploited to detect anomalies.
 }
 \examples{
-# Autoencoder
-AE <- autoencoder(X = iris[,1:4], hidden.layers = c(4,2,4), optim.type = 'adam', 
-                  learn.rates = 0.01, val.prop = 0.2)
+# Autoencoder example
+X <- USArrests
+AE <- autoencoder(X, c(10,2,10), loss.type = 'pseudo-huber',
+                  activ.functions = c('tanh','linear','tanh'),
+                  batch.size = 8, optim.type = 'adam',
+                  n.epochs = 1000, val.prop = 0)
+
+# Plot loss during training
 plot(AE)
 
-rX <- reconstruct(AE, iris[,1:4])
-reconstruction_plot(AE, iris[,1:4])
-plot(iris, col = (order(rX$errors) > 5) + 2, pch = 16)
+# Make reconstruction and compression plots
+reconstruction_plot(AE, X)
+compression_plot(AE, X)
+
+# Reconstruct data and show states with highest anomaly scores
+recX <- reconstruct(AE, X)
+sort(recX$anomaly_scores, decreasing = TRUE)[1:5]
+
 }
