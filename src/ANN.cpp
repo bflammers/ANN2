@@ -1,6 +1,3 @@
-// Enable C++11 via this plugin 
-// [[Rcpp::plugins("cpp11")]]
-
 // [[Rcpp::depends(Rcereal)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -116,7 +113,9 @@ mat ANN::predict (mat X)
 // Evaluate loss, input should be scaled data
 double ANN::evalLoss(mat Y, mat X)
 {
-  return accu( L->eval(Y, forwardPass(X)) );
+  mat Y_fit = forwardPass(X);
+  double loss_val = accu( L->eval(Y, Y_fit) );
+  return loss_val;
 }
 
 // Train the network!
