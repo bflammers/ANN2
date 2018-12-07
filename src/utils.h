@@ -65,9 +65,9 @@ public:
 // ---------------------------------------------------------------------------//
 class Tracker {
 private:
-  bool verbose;
   int k, curr_progress;
   double one_percent;
+  bool verbose;
   std::string progressBar(int progress);
   
 public:

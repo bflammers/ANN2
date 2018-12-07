@@ -27,7 +27,7 @@ public:
 class SGD : public Optimizer
 {
 private:
-  double learn_rate, momentum, L1, L2;
+  double learn_rate, L1, L2, momentum;
   arma::mat mW;
   arma::vec mb;
 public:
@@ -68,7 +68,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, SGD);
 class RMSprop : public Optimizer
 {
 private:
-  double learn_rate, decay, epsilon, L1, L2;
+  double learn_rate, L1, L2, decay, epsilon;
   arma::mat rmsW;
   arma::vec rmsb;
 public:
@@ -109,8 +109,8 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, RMSprop);
 class Adam : public Optimizer
 {
 private:
+  double learn_rate, L1, L2, beta1, beta2, epsilon;
   int tW, tb; // Number of updates counters
-  double learn_rate, beta1, beta2, epsilon, L1, L2;
   arma::mat mW, vW;
   arma::vec mb, vb;
 public:
