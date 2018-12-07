@@ -2,7 +2,6 @@
 // [[Rcpp::plugins("cpp11")]]
 
 // [[Rcpp::depends(Rcereal)]]
-// [[Rcpp::depends(BH)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
@@ -26,8 +25,8 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List 
   L = LossFactory(loss_param_);
   
   // Set meta data
-  num_nodes = as<std::vector<int>>(net_param_["num_nodes"]);
-  y_names = as<std::vector<std::string>>(data_["y_names"]);
+  num_nodes = as< std::vector<int> >(net_param_["num_nodes"]);
+  y_names = as< std::vector<std::string> >(data_["y_names"]);
   regression = as<bool>(net_param_["regression"]);
   
   // Set iterable vectors for activation type and learn_rates
