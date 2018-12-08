@@ -299,7 +299,6 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' validation set during training. Useful for assessing the training process and
 #' identifying possible overfitting. Set to zero for only tracking the loss on the 
 #' training data.
-#' @param verbose logical indicating if additional information should be printed
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
@@ -320,8 +319,8 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' # This is due to the random selection of a new validation set
 #' plot(NN)
 #' @export
-train <- function(object, X, Y = NULL, n.epochs = 20, batch.size = 32, 
-                  drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
+train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32, 
+                  drop.last = TRUE, val.prop = 0.1) {
   
   # Extract meta from object
   meta <- object$Rcpp_ANN$getMeta()
@@ -455,10 +454,30 @@ predict.ANN <- function(object, newdata, ...) {
 #' @method print ANN
 #' @param x Object of class \code{ANN}
 #' @param \dots Further arguments
-#' @method print ANN
 #' @export
 print.ANN <- function(x, ...){
   x$Rcpp_ANN$print( TRUE )
+}
+
+#' @title Save ANN object to file
+#' @description Serialize ANN object to binary file
+#' @method save ANN
+#' @param x Object of class \code{ANN}
+#' @param file character string specifying file path
+#' @export
+save.ANN <- function(x, file){
+  x$Rcpp_ANN$write(file)
+}
+
+#' @title Read ANN object from file
+#' @description Deserialize ANN object
+#' @method save ANN
+#' @param x Object of class \code{ANN}
+#' @param file character string specifying file path
+#' @export
+read.ANN <- function(file){
+  x <- neuralnetwork(matrix(1), matrix(1), 1)
+  x$Rcpp_ANN$write(file)
 }
 
 #' @title Encoding step 
