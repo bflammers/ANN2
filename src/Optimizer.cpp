@@ -33,8 +33,8 @@ mat SGD::updateW(mat W, mat dW, int batch_size) {
   mW = momentum * mW + learn_rate * dW.t();
   
   // Determine scaled regularization parameters
-  double lambda1 = batch_size / n_train * L1;
-  double lambda2 = batch_size / n_train * L2;
+  double lambda1 = double(batch_size) / n_train * L1;
+  double lambda2 = double(batch_size) / n_train * L2;
   
   // Update weights with momentum term using L1 and L2 regularization
   // note that sign(0) = 0, which is what we want
@@ -83,8 +83,8 @@ mat RMSprop::updateW(mat W, mat dW, int batch_size) {
   mat W_step = ( learn_rate / (sqrt(rmsW) + epsilon) ) % dW.t();
   
   // Determine scaled regularization parameters
-  double lambda1 = batch_size / n_train * L1;
-  double lambda2 = batch_size / n_train * L2;
+  double lambda1 = double(batch_size) / n_train * L1;
+  double lambda2 = double(batch_size) / n_train * L2;
   
   // Update weights with momentum term using L1 and L2 regularization
   // note that sign(0) = 0, which is what we want
@@ -148,12 +148,12 @@ mat Adam::updateW(mat W, mat dW, int batch_size) {
   // Calculate gradient descent step to take
   mat W_step = ( learn_rate / (sqrt(bc_vW) + epsilon) ) % bc_mW;
   
+  // Determine scaled regularization parameters
+  double lambda1 = double(batch_size) / n_train * L1;
+  double lambda2 = double(batch_size) / n_train * L2;
+  
   // Increase counter for number of updates (used for bias correction)
   tW++;
-  
-  // Determine scaled regularization parameters
-  double lambda1 = batch_size / n_train * L1;
-  double lambda2 = batch_size / n_train * L2;
   
   // Update weights with momentum term using L1 and L2 regularization
   // note that sign(0) = 0, which is what we want
