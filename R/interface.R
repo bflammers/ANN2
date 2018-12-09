@@ -118,12 +118,15 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
                                 rmsprop.decay, adam.beta1, adam.beta2, meta)
   loss_param  <- setLossParams(loss.type, huber.delta, meta)
   
+  # Set and check training parameters - not used during object initialization
+  # Sets the random seed so must be called before initializing ANN object 
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                random.seed, data)
+  
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
-  # Set and check training parameters and call train method
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
-                                random.seed, data)
+  # Train the network
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
@@ -247,12 +250,15 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
                                 rmsprop.decay, adam.beta1, adam.beta2, meta)
   loss_param  <- setLossParams(loss.type, huber.delta, meta)
   
+  # Set and check training parameters - not used during object initialization
+  # Sets the random seed so must be called before initializing ANN object 
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                random.seed, data)
+  
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
-  # Set and check training parameters and call train method
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
-                                random.seed, data)
+  # Train network
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
