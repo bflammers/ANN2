@@ -47,7 +47,7 @@ void Tracker::track (int epoch, double train_loss, double val_loss) {
   // Update progress bar and loss
   if ( verbose ) {
 
-    int progress_perc = std::ceil( k / one_percent );
+    int progress_perc = std::min(100, int(std::ceil(double(k)/one_percent)));
     if ( progress_perc != curr_progress || k % 10 == 0 ) {
       
       curr_progress = progress_perc;
