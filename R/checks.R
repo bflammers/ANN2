@@ -355,7 +355,17 @@ setLossParams <- function(loss.type, huber.delta, meta) {
 #' @description 
 #' Set training parameters
 #' @keywords internal
-setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, data) {
+setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last, 
+                            random.seed, data) {
+  
+  # Set random seed with set.seed(), this also sets the seed for RcppArmadillo
+  # If NULL, we use the current time to set a seed. This is to prevent the exact 
+  # same result of neuralnetwork(), autoencoder() and train() if the seed has 
+  # not been changed between consecutive runs
+  if ( is.null(random.seed) ) {
+    random.seed <- as.integer(gsub(':', '', format(Sys.time(), '%X')))
+  }
+  set.seed(random.seed)
   
   # (ERROR) n.epochs not positive
   if ( n.epochs <= 0 ) {

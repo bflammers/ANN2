@@ -70,6 +70,7 @@
 #' identifying possible overfitting. Set to zero for only tracking the loss on the 
 #' training data.
 #' @param verbose logical indicating if additional information should be printed
+#' @param random.seed optional seed for the random number generator
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
@@ -103,7 +104,8 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
                           optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0, 
                           sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9, 
                           adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
-                          drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
+                          drop.last = TRUE, val.prop = 0.1, verbose = TRUE, 
+                          random.seed = NULL) {
   
   # Perform checks on data, set meta data
   data <- setData(X, y, regression)
@@ -120,7 +122,8 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters and call train method
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                random.seed, data)
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
@@ -200,6 +203,7 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' identifying possible overfitting. Set to zero for only tracking the loss on the 
 #' training data.
 #' @param verbose logical indicating if additional information should be printed
+#' @param random.seed optional seed for the random number generator
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
@@ -229,7 +233,8 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
                         optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0, 
                         sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9, 
                         adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
-                        drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
+                        drop.last = TRUE, val.prop = 0.1, verbose = TRUE, 
+                        random.seed = NULL) {
   
   # Perform checks on data, set meta data
   data <- setData(X, X, regression = TRUE)
@@ -246,7 +251,8 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
   # Set and check training parameters and call train method
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                random.seed, data)
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
@@ -287,6 +293,7 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' validation set during training. Useful for assessing the training process and
 #' identifying possible overfitting. Set to zero for only tracking the loss on the 
 #' training data.
+#' @param random.seed optional seed for the random number generator
 #' @return An \code{ANN} object. Use function \code{plot(<object>)} to assess
 #' loss on training and optionally validation data during training process. Use
 #' function \code{predict(<object>, <newdata>)} for prediction.
@@ -308,7 +315,7 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' plot(NN)
 #' @export
 train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32, 
-                  drop.last = TRUE, val.prop = 0.1) {
+                  drop.last = TRUE, val.prop = 0.1, random.seed = NULL) {
   
   # Extract meta from object
   meta <- object$Rcpp_ANN$getMeta()
@@ -337,7 +344,8 @@ train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32,
   data <- setData(X, Y, meta$regression, meta$y_names)
   
   # Set and check training parameters
-  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
+  train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 
+                                random.seed, data)
   
   # Call train method
   object$Rcpp_ANN$train(data, train_param)

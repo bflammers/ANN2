@@ -73,8 +73,8 @@ mat Layer::backward (mat E)
   // A = g(W * A_prev + b * iota) --> dL/dW = A_prev * g'(W * A_prev + b * iota)
   mat dW = A_prev * D / batch_size;
   
-  // Update W
-  W = O->updateW(W, dW);
+  // Update W, batch_size needed for scaling the regularization term
+  W = O->updateW(W, dW, batch_size);
   
   // Determine average gradient matrix wrt. the biases 
   // A = g(W * A_prev + b * iota) --> dL/db = iota * g'(W * A_prev + b * iota)

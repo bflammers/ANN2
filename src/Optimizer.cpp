@@ -1,6 +1,8 @@
 // [[Rcpp::depends(RcppArmadillo)]]
+
 #include <RcppArmadillo.h>
 #include "Optimizer.h"
+
 using namespace Rcpp;
 using namespace arma;
 
@@ -25,15 +27,18 @@ SGD::SGD (mat W_templ_, vec b_templ_, List optim_param_)
   mb = zeros<vec>(size(b_templ_));
 }
 
-mat SGD::updateW(mat W, mat dW) {
+mat SGD::updateW(mat W, mat dW, int batch_size) {
   
   // Calculate momentum term
   mW = momentum * mW + learn_rate * dW.t();
   
+  // Determine scaled regularization parameters
+  double lambda1 = batch_size / n_train * L1;
+  double lambda2 = batch_size / n_train * L2;
+  
   // Update weights with momentum term using L1 and L2 regularization
   // note that sign(0) = 0, which is what we want
-  // values L1 and L2 should be scaled by n_train according to Nielsen - bit strange if you ask me
-  return (1 - learn_rate * L2) * W - learn_rate * L1 * sign(W) - mW;
+  return (1 - learn_rate * lambda2) * W - learn_rate * lambda1 * sign(W) - mW;
 }
 
 vec SGD::updateb(vec b, vec db) {
@@ -69,7 +74,7 @@ RMSprop::RMSprop (mat W_templ_, vec b_templ_, List optim_param_)
 }
 
 // Update step WEIGHTS
-mat RMSprop::updateW(mat W, mat dW) {
+mat RMSprop::updateW(mat W, mat dW, int batch_size) {
   
   // Calculate leaky RMS metric of squared dW to scale dW by before update step
   rmsW = decay * rmsW + (1 - decay) * square(dW.t());
@@ -125,7 +130,7 @@ Adam::Adam (mat W_templ_, vec b_templ_, List optim_param_)
 }
 
 // Update step WEIGHTS
-mat Adam::updateW(mat W, mat dW) {
+mat Adam::updateW(mat W, mat dW, int batch_size) {
   
   // Calculate mW and bias corrected mW
   mW = beta1 * mW + (1 - beta1) * dW.t();
@@ -177,48 +182,6 @@ std::unique_ptr<Optimizer> OptimizerFactory (mat W_templ, mat b_templ, List opti
   if    (type == "adam")    return std::unique_ptr<Optimizer>(new Adam(W_templ, b_templ, optim_param));
   else                      return NULL;
 }
-
-// // [[Rcpp::export]]
-// vec rosenbrock (vec x, vec y) {
-//   return square(1 - x) + 100 * square(y - square(x));
-// }
-// 
-// // [[Rcpp::export]]
-// vec drosenbrock_x (vec x, vec y) {
-//   return -400 * x * (y - square(x)) - 2 * (1 - x);
-// }
-// 
-// // [[Rcpp::export]]
-// vec drosenbrock_y (vec x, vec y) {
-//   return 200 * (y - square(x));
-// }
-// 
-// RCPP_MODULE(SGD) {
-//   using namespace Rcpp ;
-//   class_<SGD>( "SGD" )
-//     .constructor<mat, vec, List>()
-//     .method( "updateW", &SGD::updateW)
-//     .method( "updateb", &SGD::updateb)
-//   ;
-// }
-// 
-// RCPP_MODULE(RMSprop) {
-//   using namespace Rcpp ;
-//   class_<RMSprop>( "RMSprop" )
-//     .constructor<mat, vec, List>()
-//     .method( "updateW", &RMSprop::updateW)
-//     .method( "updateb", &RMSprop::updateb)
-//   ;
-// }
-// 
-// RCPP_MODULE(Adam) {
-//   using namespace Rcpp ;
-//   class_<Adam>( "Adam" )
-//     .constructor<mat, vec, List>()
-//     .method( "updateW", &Adam::updateW)
-//     .method( "updateb", &Adam::updateb)
-//   ;
-// }
 
 
 

@@ -15,8 +15,9 @@
 
 class Optimizer {
 public:
+  int n_train;
   std::string type;
-  virtual arma::mat updateW(arma::mat W, arma::mat dW) = 0;
+  virtual arma::mat updateW(arma::mat W, arma::mat dW, int batch_size) = 0;
   virtual arma::vec updateb(arma::vec b, arma::vec db) = 0;
 };
 
@@ -33,7 +34,7 @@ private:
 public:
   SGD ();
   SGD (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
-  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::mat updateW(arma::mat W, arma::mat dW, int batch_size);
   arma::vec updateb(arma::vec b, arma::vec db);
   
   // Serialize
@@ -74,7 +75,7 @@ private:
 public:
   RMSprop ();
   RMSprop (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
-  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::mat updateW(arma::mat W, arma::mat dW, int batch_size);
   arma::vec updateb(arma::vec b, arma::vec db);
   
   // Serialize
@@ -116,7 +117,7 @@ private:
 public:
   Adam ();
   Adam (arma::mat W_templ_, arma::vec b_templ_, Rcpp::List optim_param_);
-  arma::mat updateW(arma::mat W, arma::mat dW);
+  arma::mat updateW(arma::mat W, arma::mat dW, int batch_size);
   arma::vec updateb(arma::vec b, arma::vec db);
   
   // Serialize
@@ -125,7 +126,8 @@ public:
   {
     MatSerializer ser_mW(mW), ser_vW(vW);
     VecSerializer ser_mb(mb), ser_vb(vb);
-    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, epsilon, L1, L2 );
+    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, epsilon, 
+             L1, L2 );
   }
   
   // Deserialze
@@ -134,7 +136,8 @@ public:
   {
     MatSerializer ser_mW(mW), ser_vW(vW);
     VecSerializer ser_mb(mb), ser_vb(vb);
-    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, epsilon, L1, L2 );
+    archive( ser_mW, ser_vW, ser_mb, ser_vb, learn_rate, beta1, beta2, epsilon, 
+             L1, L2 );
     mW = ser_mW.getMat();
     vW = ser_vW.getMat();
     mb = ser_mb.getVec();
@@ -150,7 +153,9 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, Adam);
 // Optimizer factory 
 // ---------------------------------------------------------------------------//
 
-std::unique_ptr<Optimizer> OptimizerFactory (arma::mat W_templ, arma::mat b_templ, Rcpp::List optim_param);
+std::unique_ptr<Optimizer> OptimizerFactory (arma::mat W_templ, 
+                                             arma::mat b_templ, 
+                                             Rcpp::List optim_param);
 
 
 #endif

@@ -10,7 +10,8 @@ neuralnetwork(X, y, hidden.layers, regression = FALSE,
   optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0,
   sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9,
   adam.beta2 = 0.999, n.epochs = 100, batch.size = 32,
-  drop.last = TRUE, val.prop = 0.1, verbose = TRUE)
+  drop.last = TRUE, val.prop = 0.1, verbose = TRUE,
+  random.seed = NULL)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}
@@ -93,6 +94,8 @@ identifying possible overfitting. Set to zero for only tracking the loss on the
 training data.}
 
 \item{verbose}{logical indicating if additional information should be printed}
+
+\item{random.seed}{optional seed for the random number generator}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess

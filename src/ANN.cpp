@@ -135,6 +135,11 @@ void ANN::train (List data, List train_param)
   Sampler sampler(X, Y, train_param);
   int n_new_passes = n_epochs * sampler.n_batch;
   tracker.setTracker(n_new_passes, sampler.validate, train_param);
+  
+  // Set training set size in optimizer for scaling the regularization
+  for(it = layers.begin(); it != layers.end(); ++it) {
+    it->O->n_train = sampler.n_train;
+  }
 
   for (; epoch != max_epochs; epoch++) {
 

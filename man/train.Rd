@@ -5,7 +5,7 @@
 \title{Continue training of a Neural Network}
 \usage{
 train(object, X, Y = NULL, n.epochs = 100, batch.size = 32,
-  drop.last = TRUE, val.prop = 0.1)
+  drop.last = TRUE, val.prop = 0.1, random.seed = NULL)
 }
 \arguments{
 \item{object}{object of class \code{ANN} produced by \code{neuralnetwork()} 
@@ -32,6 +32,8 @@ Note that a smaller batch leads to a noisier approximation of the gradient.}
 validation set during training. Useful for assessing the training process and
 identifying possible overfitting. Set to zero for only tracking the loss on the 
 training data.}
+
+\item{random.seed}{optional seed for the random number generator}
 }
 \value{
 An \code{ANN} object. Use function \code{plot(<object>)} to assess

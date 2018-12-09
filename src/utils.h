@@ -44,13 +44,12 @@ public:
 class Sampler 
 {
 private:
-  int n_train;
   arma::mat X_train, Y_train, X_val, Y_val;
   std::list<arma::uvec> indices;
   std::list<arma::uvec>::iterator Xit;
   std::list<arma::uvec>::iterator Yit;
 public:
-  int n_batch;
+  int n_batch, n_train;
   bool validate;
   Sampler (arma::mat X_, arma::mat y_, Rcpp::List train_param);
   void shuffle();
