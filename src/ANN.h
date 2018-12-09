@@ -70,6 +70,7 @@ public:
   // Get methods for accessing training and meta info
   Rcpp::List getTrainHistory ();
   Rcpp::List getMeta();
+  Rcpp::List getParams();
   
   // Methods used to read/write the network to/from file
   // These methods make a call to the serialize() method
@@ -98,6 +99,7 @@ RCPP_MODULE(ANN) {
     .method( "write", &ANN::write)
     .method( "read", &ANN::read)
     .method( "getMeta", &ANN::getMeta)
+    .method( "getParams", &ANN::getParams)
   ;
 }
 

@@ -226,6 +226,18 @@ List ANN::getMeta()
                       Named("autoencoder") = autoencoder);
 }
 
+// Method for obtaining the weights and biases
+List ANN::getParams()
+{
+  List weights, biases;
+  for(it = layers.begin(); it != layers.end(); ++it) {
+    weights.push_back(it->W);
+    biases.push_back(it->b);
+  }
+  return List::create(Named("weights") = weights,
+                      Named("biases") = biases);
+}
+
 void ANN::write (const char* fileName) {
   
   {

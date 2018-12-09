@@ -13,10 +13,11 @@
 class Layer 
 {
 private:
-  arma::mat W, A_prev, Z;
-  arma::vec b;
+  arma::mat A_prev, Z;
   
 public:
+  arma::mat W;
+  arma::vec b;
   int n_nodes;
   std::unique_ptr<Activation> g;
   std::unique_ptr<Optimizer> O;
