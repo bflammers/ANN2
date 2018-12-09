@@ -2,7 +2,7 @@
 #' @description 
 #' Set network meta info
 #' @keywords internal
-setMeta <- function(data, hidden.layers, regression) {
+setMeta <- function(data, hidden.layers, regression, autoencoder) {
   
   # Check if network has no hidden layers, set n_hidden layers accordingly
   if ( is.null(hidden.layers) || all(is.na(hidden.layers)) ) {
@@ -23,7 +23,7 @@ setMeta <- function(data, hidden.layers, regression) {
   return( list(no_hidden = no_hidden, n_hidden = n_hidden, n_in = n_in, 
                n_out = n_out, n_obs = n_obs, regression = regression, 
                classes = data$classes, names = data$names, 
-               hidden_layers = hidden.layers) )
+               hidden_layers = hidden.layers, autoencoder = autoencoder) )
 }
 
 #' @title Check the input data
@@ -140,7 +140,8 @@ setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
 
   # Collect parameters in list
   return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_Y = stand_Y, 
-                verbose = verbose, regression = meta$regression) )
+                verbose = verbose, regression = meta$regression, 
+                autoencoder = meta$autoencoder) )
 }
 
 #' @title Check user input related to activation functions

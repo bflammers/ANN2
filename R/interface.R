@@ -105,12 +105,9 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
                           adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
                           drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
-  # Store function call
-  NN_call <- match.call()
-  
   # Perform checks on data, set meta data
   data <- setData(X, y, regression)
-  meta <- setMeta(data, hidden.layers, regression)
+  meta <- setMeta(data, hidden.layers, regression, autoencoder = FALSE)
   
   # Set and check parameters
   net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
@@ -122,16 +119,13 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
-  # Set and check training parameters
+  # Set and check training parameters and call train method
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
-  
-  # Call train method
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(Rcpp_ANN = Rcpp_ANN, call = NN_call)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN)
   class(ANN) <- 'ANN'
-  attr(ANN, 'autoencoder') <- FALSE
 
   return(ANN)
 }
@@ -237,12 +231,9 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
                         adam.beta2 = 0.999, n.epochs = 100, batch.size = 32, 
                         drop.last = TRUE, val.prop = 0.1, verbose = TRUE) {
   
-  # Store function call
-  NN_call <- match.call()
-  
   # Perform checks on data, set meta data
   data <- setData(X, X, regression = TRUE)
-  meta <- setMeta(data, hidden.layers, regression = TRUE)
+  meta <- setMeta(data, hidden.layers, regression = TRUE, autoencoder = TRUE)
   
   # Set and check parameters
   net_param   <- setNetworkParams(hidden.layers, standardize, verbose, meta)
@@ -254,16 +245,13 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
   # Initialize new ANN object
   Rcpp_ANN <- new(ANN, data, net_param, optim_param, loss_param, activ_param)
   
-  # Set and check training parameters
+  # Set and check training parameters and call train method
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, data)
-  
-  # Call train method
   Rcpp_ANN$train(data, train_param)
   
   # Create ANN object
-  ANN <- list(Rcpp_ANN = Rcpp_ANN, call = NN_call)
+  ANN <- list(Rcpp_ANN = Rcpp_ANN)
   class(ANN) <- 'ANN'
-  attr(ANN, 'autoencoder') <- TRUE
   
   return(ANN)
 }
@@ -326,7 +314,7 @@ train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32,
   meta <- object$Rcpp_ANN$getMeta()
   
   # Checks for different behavior autoencoder and normal neural net
-  if ( attr(object, 'autoencoder') ) {
+  if ( meta$autoencoder ) {
     
     # Autoencoder but also Y specified
     if ( !is.null(Y) ) {
@@ -378,7 +366,7 @@ reconstruct <- function(object, X) {
   X <- as.matrix(X)
   
   # Reconstruct only relevant for NNs of type autoencoder
-  if ( !attr(object, 'autoencoder') ) {
+  if ( !meta$autoencoder ) {
     stop("Object is not of type autoencoder")
   }
   
@@ -459,25 +447,31 @@ print.ANN <- function(x, ...){
   x$Rcpp_ANN$print( TRUE )
 }
 
-#' @title Save ANN object to file
+#' @title Write ANN object to file
 #' @description Serialize ANN object to binary file
-#' @method save ANN
-#' @param x Object of class \code{ANN}
-#' @param file character string specifying file path
+#' @param object Object of class \code{ANN}
+#' @param file character specifying file path
 #' @export
-save.ANN <- function(x, file){
-  x$Rcpp_ANN$write(file)
+write_ANN <- function(object, file){
+  object$Rcpp_ANN$write(file)
 }
 
 #' @title Read ANN object from file
-#' @description Deserialize ANN object
-#' @method save ANN
-#' @param x Object of class \code{ANN}
-#' @param file character string specifying file path
+#' @description Deserialize ANN object from binary file
+#' @param file character specifying file path
+#' @return Object of class ANN
 #' @export
-read.ANN <- function(file){
-  x <- neuralnetwork(matrix(1), matrix(1), 1)
-  x$Rcpp_ANN$write(file)
+read_ANN <- function(file){
+  
+  # Initialize new S4 object and call read method 
+  Rcpp_ANN <- new(ANN)
+  Rcpp_ANN$read(file)
+  
+  # Create ANN object
+  ANN <- list(Rcpp_ANN = Rcpp_ANN)
+  class(ANN) <- 'ANN'
+  
+  return(ANN)
 }
 
 #' @title Encoding step 
@@ -498,13 +492,14 @@ encode <- function(object, ...) UseMethod("encode")
 #' @export
 encode.ANN <- function(object, newdata, compression.layer = NULL, ...) {
   
-  if ( !attr(object, 'autoencoder') ) {
-    warning("Object is not an autoencoder")
-  }
-  
   # Extract meta, hidden_layers
   meta <- object$Rcpp_ANN$getMeta()
   hidden_layers <- meta$num_nodes[2:(1+meta$n_hidden)]
+  
+  # Check if autoencoder
+  if ( !meta$autoencoder ) {
+    warning("Object is not an autoencoder")
+  }
   
   # Convert X to matrix
   X <- as.matrix(newdata)
@@ -561,13 +556,13 @@ decode <- function(object, ...) UseMethod("decode")
 #' @export
 decode.ANN <- function(object, compressed, compression.layer = NULL, ...) {
   
-  if ( !attr(object, 'autoencoder') ) {
-    warning("Object is not an autoencoder")
-  }
-  
   # Extract meta, hidden_layers vector
   meta <- object$Rcpp_ANN$getMeta()
   hidden_layers <- meta$num_nodes[2:(1+meta$n_hidden)]
+  
+  if ( !meta$autoencoder ) {
+    warning("Object is not an autoencoder")
+  }
   
   # Convert X to matrix
   X <- as.matrix(compressed)

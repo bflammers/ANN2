@@ -4,7 +4,7 @@
 \alias{setMeta}
 \title{Sets list with meta info, to be used in other checks}
 \usage{
-setMeta(data, hidden.layers, regression)
+setMeta(data, hidden.layers, regression, autoencoder)
 }
 \description{
 Set network meta info

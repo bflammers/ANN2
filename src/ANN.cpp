@@ -25,6 +25,7 @@ ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List 
   num_nodes = as< std::vector<int> >(net_param_["num_nodes"]);
   y_names = as< std::vector<std::string> >(data_["y_names"]);
   regression = as<bool>(net_param_["regression"]);
+  autoencoder = as<bool>(net_param_["autoencoder"]);
   
   // Set iterable vectors for activation type and learn_rates
   StringVector activ_types = activ_param_["types"];
@@ -176,7 +177,7 @@ void ANN::print ( bool print_epochs ) {
   
   // Add first line and input layer line (input layer not in layers List)
   print_stream << "Artificial Neural Network: \n";
-  print_stream << "  Layer - " << sX.n_col << " nodes - input \n";
+  print_stream << "  Layer - " << num_nodes[0] << " nodes - input \n";
   
   // Get number of nodes and activation type for each layer and add to stream
   for(it = layers.begin(); it != layers.end(); ++it) {
@@ -210,7 +211,7 @@ List ANN::getTrainHistory ( ) {
 // Method for accessing network meta info
 // It is nice to store all this information in the C++ object, and not at the 
 // R level because now we can use pure C++ serialization when writing the 
-// ANN object to a file - should give the same output as setMeta() in checks.R
+// ANN object to a file 
 List ANN::getMeta()
 {
   int n_layers = num_nodes.size();
@@ -221,7 +222,8 @@ List ANN::getMeta()
                       Named("n_out") = num_nodes[n_layers - 1], 
                       Named("regression") = regression,
                       Named("y_names") = y_names,
-                      Named("num_nodes") = num_nodes);
+                      Named("num_nodes") = num_nodes, 
+                      Named("autoencoder") = autoencoder);
 }
 
 void ANN::write (const char* fileName) {

@@ -39,6 +39,7 @@ private:
   std::vector<std::string> y_names;
   std::vector<int> num_nodes;
   bool regression;
+  bool autoencoder;
   
 public:
   
@@ -78,7 +79,8 @@ public:
   // Serialize
   template<class Archive>
   void serialize(Archive & archive) {
-    archive( epoch, tracker, sX, sY, L, layers, num_nodes, y_names, regression ); 
+    archive( epoch, tracker, sX, sY, L, layers, num_nodes, y_names, regression, 
+             autoencoder); 
   }
   
 };
@@ -86,6 +88,7 @@ public:
 RCPP_MODULE(ANN) {
   using namespace Rcpp ;
   class_<ANN>( "ANN" )
+    .constructor()
     .constructor<List, List, List, List, List>()
     .method( "predict", &ANN::predict)
     .method( "partialForward", &ANN::partialForward)

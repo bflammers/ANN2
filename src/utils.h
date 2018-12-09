@@ -86,7 +86,7 @@ public:
   void save(Archive & archive) const
   {
     MatSerializer ser_train_history(train_history);
-    archive( ser_train_history, verbose, k ); 
+    archive( ser_train_history, verbose, k, n_passes, validate ); 
   }
   
   // Deserialze
@@ -94,7 +94,7 @@ public:
   void load(Archive & archive)
   {
     MatSerializer ser_train_history(train_history);
-    archive( ser_train_history, verbose, k );
+    archive( ser_train_history, verbose, k, n_passes, validate );
     train_history = ser_train_history.getMat();
   }
   
