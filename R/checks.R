@@ -65,6 +65,11 @@ setData <- function(X, Y, regression, y_names = NULL) {
     # Set names to class names (used in predict.ANN() )
     y_names <- colnames(Y)
     
+    # If names are NULL, set 
+    if ( is.null(y_names) ) {
+      y_names <- paste0('y_', seq(1,ncol(Y)))
+    }
+    
   } else {
     
     # (ERROR) matrix Y not single column

@@ -441,9 +441,15 @@ predict.ANN <- function(object, newdata, ...) {
     stop('newdata should be numeric', call. = FALSE)
   }
   
-  # Predict and set column names
+  # Predict 
   fit <- object$Rcpp_ANN$predict(X)
-  colnames(fit) <- paste0("class_", meta$y_names)
+  
+  # Set column names
+  if (meta$regression) {
+    colnames(fit) <- meta$y_names
+  } else {
+    colnames(fit) <- paste0("class_", meta$y_names)
+  }
   
   # For regression return fitted values
   if ( meta$regression ) {
