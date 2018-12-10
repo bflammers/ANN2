@@ -59,7 +59,7 @@ NN <- neuralnetwork(X, y, hidden.layers = 10, sgd.momentum = 0.9,
 plot(NN)
 
 # Continue training for 1000 epochs
-train(NN, X, y, n.epochs = 1000, val.prop = 0.3)
+train(NN, X, y, n.epochs = 200, val.prop = 0.3)
 
 # Again plot the loss - note the jump in the validation loss at the 100th epoch
 # This is due to the random selection of a new validation set
