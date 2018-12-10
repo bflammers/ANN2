@@ -1,11 +1,12 @@
 #' @title Train a Neural Network
 #'
 #' @description
-#' Define and train a Multilayer Neural Network for regression or classification. 
+#' Construct and train a Multilayer Neural Network for regression or 
+#' classification
 #'
 #' @details
 #' A genereric function for training Neural Networks for classification and
-#' regression problems. Various types of activation and cost functions are
+#' regression problems. Various types of activation and loss functions are
 #' supported, as well as  L1 and L2 regularization. Possible optimizer include
 #' SGD (with or without momentum), RMSprop and Adam. 
 #'
@@ -139,17 +140,20 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' @title Train an Autoencoding Neural Network
 #'
 #' @description
-#' Trains an Autoencoder by setting explanatory variables X as dependent variables
-#' in training. The number of nodes in the middle layer should be smaller than
-#' the number of variables in X to create a bottleneck layer. 
+#' Construct and train an Autoencoder by setting the target variables equal 
+#' to the input variables. The number of nodes in the middle layer should be 
+#' smaller than the number of input variables in X in order to create a 
+#' bottleneck layer. 
 #'
 #' @details
 #' A function for training Autoencoders. During training, the network will learn a
 #' generalised representation of the data (generalised since the middle layer
-#' functions as a bottleneck, resulting in reproduction of only the most
+#' acts as a bottleneck, resulting in reproduction of only the most
 #' important features of the data). As such, the network models the normal state 
 #' of the data and therefore has a denoising property. This property can be 
-#' exploited to detect anomalies. 
+#' exploited to detect anomalies by comparing input to reconstruction. If the 
+#' difference (the reconstruction error) is large, the observation is a possible 
+#' anomaly. 
 #'
 #' @param X matrix with explanatory variables
 #' @param hidden.layers vector specifying the number of nodes in each layer. The

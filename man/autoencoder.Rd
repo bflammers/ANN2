@@ -97,17 +97,20 @@ loss on training and optionally validation data during training process. Use
 function \code{predict(<object>, <newdata>)} for prediction.
 }
 \description{
-Trains an Autoencoder by setting explanatory variables X as dependent variables
-in training. The number of nodes in the middle layer should be smaller than
-the number of variables in X to create a bottleneck layer.
+Construct and train an Autoencoder by setting the target variables equal 
+to the input variables. The number of nodes in the middle layer should be 
+smaller than the number of input variables in X in order to create a 
+bottleneck layer.
 }
 \details{
 A function for training Autoencoders. During training, the network will learn a
 generalised representation of the data (generalised since the middle layer
-functions as a bottleneck, resulting in reproduction of only the most
+acts as a bottleneck, resulting in reproduction of only the most
 important features of the data). As such, the network models the normal state 
 of the data and therefore has a denoising property. This property can be 
-exploited to detect anomalies.
+exploited to detect anomalies by comparing input to reconstruction. If the 
+difference (the reconstruction error) is large, the observation is a possible 
+anomaly.
 }
 \examples{
 # Autoencoder example

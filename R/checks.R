@@ -363,7 +363,7 @@ setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last,
   # same result of neuralnetwork(), autoencoder() and train() if the seed has 
   # not been changed between consecutive runs
   if ( is.null(random.seed) ) {
-    random.seed <- as.integer(gsub(':', '', format(Sys.time(), '%X')))
+    random.seed <- as.integer(format(Sys.time(), '%H%M%S'))
   }
   set.seed(random.seed)
   

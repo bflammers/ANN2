@@ -129,8 +129,10 @@ Sampler::Sampler (mat X_, mat Y_, List train_param)
   int n_obs = X_.n_rows;
   n_train = std::ceil ( (1 - val_prop ) * n_obs );
   n_batch = std::ceil ( double( n_train ) / batch_size );
-  n_batch = ( (n_train % n_batch) == 0 ) ? n_batch : n_batch - drop_last;
   validate = ( n_train < n_obs );
+  
+  // Drop last batch if smaller than batch_size and if drop_last is TRUE
+  n_batch = ( (n_train % batch_size) == 0 ) ? n_batch : n_batch - drop_last;
   
   // Randomly shuffle X and Y for train/validation split
   uvec rand_perm = arma::shuffle(regspace<uvec>(0, n_obs - 1));

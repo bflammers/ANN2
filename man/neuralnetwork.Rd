@@ -103,11 +103,12 @@ loss on training and optionally validation data during training process. Use
 function \code{predict(<object>, <newdata>)} for prediction.
 }
 \description{
-Define and train a Multilayer Neural Network for regression or classification.
+Construct and train a Multilayer Neural Network for regression or 
+classification
 }
 \details{
 A genereric function for training Neural Networks for classification and
-regression problems. Various types of activation and cost functions are
+regression problems. Various types of activation and loss functions are
 supported, as well as  L1 and L2 regularization. Possible optimizer include
 SGD (with or without momentum), RMSprop and Adam.
 }
