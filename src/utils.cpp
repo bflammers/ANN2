@@ -118,7 +118,7 @@ mat Scaler::unscale(mat z)
 // Sampler class
 // ---------------------------------------------------------------------------//
 
-Sampler::Sampler (mat X_, mat Y_, List train_param)
+Sampler::Sampler (mat X, mat y, List train_param)
 {
   // Training parameters 
   int batch_size = train_param["batch_size"];
@@ -126,7 +126,7 @@ Sampler::Sampler (mat X_, mat Y_, List train_param)
   bool drop_last = train_param["drop_last"];
   
   // Derived parameters
-  int n_obs = X_.n_rows;
+  int n_obs = X.n_rows;
   n_train = std::ceil ( (1 - val_prop ) * n_obs );
   n_batch = std::ceil ( double( n_train ) / batch_size );
   validate = ( n_train < n_obs );
@@ -136,15 +136,15 @@ Sampler::Sampler (mat X_, mat Y_, List train_param)
   
   // Randomly shuffle X and Y for train/validation split
   uvec rand_perm = arma::shuffle(regspace<uvec>(0, n_obs - 1));
-  mat X = X_.rows(rand_perm);
-  mat Y = Y_.rows(rand_perm);
+  X = X.rows(rand_perm);
+  y = y.rows(rand_perm);
   
   // Divide X and Y in training and validation sets
   X_train = X.rows(0, n_train - 1);
-  Y_train = Y.rows(0, n_train - 1);
+  y_train = y.rows(0, n_train - 1);
   if ( validate ) {
     X_val = X.rows(n_train, n_obs - 1);
-    Y_val = Y.rows(n_train, n_obs - 1);
+    y_val = y.rows(n_train, n_obs - 1);
   }
   
   // Fill indices list with uvecs to subset X_train and Y_train for batches
@@ -156,8 +156,8 @@ Sampler::Sampler (mat X_, mat Y_, List train_param)
   }
   
   // Set list iterators to begin
-  Xit = indices.begin();
-  Yit = indices.begin();
+  X_it = indices.begin();
+  y_it = indices.begin();
 }
 
 void Sampler::shuffle () 
@@ -165,34 +165,34 @@ void Sampler::shuffle ()
   // Randomly shuffle X and Y for train/validation split
   uvec rand_perm = arma::shuffle(regspace<uvec>(0, n_train - 1));
   X_train = X_train.rows(rand_perm);
-  Y_train = Y_train.rows(rand_perm);
+  y_train = y_train.rows(rand_perm);
   
   // Set list iterators to begin
-  Xit = indices.begin();
-  Yit = indices.begin();
+  X_it = indices.begin();
+  y_it = indices.begin();
 }
 
-mat Sampler::nextXb () 
+mat Sampler::next_Xb () 
 { 
-  mat X_batch = X_train.rows( (*Xit) );
-  std::advance(Xit, 1);
+  mat X_batch = X_train.rows( (*X_it) );
+  std::advance(X_it, 1);
   return X_batch; 
 }
 
-mat Sampler::nextYb () 
+mat Sampler::next_yb () 
 { 
-  mat Y_batch = Y_train.rows( (*Yit) );
-  std::advance(Yit, 1);
-  return Y_batch; 
+  mat y_batch = y_train.rows( (*y_it) );
+  std::advance(y_it, 1);
+  return y_batch; 
 }
 
-mat Sampler::getXv () 
+mat Sampler::get_Xv () 
 { 
   return X_val; 
 }
 
-mat Sampler::getYv () 
+mat Sampler::get_yv () 
 { 
-  return Y_val; 
+  return y_val; 
 }
 

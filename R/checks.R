@@ -15,7 +15,7 @@ setMeta <- function(data, hidden.layers, regression, autoencoder) {
   
   # Set number of nodes in input and output layer
   n_in  <- ncol(data$X)
-  n_out <- ncol(data$Y)
+  n_out <- ncol(data$y)
   
   # Set number of observations
   n_obs <- nrow(data$X)
@@ -30,20 +30,20 @@ setMeta <- function(data, hidden.layers, regression, autoencoder) {
 #' @description 
 #' Set and check data
 #' @keywords internal
-setData <- function(X, Y, regression, y_names = NULL) {
+setData <- function(X, y, regression, y_names = NULL) {
   
   # Convert X to matrix
   X <- as.matrix(X)
 
-  # (ERROR) missing values in X and Y
+  # (ERROR) missing values in X and y
   miss_X <- any(is.na(X))
-  miss_Y <- any(is.na(Y))
-  if ( miss_X && miss_Y ) {
-    stop('X and Y contain missing values', call. = FALSE)
+  miss_y <- any(is.na(y))
+  if ( miss_X && miss_y ) {
+    stop('X and y contain missing values', call. = FALSE)
   } else if ( miss_X ) {
     stop('X contain missing values', call. = FALSE)
-  } else if ( miss_Y ) {
-    stop('Y contain missing values', call. = FALSE)
+  } else if ( miss_y ) {
+    stop('y contain missing values', call. = FALSE)
   }
   
   # (ERROR) matrix X all numeric columns
@@ -51,63 +51,63 @@ setData <- function(X, Y, regression, y_names = NULL) {
     stop('X should be numeric', call. = FALSE)
   }
   
-  # Checks on Y for regression and classification
+  # Checks on y for regression and classification
   if ( regression ) {
     
-    # Convert Y to matrix
-    Y <- as.matrix(Y)
+    # Convert y to matrix
+    y <- as.matrix(y)
     
-    # (ERROR) matrix Y all numeric columns
-    if ( !all(apply(Y, 2, is.numeric)) ) {
-      stop('Y should be numeric for regression', call. = FALSE)
+    # (ERROR) matrix y all numeric columns
+    if ( !all(apply(y, 2, is.numeric)) ) {
+      stop('y should be numeric for regression', call. = FALSE)
     }
     
     # Set names to class names (used in predict.ANN() )
-    y_names <- colnames(Y)
+    y_names <- colnames(y)
     
     # If names are NULL, set 
     if ( is.null(y_names) ) {
-      y_names <- paste0('y_', seq(1,ncol(Y)))
+      y_names <- paste0('y_', seq(1,ncol(y)))
     }
     
   } else {
     
-    # (ERROR) matrix Y not single column
-    if ( NCOL(Y) != 1 ) {
-      stop('Y should be a vector or single-column matrix containing classes for classification', 
+    # (ERROR) matrix y not single column
+    if ( NCOL(y) != 1 ) {
+      stop('y should be a vector or single-column matrix containing classes for classification', 
            call. = FALSE)
     }
     
-    # (ERROR) not enough classes for classification in Y
-    if ( length(unique(Y)) < 1 ) {
-      stop('Y contains one or less classes, minimum of two required for classification',
+    # (ERROR) not enough classes for classification in y
+    if ( length(unique(y)) < 1 ) {
+      stop('y contains one or less classes, minimum of two required for classification',
            call. = FALSE)
     }
     
-    # Convert Y to matrix
-    Y <- as.matrix(Y)
+    # Convert y to matrix
+    y <- as.matrix(y)
     
     # If y_names NULL (first training run) then y_names should be derived
     # from the data. If not NULL, y_names of first training run are used
     if ( is.null(y_names) ) {
-      y_names <- sort(unique(Y))
+      y_names <- as.character(sort(unique(y)))
     }
     
-    # One-hot encode Y and store classes
-    Y <- 1 * outer(c(Y), y_names, '==')
+    # One-hot encode y and store classes
+    y <- 1 * outer(c(y), y_names, '==')
     
   }
   
   # Set number of observations
   n_obs <- nrow(X)
   
-  # (ERROR) not same number of observations in X and Y
-  if ( n_obs != nrow(Y) ) {
-    stop('Unequal numbers of observations in X and Y', call. = FALSE)
+  # (ERROR) not same number of observations in X and y
+  if ( n_obs != nrow(y) ) {
+    stop('Unequal numbers of observations in X and y', call. = FALSE)
   }
   
   # Collect parameters in list
-  return ( list(X = X, Y = Y, y_names = y_names, n_obs = n_obs) )
+  return ( list(X = X, y = y, y_names = y_names, n_obs = n_obs) )
 }
 
 #' @title Check user input related to network structure
@@ -116,9 +116,9 @@ setData <- function(X, Y, regression, y_names = NULL) {
 #' @keywords internal
 setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
   
-  # Booleans for standardizing X and Y
+  # Booleans for standardizing X and y
   stand_X <- standardize
-  stand_Y <- ifelse(meta$regression, standardize, FALSE)
+  stand_y <- ifelse(meta$regression, standardize, FALSE)
   
   # Check if hidden layers NULL
   if ( meta$no_hidden ) {
@@ -144,7 +144,7 @@ setNetworkParams <- function(hidden.layers, standardize, verbose, meta) {
   }
 
   # Collect parameters in list
-  return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_Y = stand_Y, 
+  return ( list(num_nodes = num_nodes, stand_X = stand_X, stand_y = stand_y, 
                 verbose = verbose, regression = meta$regression, 
                 autoencoder = meta$autoencoder) )
 }
@@ -404,7 +404,7 @@ setTrainParams <- function (n.epochs, batch.size, val.prop, drop.last,
   
   # (ERROR) batch.size larger than n_obs
   if ( batch.size > data$n_obs ) {
-    stop('batch.size larger than total number of observations in X and Y', 
+    stop('batch.size larger than total number of observations in X and y', 
          call. = FALSE)
   }
   

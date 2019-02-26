@@ -4,7 +4,7 @@
 \alias{train}
 \title{Continue training of a Neural Network}
 \usage{
-train(object, X, Y = NULL, n.epochs = 100, batch.size = 32,
+train(object, X, y = NULL, n.epochs = 100, batch.size = 32,
   drop.last = TRUE, val.prop = 0.1, random.seed = NULL)
 }
 \arguments{
@@ -13,7 +13,7 @@ or \code{autoencoder()}}
 
 \item{X}{matrix with explanatory variables}
 
-\item{Y}{matrix with dependent variables. Not required if object is an autoencoder}
+\item{y}{matrix with dependent variables. Not required if object is an autoencoder}
 
 \item{n.epochs}{the number of epochs to train. This parameter largely determines
 the training time (one epoch is a single iteration through the training data).}

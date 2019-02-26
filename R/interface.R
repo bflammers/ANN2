@@ -288,7 +288,7 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' @param object object of class \code{ANN} produced by \code{neuralnetwork()} 
 #' or \code{autoencoder()}
 #' @param X matrix with explanatory variables
-#' @param Y matrix with dependent variables. Not required if object is an autoencoder
+#' @param y matrix with dependent variables. Not required if object is an autoencoder
 #' @param n.epochs the number of epochs to train. This parameter largely determines
 #' the training time (one epoch is a single iteration through the training data).
 #' @param batch.size the number of observations to use in each batch. Batch learning
@@ -324,7 +324,7 @@ autoencoder <- function(X, hidden.layers, standardize = TRUE,
 #' # This is due to the random selection of a new validation set
 #' plot(NN)
 #' @export
-train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32, 
+train <- function(object, X, y = NULL, n.epochs = 100, batch.size = 32, 
                   drop.last = TRUE, val.prop = 0.1, random.seed = NULL) {
   
   # Extract meta from object
@@ -334,24 +334,24 @@ train <- function(object, X, Y = NULL, n.epochs = 100, batch.size = 32,
   if ( meta$autoencoder ) {
     
     # Autoencoder but also Y specified
-    if ( !is.null(Y) ) {
-      stop('Object of type autoencoder but Y is given', call. = FALSE)
+    if ( !is.null(y) ) {
+      stop('Object of type autoencoder but y is given', call. = FALSE)
     }
     
     # Set Y equal to X
-    Y = X
+    y = X
     
   } else {
     
     # Not an autoencoder but no Y given
-    if ( is.null(Y) ) {
-      stop('Y matrix of dependent variables needed', call. = FALSE)
+    if ( is.null(y) ) {
+      stop('y matrix of dependent variables needed', call. = FALSE)
     }
     
   }
   
   # Perform checks on data, set meta data
-  data <- setData(X, Y, meta$regression, meta$y_names)
+  data <- setData(X, y, meta$regression, meta$y_names)
   
   # Set and check training parameters
   train_param <- setTrainParams(n.epochs, batch.size, val.prop, drop.last, 

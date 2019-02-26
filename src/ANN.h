@@ -26,7 +26,7 @@ private:
   std::unique_ptr<Loss> L;
   
   // Scaler objects for scaling and unscaling the data
-  Scaler sX, sY;
+  Scaler scaler_X, scaler_y;
   
   // Tracker object and epoch integer for keeping track of the training process
   // Epoch integer as a member of ANN class (and not in tracker object) because 
@@ -50,7 +50,7 @@ public:
   
   // Forward and backward pass
   arma::mat forwardPass (arma::mat X);
-  void backwardPass (arma::mat Y, arma::mat Y_fit);
+  void backwardPass (arma::mat y, arma::mat y_fit);
   
   // Partial forward, used to get hidden layer representation
   arma::mat partialForward (arma::mat X, int i_start, int i_stop);
@@ -59,7 +59,7 @@ public:
   arma::mat predict (arma::mat X);
   
   // Evaluates loss for a given input matrix
-  double evalLoss(arma::mat Y, arma::mat X);
+  double evalLoss(arma::mat y, arma::mat X);
   
   // Train the network
   void train (Rcpp::List data, Rcpp::List train_param);
@@ -80,8 +80,8 @@ public:
   // Serialize
   template<class Archive>
   void serialize(Archive & archive) {
-    archive( epoch, tracker, sX, sY, L, layers, num_nodes, y_names, regression, 
-             autoencoder); 
+    archive( epoch, tracker, scaler_X, scaler_y, L, layers, num_nodes, y_names, 
+             regression, autoencoder); 
   }
   
 };

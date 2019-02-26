@@ -4,7 +4,7 @@
 \alias{setData}
 \title{Check the input data}
 \usage{
-setData(X, Y, regression, y_names = NULL)
+setData(X, y, regression, y_names = NULL)
 }
 \description{
 Set and check data

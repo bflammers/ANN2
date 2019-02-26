@@ -12,8 +12,8 @@ ANN::ANN() {};
 
 // ANN class constructor
 ANN::ANN(List data_, List net_param_, List optim_param_, List loss_param_, List activ_param_)
-  : sX(as<mat>(data_["X"]), as<bool>(net_param_["stand_X"])),
-    sY(as<mat>(data_["Y"]), as<bool>(net_param_["stand_Y"])),
+  : scaler_X(as<mat>(data_["X"]), as<bool>(net_param_["stand_X"])),
+    scaler_y(as<mat>(data_["y"]), as<bool>(net_param_["stand_y"])),
     tracker(as<bool>(net_param_["verbose"])),
     epoch(0)
 {
@@ -62,9 +62,9 @@ mat ANN::forwardPass (mat X)
 // Forward pass through the network 
 // Error matrix E is propagated backwards through the network
 // Layer member method backward() also performs parameter updates
-void ANN::backwardPass (mat Y, mat Y_fit) 
+void ANN::backwardPass (mat y, mat y_fit) 
 {
-  mat E = L->grad(Y, Y_fit);
+  mat E = L->grad(y, y_fit);
   for(rit = layers.rbegin(); rit != layers.rend(); ++rit) {
     E = rit->backward(E);
   }
@@ -85,7 +85,7 @@ mat ANN::partialForward (mat X, int i_start, int i_stop)
   
   // If input layer: standardize
   if ( i_start == 0 ) {
-    X = sX.scale(X); // Check if start at 0
+    X = scaler_X.scale(X); // Check if start at 0
   }
   
   X = X.t();
@@ -97,7 +97,7 @@ mat ANN::partialForward (mat X, int i_start, int i_stop)
   
   // If output layer: undo standardize
   if ( i_stop == layers.size() ) {
-    X = sY.unscale(X);
+    X = scaler_y.unscale(X);
   }
   
   return X;
@@ -105,17 +105,17 @@ mat ANN::partialForward (mat X, int i_start, int i_stop)
 
 mat ANN::predict (mat X) 
 {
-  X = sX.scale(X);
+  X = scaler_X.scale(X);
   X = forwardPass(X);
-  mat Y_pred = sY.unscale(X);
-  return Y_pred;
+  mat y_pred = scaler_y.unscale(X);
+  return y_pred;
 }
 
 // Evaluate loss, input should be scaled data
-double ANN::evalLoss(mat Y, mat X)
+double ANN::evalLoss(mat y, mat X)
 {
-  mat Y_fit = forwardPass(X);
-  double loss_val = accu( L->eval(Y, Y_fit) );
+  mat y_fit = forwardPass(X);
+  double loss_val = accu( L->eval(y, y_fit) );
   return loss_val;
 }
 
@@ -128,11 +128,11 @@ void ANN::train (List data, List train_param)
   int max_epochs = epoch + n_epochs;
   
   // Scale data
-  mat X = sX.scale(as<mat>(data["X"]));
-  mat Y = sY.scale(as<mat>(data["Y"]));
+  mat X = scaler_X.scale(as<mat>(data["X"]));
+  mat y = scaler_y.scale(as<mat>(data["y"]));
 
   // Set sampler and tracker
-  Sampler sampler(X, Y, train_param);
+  Sampler sampler(X, y, train_param);
   int n_new_passes = n_epochs * sampler.n_batch;
   tracker.setTracker(n_new_passes, sampler.validate, train_param);
   
@@ -149,18 +149,19 @@ void ANN::train (List data, List train_param)
     for (int b = 0; b != sampler.n_batch; b++) {
       
       // Sample new batch
-      mat Xb = sampler.nextXb();
-      mat Yb = sampler.nextYb();
+      mat Xb = sampler.next_Xb();
+      mat yb = sampler.next_yb();
 
       // Forward pass
-      mat Yb_fit = forwardPass(Xb);
+      mat yb_fit = forwardPass(Xb);
       
       // Backward pass, also includes update
-      backwardPass(Yb, Yb_fit);
+      backwardPass(yb, yb_fit);
       
       // Track loss on scaled data
-      double batch_loss = L->eval(Yb, Yb_fit);
-      double val_loss = (sampler.validate) ? evalLoss(sampler.getYv(), sampler.getXv()) : 0;
+      double batch_loss = L->eval(yb, yb_fit);
+      double val_loss = (sampler.validate) ? evalLoss(sampler.get_yv(), 
+                         sampler.get_Xv()) : 0;
       tracker.track(epoch, batch_loss, val_loss);
       
       // Check for interrupt
