@@ -31,6 +31,7 @@ context("Scaler") {
     mat sA = s.scale(A);
     mat uA = s.unscale(sA);
     expect_true(approx_equal(uA, A, "both", 0.00001, 0.001));
+    expect_false(approx_equal(sA, A, "both", 0.00001, 0.001));
     expect_true(approx_equal(mean(sA), zerovec, "absdiff", 0.00001));
     expect_true(approx_equal(stddev(sA), onesvec, "absdiff", 0.00001));
     expect_true(sA.size() == A.size());
