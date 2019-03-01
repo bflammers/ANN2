@@ -25,7 +25,7 @@
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
 #' @param loss.type which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
+#' "squared", "absolute", "huber" and "pseudo-huber"
 #' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
 #' @param activ.functions character vector of activation functions to be used in 
@@ -164,7 +164,7 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
 #' @param loss.type which loss function should be used. Options are "log",
-#' "quadratic", "absolute", "huber" and "pseudo-huber"
+#' "squared", "absolute", "huber" and "pseudo-huber"
 #' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
 #' @param activ.functions character vector of activation functions to be used in 
