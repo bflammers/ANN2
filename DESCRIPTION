@@ -2,7 +2,7 @@ Package: ANN2
 Type: Package
 Title: Artificial Neural Networks for Anomaly Detection
 Version: 2.1
-Date: 2018-12-15
+Date: 2019-02-27
 Author: Bart Lammers
 Maintainer: Bart Lammers <bart.f.lammers@gmail.com>
 Description: Training of neural networks for classification and regression tasks
