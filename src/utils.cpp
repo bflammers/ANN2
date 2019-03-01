@@ -90,6 +90,8 @@ Scaler::Scaler (mat z, bool standardize_)
   if ( standardize ) {
     z_mu = mean(z);
     z_sd = stddev(z);
+    // Truncate small values for stability
+    z_sd = clamp(z_sd, 0.001, z_sd.max());
   } else {
     z_mu = zeros<rowvec>(z.n_cols);
     z_sd = ones<rowvec>(z.n_cols);
