@@ -23,6 +23,6 @@ Encoding: UTF-8
 LazyData: true
 Imports: Rcpp (>= 0.12.18), reshape2 (>= 1.4.3), ggplot2 (>= 3.0.0), 
     viridisLite (>= 0.3.0), methods
-LinkingTo: Rcpp, RcppArmadillo, Rcereal
-Suggests: 
+LinkingTo: Rcpp, RcppArmadillo, Rcereal, testthat
+Suggests: testthat, covr
 RoxygenNote: 6.1.1
