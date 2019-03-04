@@ -3,8 +3,6 @@
 #include <testthat.h>
 #include <RcppArmadillo.h>
 
-#define ARMA_USE_WRAPPER
-
 using namespace Rcpp;
 using namespace arma;
 
