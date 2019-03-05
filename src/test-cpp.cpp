@@ -2,6 +2,7 @@
 // All test files should include the <testthat.h> header file.
 #include <testthat.h>
 #include <RcppArmadillo.h>
+#include "test_utils.h"
 
 using namespace Rcpp;
 using namespace arma;
@@ -18,32 +19,129 @@ std::mt19937 RNG_engine;  // Mersenne twister random number engine
 std::normal_distribution<double> RNG_standard_normal(0.0, 1.0);
 std::uniform_real_distribution<double> RNG_uniform(-3.0, 3.0);
 
-// Gradient checking for activation functions
-mat gradient_check (mat X, std::string activ_type) {
-  
-  List activ_param = List::create(Named("type") = activ_type);
-  std::unique_ptr<Activation> g = ActivationFactory(activ_param);
-  
-  mat num_gradient = (g->eval(X + 1e-5) - g->eval(X - 1e-5)) / 2e-5;
-  mat ana_gradient = g->grad(X);
-  
-  return abs(ana_gradient - num_gradient); // Scale by elementwise max
-}
+// ---------------------------------------------------------------------------//
+// ANN
+// ---------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------------------//
+// LAYER
+// ---------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------------------//
+// OPTIMIZERS
+// ---------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------------------//
+// LOSS FUNCTIONS
+// ---------------------------------------------------------------------------//
+
+// ---------------------------------------------------------------------------//
+// ACTIVATION FUNCTIONS
+// ---------------------------------------------------------------------------//
 
 // Tests for Activation functions
 context("ACTIVATIONS") {
   
   int n_rows = 32;
   int n_cols = 4;
+  double rel_tol = 1e-4;
+  double abs_tol = 1e-6;
   
   mat A(n_rows, n_cols);
   A.imbue( [&]() { return RNG_uniform(RNG_engine); } );
   
+  // TANH
   test_that("the tanh works correctly") {
-    expect_true( all(vectorise(gradient_check(A, "tanh")) < 1e-4) );
+    
+    // Construct activation tester
+    ActivationTester TanhTester("tanh", rel_tol, abs_tol);
+    
+    // Run tests
+    expect_true( TanhTester.gradient_check(A) );
+    expect_true( TanhTester.eval_check(0, 0) );
+    expect_true( TanhTester.eval_check(1e10, 1.725) );
+    expect_true( TanhTester.eval_check(-1e10, -1.725) );
   }
   
+  // SIGMOID
+  test_that("the sigmoid works correctly") {
+    
+    // Construct activation tester
+    ActivationTester SigmoidTester("sigmoid", rel_tol, abs_tol);
+    
+    // Run tests
+    expect_true( SigmoidTester.gradient_check(A) );
+    expect_true( all(vectorise(SigmoidTester.g->eval(A) > 0)) );
+    expect_true( SigmoidTester.eval_check(0, 0.5) );
+    expect_true( SigmoidTester.eval_check(1e10, 1) );
+    expect_true( SigmoidTester.eval_check(-1e10, 0) );
+  }
+  
+  test_that("the relu works correctly") {
+
+    // Construct activation tester
+    ActivationTester ReluTester("relu", rel_tol, abs_tol);
+
+    // Run tests
+    expect_true( ReluTester.gradient_check(A) );
+    expect_true( ReluTester.eval_check(0, 0) );
+    expect_true( ReluTester.eval_check(-1, 0) );
+    expect_true( ReluTester.eval_check(1, 1) );
+  }
+
+  test_that("the linear activation function works correctly") {
+
+    // Construct activation tester
+    ActivationTester LinearTester("linear", rel_tol, abs_tol);
+
+    // Run tests
+    expect_true( LinearTester.gradient_check(A) );
+    expect_true( LinearTester.eval_check(0, 0) );
+    expect_true( LinearTester.eval_check(1, 1) );
+    expect_true( LinearTester.eval_check(-1, -1) );
+  }
+
+  test_that("the softmax works correctly") {
+
+    // Construct activation tester
+    ActivationTester SoftmaxTester("softmax", rel_tol, abs_tol);
+
+    // Run tests
+    //expect_true( SoftmaxTester.gradient_check(A) );
+    expect_true( SoftmaxTester.eval_check(10, 1) );
+    expect_true( SoftmaxTester.eval_check(-10, 1) );
+  }
+  
+  test_that("the ramp activation function works correctly") {
+
+    // Construct activation tester
+    ActivationTester RampTester("ramp", rel_tol, abs_tol);
+
+    // Run tests
+    expect_true( RampTester.gradient_check(A) );
+    expect_true( RampTester.eval_check(0, 0) );
+    expect_true( RampTester.eval_check(-10, 0) );
+    expect_true( RampTester.eval_check(0.5, 0.5) );
+    expect_true( RampTester.eval_check(10, 1) );
+  }
+
+  test_that("the step activation function works correctly") {
+
+    // Construct activation tester
+    ActivationTester StepTester("step", rel_tol, abs_tol);
+
+    // Run tests
+    //expect_true( StepTester.gradient_check(A) );
+    expect_true( StepTester.eval_check(-10, 0) );
+    expect_true( StepTester.eval_check(10, 1) );
+  }
+
 }
+
+
+// ---------------------------------------------------------------------------//
+// UTILS
+// ---------------------------------------------------------------------------//
 
 // Tests for Scaler class
 context("UTILS - Scaler class") {
