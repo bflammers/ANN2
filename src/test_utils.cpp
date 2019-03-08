@@ -115,16 +115,16 @@ LossTester::LossTester (std::string loss_type, double rel_tol_, double abs_tol_)
 
 // Gradient checking
 // See: http://cs231n.github.io/neural-networks-3/#gradcheck
-bool LossTester::grad_check (arma::mat y, arma::mat y_fit, bool obs_wise) {
+bool LossTester::grad_check (arma::mat y, arma::mat y_fit) {
   
   // Numerical gradient
-  //mat num_grad = (L->eval(y, y_fit + 1e-5) - L->eval(y, y_fit - 1e-5)) / 2e-5;
+  mat num_grad = (L->eval(y, y_fit + 1e-5) - L->eval(y, y_fit - 1e-5)) / 2e-5;
   
   // Analytical gradient
-  //mat _ = L->eval(y, y_fit); // Needed because grad() reuses A from eval()
+  mat _ = L->eval(y, y_fit); // Needed because grad() reuses A from eval()
   mat ana_grad = L->grad(y, y_fit);
-  return false;
-  //return approx_equal(num_grad, ana_grad, "reldiff", rel_tol);
+  
+  return approx_equal(num_grad, ana_grad, "reldiff", rel_tol);
 }
 
 // Eval Function function: input, output check
@@ -132,10 +132,10 @@ bool LossTester::eval_check (double in_y, double in_y_fit, double out_value) {
   
   mat y(1,1), y_fit(1,1); 
   y.fill(in_y); y_fit.fill(in_y_fit);
-  //mat B = L->eval(y, y_fit);
-  //mat C(1,1); C.fill(out_value);
-  return false;
-  //return approx_equal(B, C, "both", abs_tol, rel_tol) ;
+  mat B = L->eval(y, y_fit);
+  mat C(1,1); C.fill(out_value);
+  
+  return approx_equal(B, C, "both", abs_tol, rel_tol) ;
 }
 
 

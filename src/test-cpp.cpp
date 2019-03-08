@@ -9,7 +9,6 @@ using namespace arma;
 
 // Include code to test
 #include "utils.h"
-#include "Activations.h"
 
 // ---------------------------------------------------------------------------//
 // ANN
@@ -27,29 +26,28 @@ using namespace arma;
 // LOSS FUNCTIONS
 // ---------------------------------------------------------------------------//
 
-// // Tests for Loss functions
-// context("LOSS") {
-//   
-//   int n_rows = 4;  // No of classes since t(X) is propagated through network
-//   int n_cols = 32; // No of observations
-//   double rel_tol_kinks = 1e-4;
-//   double rel_tol_smooth = 1e-7;
-//   double abs_tol = 1e-7;
-//   
-//   // LOG Loss
-//   test_that("the log loss works correctly") {
-//     
-//     // Construct activation tester and matrix with random numbers
-//     ActivationTester LogTester("tanh", rel_tol_smooth, abs_tol);
-//     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
-//     
-//     // Run tests
-//     expect_true( TanhTester.grad_check(A) );
-//     expect_true( TanhTester.eval_check(0, 0) );
-//     expect_true( TanhTester.eval_check(1e10, 1.725) );
-//     expect_true( TanhTester.eval_check(-1e10, -1.725) );
-//   }
-// }
+// Tests for Loss functions
+context("LOSS") {
+
+  int n_rows = 32; // No of observations
+  int n_cols = 4;  // No of classes
+  double rel_tol_kinks = 1e-4;
+  double rel_tol_smooth = 1e-7;
+  double abs_tol = 1e-7;
+
+  // LOG Loss
+  test_that("the log loss works correctly") {
+
+    // Construct activation tester and matrix with random numbers
+    LossTester LogTester("log", rel_tol_smooth, abs_tol);
+    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+
+    // Run tests
+    // expect_true( LogTester.grad_check(y, y_fit) );
+    expect_true( LogTester.eval_check(1, 1, 0) );
+  }
+}
 
 // ---------------------------------------------------------------------------//
 // ACTIVATION FUNCTIONS

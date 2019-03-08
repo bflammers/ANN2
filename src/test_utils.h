@@ -49,7 +49,7 @@ private:
 public:
   std::unique_ptr<Loss> L;
   LossTester (std::string loss_type, double rel_tol_, double abs_tol_);
-  bool grad_check (arma::mat y, arma::mat y_fit, bool obs_wise = false);
+  bool grad_check (arma::mat y, arma::mat y_fit);
   bool eval_check (double in_y, double in_y_fit, double out_value);
   
 };
