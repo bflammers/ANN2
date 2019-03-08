@@ -19,10 +19,9 @@ double double_max = std::numeric_limits<double>::max();
 
 LogLoss::LogLoss () { type = "log"; }
 
-double LogLoss::eval(mat y, mat y_fit) {
+mat LogLoss::eval(mat y, mat y_fit) {
   mat l = - y % log( y_fit );
-  l = clamp(l, double_min, double_max);
-  return accu(l) / y.n_rows;
+  return clamp(l, double_min, double_max);
 }
 
 mat LogLoss::grad(mat y, mat y_fit) { 
@@ -35,9 +34,8 @@ mat LogLoss::grad(mat y, mat y_fit) {
 
 SquaredLoss::SquaredLoss () { type = "squared"; }
   
-double SquaredLoss::eval(mat y, mat y_fit) {
-  mat l = pow(y_fit - y, 2);
-  return accu( l ) / y.n_rows;
+mat SquaredLoss::eval(mat y, mat y_fit) {
+  return pow(y_fit - y, 2);
 }
 
 mat SquaredLoss::grad(mat y, mat y_fit) { 
@@ -50,9 +48,8 @@ mat SquaredLoss::grad(mat y, mat y_fit) {
 
 AbsoluteLoss::AbsoluteLoss () { type = "absolute"; }
   
-double AbsoluteLoss::eval(mat y, mat y_fit) {
-  mat l = abs(y_fit - y);
-  return accu( l ) / y.n_rows;
+mat AbsoluteLoss::eval(mat y, mat y_fit) {
+  return abs(y_fit - y);
 }
 
 mat AbsoluteLoss::grad(mat y, mat y_fit) { 
@@ -68,12 +65,12 @@ HuberLoss::HuberLoss () { type = "huber"; }
 HuberLoss::HuberLoss(List loss_param_)
     : huber_delta( loss_param_["huber_delta"] ) { type = "huber"; }
   
-double HuberLoss::eval(mat y, mat y_fit) {
+mat HuberLoss::eval(mat y, mat y_fit) {
   mat E   = abs(y_fit - y);
   mat l   = huber_delta * (E - huber_delta/2);
   uvec iE = find(E <= huber_delta);
   l(iE)   = pow(E(iE), 2)/2;
-  return accu( l ) / y.n_rows;
+  return l;
 }
 
 mat HuberLoss::grad(mat y, mat y_fit) { 
@@ -93,9 +90,8 @@ PseudoHuberLoss::PseudoHuberLoss () { type = "pseudo-huber"; }
 PseudoHuberLoss::PseudoHuberLoss (List loss_param_)
     : huber_delta( loss_param_["huber_delta"] ) { type = "pseudo-huber"; }
   
-double PseudoHuberLoss::eval(mat y, mat y_fit) {
-  mat l = sqrt(1 + pow( (y_fit - y) / huber_delta, 2)) - 1;
-  return accu( l ) / y.n_rows;
+mat PseudoHuberLoss::eval(mat y, mat y_fit) {
+  return sqrt(1 + pow( (y_fit - y) / huber_delta, 2)) - 1;
 }
 
 mat PseudoHuberLoss::grad(mat y, mat y_fit) { 

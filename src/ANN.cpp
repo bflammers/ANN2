@@ -111,14 +111,6 @@ mat ANN::predict (mat X)
   return y_pred;
 }
 
-// Evaluate loss, input should be scaled data
-double ANN::evalLoss(mat y, mat X)
-{
-  mat y_fit = forwardPass(X);
-  double loss_val = accu( L->eval(y, y_fit) );
-  return loss_val;
-}
-
 // Train the network!
 void ANN::train (List data, List train_param)
 {
@@ -159,9 +151,17 @@ void ANN::train (List data, List train_param)
       backwardPass(yb, yb_fit);
       
       // Track loss on scaled data
-      double batch_loss = L->eval(yb, yb_fit);
-      double val_loss = (sampler.validate) ? evalLoss(sampler.get_yv(), 
-                         sampler.get_Xv()) : 0;
+      double batch_loss = accu( L->eval(yb, yb_fit) ) / yb.n_rows;
+      
+      // Track validation loss on scaled data
+      double val_loss = 0;
+      if (sampler.validate) {
+        mat y_val_fit = forwardPass(sampler.get_Xv());
+        val_loss = accu( L->eval(sampler.get_yv(), y_val_fit) );
+        val_loss /= y_val_fit.n_rows;
+      } 
+      
+      // Add loss to tracker
       tracker.track(epoch, batch_loss, val_loss);
       
       // Check for interrupt

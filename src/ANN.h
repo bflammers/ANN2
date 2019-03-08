@@ -58,9 +58,6 @@ public:
   // Predict method - calls forwardPass() after scaling
   arma::mat predict (arma::mat X);
   
-  // Evaluates loss for a given input matrix
-  double evalLoss(arma::mat y, arma::mat X);
-  
   // Train the network
   void train (Rcpp::List data, Rcpp::List train_param);
   
