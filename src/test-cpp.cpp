@@ -11,14 +11,6 @@ using namespace arma;
 #include "utils.h"
 #include "Activations.h"
 
-// This is needed for random number generation since Armadillo's RNG does not 
-// seem to work nicely with testthat. Not sure what is going wrong. The first 
-// time the test runs, the number are generated as expected by randu or randn
-// but the second time, it generates all values close to zero
-std::mt19937 RNG_engine;  // Mersenne twister random number engine
-std::normal_distribution<double> RNG_standard_normal(0.0, 1.0);
-std::uniform_real_distribution<double> RNG_uniform(-3.0, 3.0);
-
 // ---------------------------------------------------------------------------//
 // ANN
 // ---------------------------------------------------------------------------//
@@ -42,22 +34,23 @@ std::uniform_real_distribution<double> RNG_uniform(-3.0, 3.0);
 // Tests for Activation functions
 context("ACTIVATIONS") {
   
-  int n_rows = 32;
-  int n_cols = 4;
-  double rel_tol = 1e-4;
-  double abs_tol = 1e-6;
+  int n_rows = 4;  // No of classes since t(X) is propagated through network
+  int n_cols = 32; // No of observations
+  double rel_tol_kinks = 1e-4;
+  double rel_tol_smooth = 1e-7;
+  double abs_tol = 1e-7;
   
-  mat A(n_rows, n_cols);
-  A.imbue( [&]() { return RNG_uniform(RNG_engine); } );
+  rowvec onesvec = ones<rowvec>(n_cols);
   
   // TANH
   test_that("the tanh works correctly") {
     
-    // Construct activation tester
-    ActivationTester TanhTester("tanh", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester TanhTester("tanh", rel_tol_smooth, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
     
     // Run tests
-    expect_true( TanhTester.gradient_check(A) );
+    expect_true( TanhTester.grad_check(A) );
     expect_true( TanhTester.eval_check(0, 0) );
     expect_true( TanhTester.eval_check(1e10, 1.725) );
     expect_true( TanhTester.eval_check(-1e10, -1.725) );
@@ -66,11 +59,12 @@ context("ACTIVATIONS") {
   // SIGMOID
   test_that("the sigmoid works correctly") {
     
-    // Construct activation tester
-    ActivationTester SigmoidTester("sigmoid", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester SigmoidTester("sigmoid", rel_tol_smooth, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -1.0, 3.0);
     
     // Run tests
-    expect_true( SigmoidTester.gradient_check(A) );
+    expect_true( SigmoidTester.grad_check(A) );
     expect_true( all(vectorise(SigmoidTester.g->eval(A) > 0)) );
     expect_true( SigmoidTester.eval_check(0, 0.5) );
     expect_true( SigmoidTester.eval_check(1e10, 1) );
@@ -79,11 +73,12 @@ context("ACTIVATIONS") {
   
   test_that("the relu works correctly") {
 
-    // Construct activation tester
-    ActivationTester ReluTester("relu", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester ReluTester("relu", rel_tol_kinks, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -1.0, 3.0);
 
     // Run tests
-    expect_true( ReluTester.gradient_check(A) );
+    expect_true( ReluTester.grad_check(A) );
     expect_true( ReluTester.eval_check(0, 0) );
     expect_true( ReluTester.eval_check(-1, 0) );
     expect_true( ReluTester.eval_check(1, 1) );
@@ -91,11 +86,12 @@ context("ACTIVATIONS") {
 
   test_that("the linear activation function works correctly") {
 
-    // Construct activation tester
-    ActivationTester LinearTester("linear", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester LinearTester("linear", rel_tol_smooth, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
-    expect_true( LinearTester.gradient_check(A) );
+    expect_true( LinearTester.grad_check(A) );
     expect_true( LinearTester.eval_check(0, 0) );
     expect_true( LinearTester.eval_check(1, 1) );
     expect_true( LinearTester.eval_check(-1, -1) );
@@ -103,22 +99,26 @@ context("ACTIVATIONS") {
 
   test_that("the softmax works correctly") {
 
-    // Construct activation tester
-    ActivationTester SoftmaxTester("softmax", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester SoftmaxTester("softmax", rel_tol_smooth, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
-    //expect_true( SoftmaxTester.gradient_check(A) );
+    expect_true( SoftmaxTester.grad_check(A, true) );
+    rowvec row_sums = sum(SoftmaxTester.g->eval(A), 0);
+    expect_true( approx_equal(row_sums, onesvec, "absdiff", abs_tol) );
     expect_true( SoftmaxTester.eval_check(10, 1) );
     expect_true( SoftmaxTester.eval_check(-10, 1) );
   }
   
   test_that("the ramp activation function works correctly") {
 
-    // Construct activation tester
-    ActivationTester RampTester("ramp", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester RampTester("ramp", rel_tol_kinks, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
-    expect_true( RampTester.gradient_check(A) );
+    expect_true( RampTester.grad_check(A) );
     expect_true( RampTester.eval_check(0, 0) );
     expect_true( RampTester.eval_check(-10, 0) );
     expect_true( RampTester.eval_check(0.5, 0.5) );
@@ -127,11 +127,12 @@ context("ACTIVATIONS") {
 
   test_that("the step activation function works correctly") {
 
-    // Construct activation tester
-    ActivationTester StepTester("step", rel_tol, abs_tol);
+    // Construct activation tester and matrix with random numbers
+    FunctionTester StepTester("step", rel_tol_kinks, abs_tol);
+    mat A = RNG_uniform(n_rows, n_cols, 0.1, 0.9); // Domain with positive grad
 
     // Run tests
-    //expect_true( StepTester.gradient_check(A) );
+    expect_true( StepTester.grad_check(A) );
     expect_true( StepTester.eval_check(-10, 0) );
     expect_true( StepTester.eval_check(10, 1) );
   }
@@ -152,8 +153,7 @@ context("UTILS - Scaler class") {
   rowvec zerovec = zeros<rowvec>(n_cols);
   rowvec onesvec = ones<rowvec>(n_cols);
   
-  mat A(n_rows, n_cols);
-  A.imbue( [&]() { return RNG_standard_normal(RNG_engine); } );
+  mat A = RNG_gaussian(n_rows, n_cols);
   
   test_that("the scaler works correctly when standardize == false") {
     Scaler s(A, false);
@@ -188,11 +188,8 @@ context("UTILS - Sampler class") {
   double val_prop_non_zero = 0.5;
   int batch_size = 24;
   
-  mat X(n_rows, n_cols);
-  X.imbue( [&]() { return RNG_standard_normal(RNG_engine); } );
-  
-  mat y(n_rows, n_cols);
-  y.imbue( [&]() { return RNG_standard_normal(RNG_engine); } );
+  mat X = RNG_gaussian(n_rows, n_cols);
+  mat y = RNG_gaussian(n_rows, n_cols);
   
   test_that("the samplers validation set logic works with val_prop == 0") {
     // Training parameters and construct sampler

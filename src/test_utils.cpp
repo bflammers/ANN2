@@ -5,34 +5,94 @@
 using namespace Rcpp;
 using namespace arma;
 
+// This is needed for random number generation since Armadillo's RNG does not 
+// seem to work nicely with testthat. Not sure what is going wrong. The first 
+// time the test runs, the number are generated as expected by randu or randn
+// but the second time, it generates all values close to zero
+std::mt19937 RNG_engine;  // Mersenne twister random number engine
+
+// Gaussian Random Matrix Generator
+mat RNG_gaussian(int n_rows, int n_cols, double mu, double sd) {
+  std::normal_distribution<double> distr_gaussian(mu, sd);
+  mat X(n_rows, n_cols);
+  X.imbue( [&]() { return distr_gaussian(RNG_engine); } );
+  return X;
+}
+
+// Uniform Random Matrix Generator
+mat RNG_uniform(int n_rows, int n_cols, double min_val, double max_val) {
+  std::uniform_real_distribution<double> distr_uniform(min_val, max_val);
+  mat X(n_rows, n_cols);
+  X.imbue( [&]() { return distr_uniform(RNG_engine); } );
+  return X;
+}
 
 // ---------------------------------------------------------------------------//
-// ACTIVATION FUNCTIONS TESTING
+// FUNCTION TESTING
 // ---------------------------------------------------------------------------//
 
-ActivationTester::ActivationTester (std::string activ_type, double rel_tol_, 
-                                    double abs_tol_) 
+FunctionTester::FunctionTester (std::string activ_type, double rel_tol_, 
+                                double abs_tol_) 
   : abs_tol(abs_tol_), rel_tol(rel_tol_) {
   
   List activ_param = List::create(Named("type") = activ_type, 
                                   Named("step_H") = 5, 
-                                  Named("step_k") = 40);
+                                  Named("step_k") = 60);
   g = ActivationFactory(activ_param);
 }
 
 // Gradient checking
 // See: http://cs231n.github.io/neural-networks-3/#gradcheck
-bool ActivationTester::gradient_check (mat X) {
+bool FunctionTester::grad_check (mat X, bool obs_wise) {
   
-  mat num_gradient = (g->eval(X + 1e-5) - g->eval(X - 1e-5)) / 2e-5;
-  mat _ = g->eval(X); // Needed because grad() reuses A from eval()
-  mat ana_gradient = g->grad(X);
+  bool grad_match;
   
-  return approx_equal(num_gradient, ana_gradient, "reldiff", rel_tol);
+  if ( obs_wise ) {
+    // OBSERVATIONWISE check (so columnwise, since function input is t(X))
+    
+    int n_obs = X.n_cols, n_class = X.n_rows;
+    IntegerVector class_idx = sample(n_class, n_obs, true) - 1;
+    vec num_grad_vec(n_obs), ana_grad_vec(n_obs);
+
+    // Numerical gradient
+    mat A_min(X), A_max(X);
+    for (int i = 0; i < n_obs; i++) {
+      A_min(class_idx[i], i) -= 1e-5;
+      A_max(class_idx[i], i) += 1e-5;
+    }
+    mat num_grad = (g->eval(A_max) - g->eval(A_min)) / 2e-5;
+    
+    // Analytical gradient
+    mat _ = g->eval(X); // Needed because grad() reuses A from eval()
+    mat ana_grad = g->grad(X);
+    
+    for (int i = 0; i < n_obs; i++) {
+      num_grad_vec[i] = num_grad(class_idx[i], i);
+      ana_grad_vec[i] = ana_grad(class_idx[i], i);
+    } 
+    
+    // Do they match?
+    grad_match = approx_equal(num_grad_vec, ana_grad_vec, "reldiff", rel_tol);
+  
+  } else {
+    // ELEMENTWISE check (each element of matrix X)
+    
+    // Numerical gradient
+    mat num_grad = (g->eval(X + 1e-5) - g->eval(X - 1e-5)) / 2e-5;
+    
+    // Analytical gradient
+    mat _ = g->eval(X); // Needed because grad() reuses A from eval()
+    mat ana_grad = g->grad(X);
+    
+    // Do they match?
+    grad_match = approx_equal(num_grad, ana_grad, "reldiff", rel_tol);
+  }
+  
+  return grad_match;
 }
 
-// Eval activation function: input, output check
-bool ActivationTester::eval_check (double in_value, double out_value) {
+// Eval Function function: input, output check
+bool FunctionTester::eval_check (double in_value, double out_value) {
   
   mat A(1,1); A.fill(in_value);
   mat B = g->eval(A);
