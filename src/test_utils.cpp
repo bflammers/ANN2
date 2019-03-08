@@ -28,11 +28,11 @@ mat RNG_uniform(int n_rows, int n_cols, double min_val, double max_val) {
 }
 
 // ---------------------------------------------------------------------------//
-// FUNCTION TESTING
+// ACTIVATION FUNCTION TESTING
 // ---------------------------------------------------------------------------//
 
-FunctionTester::FunctionTester (std::string activ_type, double rel_tol_, 
-                                double abs_tol_) 
+ActivationTester::ActivationTester (std::string activ_type, double rel_tol_, 
+                                    double abs_tol_) 
   : abs_tol(abs_tol_), rel_tol(rel_tol_) {
   
   List activ_param = List::create(Named("type") = activ_type, 
@@ -43,7 +43,7 @@ FunctionTester::FunctionTester (std::string activ_type, double rel_tol_,
 
 // Gradient checking
 // See: http://cs231n.github.io/neural-networks-3/#gradcheck
-bool FunctionTester::grad_check (mat X, bool obs_wise) {
+bool ActivationTester::grad_check (mat X, bool obs_wise) {
   
   bool grad_match;
   
@@ -53,7 +53,7 @@ bool FunctionTester::grad_check (mat X, bool obs_wise) {
     int n_obs = X.n_cols, n_class = X.n_rows;
     IntegerVector class_idx = sample(n_class, n_obs, true) - 1;
     vec num_grad_vec(n_obs), ana_grad_vec(n_obs);
-
+    
     // Numerical gradient
     mat A_min(X), A_max(X);
     for (int i = 0; i < n_obs; i++) {
@@ -69,11 +69,11 @@ bool FunctionTester::grad_check (mat X, bool obs_wise) {
     for (int i = 0; i < n_obs; i++) {
       num_grad_vec[i] = num_grad(class_idx[i], i);
       ana_grad_vec[i] = ana_grad(class_idx[i], i);
-    } 
+    }
     
     // Do they match?
     grad_match = approx_equal(num_grad_vec, ana_grad_vec, "reldiff", rel_tol);
-  
+    
   } else {
     // ELEMENTWISE check (each element of matrix X)
     
@@ -92,7 +92,7 @@ bool FunctionTester::grad_check (mat X, bool obs_wise) {
 }
 
 // Eval Function function: input, output check
-bool FunctionTester::eval_check (double in_value, double out_value) {
+bool ActivationTester::eval_check (double in_value, double out_value) {
   
   mat A(1,1); A.fill(in_value);
   mat B = g->eval(A);
@@ -100,3 +100,42 @@ bool FunctionTester::eval_check (double in_value, double out_value) {
   
   return approx_equal(B, C, "both", abs_tol, rel_tol) ;
 }
+
+// ---------------------------------------------------------------------------//
+// LOSS FUNCTION TESTING
+// ---------------------------------------------------------------------------//
+
+LossTester::LossTester (std::string loss_type, double rel_tol_, double abs_tol_)
+  : abs_tol(abs_tol_), rel_tol(rel_tol_) {
+  
+  List loss_param = List::create(Named("type") = loss_type, 
+                                 Named("huber_delta") = 1);
+  L = LossFactory(loss_param);
+}
+
+// Gradient checking
+// See: http://cs231n.github.io/neural-networks-3/#gradcheck
+bool LossTester::grad_check (arma::mat y, arma::mat y_fit, bool obs_wise) {
+  
+  // Numerical gradient
+  //mat num_grad = (L->eval(y, y_fit + 1e-5) - L->eval(y, y_fit - 1e-5)) / 2e-5;
+  
+  // Analytical gradient
+  //mat _ = L->eval(y, y_fit); // Needed because grad() reuses A from eval()
+  mat ana_grad = L->grad(y, y_fit);
+  return false;
+  //return approx_equal(num_grad, ana_grad, "reldiff", rel_tol);
+}
+
+// Eval Function function: input, output check
+bool LossTester::eval_check (double in_y, double in_y_fit, double out_value) {
+  
+  mat y(1,1), y_fit(1,1); 
+  y.fill(in_y); y_fit.fill(in_y_fit);
+  //mat B = L->eval(y, y_fit);
+  //mat C(1,1); C.fill(out_value);
+  return false;
+  //return approx_equal(B, C, "both", abs_tol, rel_tol) ;
+}
+
+

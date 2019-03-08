@@ -27,6 +27,30 @@ using namespace arma;
 // LOSS FUNCTIONS
 // ---------------------------------------------------------------------------//
 
+// // Tests for Loss functions
+// context("LOSS") {
+//   
+//   int n_rows = 4;  // No of classes since t(X) is propagated through network
+//   int n_cols = 32; // No of observations
+//   double rel_tol_kinks = 1e-4;
+//   double rel_tol_smooth = 1e-7;
+//   double abs_tol = 1e-7;
+//   
+//   // LOG Loss
+//   test_that("the log loss works correctly") {
+//     
+//     // Construct activation tester and matrix with random numbers
+//     ActivationTester LogTester("tanh", rel_tol_smooth, abs_tol);
+//     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
+//     
+//     // Run tests
+//     expect_true( TanhTester.grad_check(A) );
+//     expect_true( TanhTester.eval_check(0, 0) );
+//     expect_true( TanhTester.eval_check(1e10, 1.725) );
+//     expect_true( TanhTester.eval_check(-1e10, -1.725) );
+//   }
+// }
+
 // ---------------------------------------------------------------------------//
 // ACTIVATION FUNCTIONS
 // ---------------------------------------------------------------------------//
@@ -46,7 +70,7 @@ context("ACTIVATIONS") {
   test_that("the tanh works correctly") {
     
     // Construct activation tester and matrix with random numbers
-    FunctionTester TanhTester("tanh", rel_tol_smooth, abs_tol);
+    ActivationTester TanhTester("tanh", rel_tol_smooth, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
     
     // Run tests
@@ -60,7 +84,7 @@ context("ACTIVATIONS") {
   test_that("the sigmoid works correctly") {
     
     // Construct activation tester and matrix with random numbers
-    FunctionTester SigmoidTester("sigmoid", rel_tol_smooth, abs_tol);
+    ActivationTester SigmoidTester("sigmoid", rel_tol_smooth, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -1.0, 3.0);
     
     // Run tests
@@ -74,7 +98,7 @@ context("ACTIVATIONS") {
   test_that("the relu works correctly") {
 
     // Construct activation tester and matrix with random numbers
-    FunctionTester ReluTester("relu", rel_tol_kinks, abs_tol);
+    ActivationTester ReluTester("relu", rel_tol_kinks, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -1.0, 3.0);
 
     // Run tests
@@ -87,7 +111,7 @@ context("ACTIVATIONS") {
   test_that("the linear activation function works correctly") {
 
     // Construct activation tester and matrix with random numbers
-    FunctionTester LinearTester("linear", rel_tol_smooth, abs_tol);
+    ActivationTester LinearTester("linear", rel_tol_smooth, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
@@ -100,7 +124,7 @@ context("ACTIVATIONS") {
   test_that("the softmax works correctly") {
 
     // Construct activation tester and matrix with random numbers
-    FunctionTester SoftmaxTester("softmax", rel_tol_smooth, abs_tol);
+    ActivationTester SoftmaxTester("softmax", rel_tol_smooth, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
@@ -114,7 +138,7 @@ context("ACTIVATIONS") {
   test_that("the ramp activation function works correctly") {
 
     // Construct activation tester and matrix with random numbers
-    FunctionTester RampTester("ramp", rel_tol_kinks, abs_tol);
+    ActivationTester RampTester("ramp", rel_tol_kinks, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
@@ -128,7 +152,7 @@ context("ACTIVATIONS") {
   test_that("the step activation function works correctly") {
 
     // Construct activation tester and matrix with random numbers
-    FunctionTester StepTester("step", rel_tol_kinks, abs_tol);
+    ActivationTester StepTester("step", rel_tol_kinks, abs_tol);
     mat A = RNG_uniform(n_rows, n_cols, 0.1, 0.9); // Domain with positive grad
 
     // Run tests

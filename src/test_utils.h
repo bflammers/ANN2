@@ -5,6 +5,7 @@
 
 // Include needed header files
 #include "Activations.h"
+#include "Loss.h"
 
 // ---------------------------------------------------------------------------//
 // RANDOM NUMBER GENERATION
@@ -27,16 +28,29 @@ arma::mat RNG_uniform(int n_rows, int n_cols, double min_val = 0.0,
 // FUNCTION TESTING
 // ---------------------------------------------------------------------------//
 
-class FunctionTester 
+class ActivationTester 
 {
 private:
   double rel_tol, abs_tol;
   
 public:
   std::unique_ptr<Activation> g;
-  FunctionTester (std::string activ_type, double rel_tol_, double abs_tol_);
+  ActivationTester (std::string activ_type, double rel_tol_, double abs_tol_);
   bool grad_check (arma::mat X, bool obs_wise = false);
   bool eval_check (double in_value, double out_value);
+  
+};
+
+class LossTester 
+{
+private:
+  double rel_tol, abs_tol;
+  
+public:
+  std::unique_ptr<Loss> L;
+  LossTester (std::string loss_type, double rel_tol_, double abs_tol_);
+  bool grad_check (arma::mat y, arma::mat y_fit, bool obs_wise = false);
+  bool eval_check (double in_y, double in_y_fit, double out_value);
   
 };
 
