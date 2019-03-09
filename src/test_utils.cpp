@@ -27,6 +27,14 @@ mat RNG_uniform(int n_rows, int n_cols, double min_val, double max_val) {
   return X;
 }
 
+// Binomial Random Matrix Generator
+mat RNG_bernoulli(int n_rows, int n_cols, double p) {
+  std::bernoulli_distribution distr_bernoulli(p);
+  mat X(n_rows, n_cols);
+  X.imbue( [&]() { return distr_bernoulli(RNG_engine); } );
+  return X;
+}
+
 // ---------------------------------------------------------------------------//
 // ACTIVATION FUNCTION TESTING
 // ---------------------------------------------------------------------------//

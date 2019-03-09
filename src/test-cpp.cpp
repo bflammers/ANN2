@@ -40,12 +40,64 @@ context("LOSS") {
 
     // Construct activation tester and matrix with random numbers
     LossTester LogTester("log", rel_tol_smooth, abs_tol);
-    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
-    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y = RNG_bernoulli(n_rows, n_cols);
+    mat y_fit = RNG_uniform(n_rows, n_cols, 0.0, 1.0);
 
     // Run tests
     // expect_true( LogTester.grad_check(y, y_fit) );
     expect_true( LogTester.eval_check(1, 1, 0) );
+  }
+  
+  // SQUARED Loss
+  test_that("the squared loss works correctly") {
+    
+    // Construct activation tester and matrix with random numbers
+    LossTester SquaredTester("squared", rel_tol_smooth, abs_tol);
+    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    
+    // Run tests
+    expect_true( SquaredTester.grad_check(y, y_fit) );
+    expect_true( SquaredTester.eval_check(1, 1, 0) );
+  }
+  
+  // ABSOLUTE Loss
+  test_that("the absolute loss works correctly") {
+    
+    // Construct activation tester and matrix with random numbers
+    LossTester AbsoluteTester("absolute", rel_tol_smooth, abs_tol);
+    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    
+    // Run tests
+    expect_true( AbsoluteTester.grad_check(y, y_fit) );
+    expect_true( AbsoluteTester.eval_check(1, 1, 0) );
+  }
+  
+  // HUBER Loss
+  test_that("the huber loss works correctly") {
+    
+    // Construct activation tester and matrix with random numbers
+    LossTester HuberTester("huber", rel_tol_smooth, abs_tol);
+    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    
+    // Run tests
+    expect_true( HuberTester.grad_check(y, y_fit) );
+    expect_true( HuberTester.eval_check(1, 1, 0) );
+  }
+  
+  // PSEUDO-HUBER Loss
+  test_that("the pseudo-huber loss works correctly") {
+    
+    // Construct activation tester and matrix with random numbers
+    LossTester PseudoHuberTester("pseudo-huber", rel_tol_smooth, abs_tol);
+    mat y = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    mat y_fit = RNG_uniform(n_rows, n_cols, -1.0, 1.0);
+    
+    // Run tests
+    expect_true( PseudoHuberTester.grad_check(y, y_fit) );
+    expect_true( PseudoHuberTester.eval_check(1, 1, 0) );
   }
 }
 

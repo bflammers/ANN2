@@ -24,6 +24,9 @@ arma::mat RNG_gaussian(int n_rows, int n_cols, double mu = 0.0,
 arma::mat RNG_uniform(int n_rows, int n_cols, double min_val = 0.0, 
                       double max_val = 1.0);
 
+// Binomial Random Matrix Generator
+arma::mat RNG_bernoulli(int n_rows, int n_cols, double p = 0.5);
+
 // ---------------------------------------------------------------------------//
 // FUNCTION TESTING
 // ---------------------------------------------------------------------------//
