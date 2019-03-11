@@ -72,6 +72,9 @@ public:
   // Evaluate loss elementwise
   arma::mat evalLoss(arma::mat y, arma::mat y_fit);
   
+  arma::mat scale_y(arma::mat y, bool inverse = false);
+  arma::mat scale_X(arma::mat X, bool inverse = false);
+  
   // Methods used to read/write the network to/from file
   // These methods make a call to the serialize() method
   void write (const char* fileName);
@@ -103,6 +106,8 @@ RCPP_MODULE(ANN) {
     .method( "forwardPass", &ANN::forwardPass)
     .method( "backwardPass", &ANN::backwardPass)
     .method( "evalLoss", &ANN::evalLoss)
+    .method( "scale_X", &ANN::scale_X)
+    .method( "scale_y", &ANN::scale_y)
   ;
 }
 

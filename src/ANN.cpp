@@ -253,6 +253,24 @@ mat ANN::evalLoss(mat y, mat y_fit)
   return L->eval(y, y_fit);
 }
 
+// Method for scaling X, exposed to R level
+mat ANN::scale_X(mat X, bool inverse) 
+{
+  if (inverse) {
+    return scaler_X.unscale(X);
+  }
+  return scaler_X.scale(X);
+}
+
+// Method for scaling X, exposed to R level
+mat ANN::scale_y(mat y, bool inverse)
+{
+  if (inverse) {
+    return scaler_y.unscale(y);
+  }
+  return scaler_y.scale(y);
+}
+
 void ANN::write (const char* fileName) {
   
   {
