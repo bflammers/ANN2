@@ -62,12 +62,14 @@ mat ANN::forwardPass (mat X)
 // Forward pass through the network 
 // Error matrix E is propagated backwards through the network
 // Layer member method backward() also performs parameter updates
-void ANN::backwardPass (mat y, mat y_fit) 
+mat ANN::backwardPass (mat y, mat y_fit) 
 {
   mat E = L->grad(y, y_fit);
   for(rit = layers.rbegin(); rit != layers.rend(); ++rit) {
     E = rit->backward(E);
   }
+  // Return error matrix. This is only used for gradient checking
+  return E;
 }
 
 // Method to make a partial forward pass
@@ -148,7 +150,8 @@ void ANN::train (List data, List train_param)
       mat yb_fit = forwardPass(Xb);
       
       // Backward pass, also includes update
-      backwardPass(yb, yb_fit);
+      // Returns a Armadillo matrix. This is only used for gradient checking
+      mat _ =backwardPass(yb, yb_fit);
       
       // Track loss on scaled data
       double batch_loss = accu( L->eval(yb, yb_fit) ) / yb.n_rows;
@@ -242,6 +245,12 @@ List ANN::getParams()
   }
   return List::create(Named("weights") = weights,
                       Named("biases") = biases);
+}
+
+// Method to evaluate the loss function - exposed & used for gradient checking
+mat ANN::evalLoss(mat y, mat y_fit) 
+{
+  return L->eval(y, y_fit);
 }
 
 void ANN::write (const char* fileName) {

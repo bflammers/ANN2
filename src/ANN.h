@@ -50,7 +50,7 @@ public:
   
   // Forward and backward pass
   arma::mat forwardPass (arma::mat X);
-  void backwardPass (arma::mat y, arma::mat y_fit);
+  arma::mat backwardPass (arma::mat y, arma::mat y_fit);
   
   // Partial forward, used to get hidden layer representation
   arma::mat partialForward (arma::mat X, int i_start, int i_stop);
@@ -68,6 +68,9 @@ public:
   Rcpp::List getTrainHistory ();
   Rcpp::List getMeta();
   Rcpp::List getParams();
+  
+  // Evaluate loss elementwise
+  arma::mat evalLoss(arma::mat y, arma::mat y_fit);
   
   // Methods used to read/write the network to/from file
   // These methods make a call to the serialize() method
@@ -97,6 +100,9 @@ RCPP_MODULE(ANN) {
     .method( "read", &ANN::read)
     .method( "getMeta", &ANN::getMeta)
     .method( "getParams", &ANN::getParams)
+    .method( "forwardPass", &ANN::forwardPass)
+    .method( "backwardPass", &ANN::backwardPass)
+    .method( "evalLoss", &ANN::evalLoss)
   ;
 }
 
