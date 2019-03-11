@@ -20,12 +20,16 @@ double double_max = std::numeric_limits<double>::max();
 LogLoss::LogLoss () { type = "log"; }
 
 mat LogLoss::eval(mat y, mat y_fit) {
-  mat l = - y % log( y_fit );
-  return clamp(l, double_min, double_max);
+  y_fit = clamp(y_fit, 1e-15, 1-1e-15);
+  return - y % log( y_fit );
 }
 
 mat LogLoss::grad(mat y, mat y_fit) { 
-  return y_fit-y;
+  y_fit = clamp(y_fit, 1e-15, 1-1e-15);
+  // Only for use with Softmax activation function!
+  // Error is thrown for classification with another loss function
+  // See: https://peterroelants.github.io/posts/cross-entropy-softmax/
+  return y_fit - y; 
 }
 
 // ---------------------------------------------------------------------------//

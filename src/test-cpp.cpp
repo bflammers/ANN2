@@ -44,6 +44,8 @@ context("LOSS") {
     mat y_fit = RNG_uniform(n_rows, n_cols, 0.0, 1.0);
 
     // Run tests
+    // Gradient check for log loss function will not work because it is 
+    // implemented for use with the Softmax function. 
     // expect_true( LogTester.grad_check(y, y_fit) );
     expect_true( LogTester.eval_check(1, 1, 0) );
   }
