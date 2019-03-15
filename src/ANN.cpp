@@ -274,7 +274,7 @@ mat ANN::scale_X(mat X, bool inverse)
   return scaler_X.scale(X);
 }
 
-// Method for scaling X, exposed to R level
+// Method for scaling y, exposed to R level
 mat ANN::scale_y(mat y, bool inverse)
 {
   if (inverse) {
