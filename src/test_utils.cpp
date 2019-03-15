@@ -36,6 +36,65 @@ mat RNG_bernoulli(int n_rows, int n_cols, double p) {
 }
 
 // ---------------------------------------------------------------------------//
+// OPTIMIZER TESTING
+// ---------------------------------------------------------------------------//
+
+double OptimizerTester::rosenbrock_eval(mat params) {
+  double x = params(0,0), y = params(0,1);
+  return std::pow(1 - x, 2) + 100 * std::pow(y - std::pow(x, 2), 2);
+}
+
+double OptimizerTester::rosenbrock_eval(vec params) {
+  double x = params(0), y = params(1);
+  return std::pow(1 - x, 2) + 100 * std::pow(y - std::pow(x, 2), 2);
+}
+
+mat OptimizerTester::rosenbrock_grad(mat params) {
+  double x = params(0,0), y = params(0,1);
+  double dx = -400 * x * (y - std::pow(x, 2)) - 2 * (1 - x);
+  double dy = 200 * (y - std::pow(x, 2));
+  vec grad = {{dx, dy}};
+  return grad;
+}
+
+vec OptimizerTester::rosenbrock_grad(vec params) {
+  double x = params(0), y = params(1);
+  double dx = -400 * x * (y - std::pow(x, 2)) - 2 * (1 - x);
+  double dy = 200 * (y - std::pow(x, 2));
+  vec grad = {dx, dy};
+  return grad;
+}
+
+OptimizerTester::OptimizerTester (std::string optim_type, double abs_tol_) 
+  : abs_tol(abs_tol_) {
+  
+  W = {{1.5, 1.5}};
+  b = {1.5, 1.5};
+  
+  List optim_param = List::create(Named("type") = optim_type,
+                                  Named("learn_rate") = 1e-4,
+                                  Named("L1") = 0,
+                                  Named("L2") = 0,
+                                  Named("adam_beta1") = 0.9,
+                                  Named("adam_beta2") = 0.999,
+                                  Named("rmsprop_decay") = 0.9,
+                                  Named("sgd_momentum") = 0.9);
+  
+  O = OptimizerFactory(W, b, optim_param);
+  O->n_train = 1;
+}
+
+void OptimizerTester::step_W () {
+  mat dW = rosenbrock_grad(W);
+  W = O->updateW(W, dW, 1);
+}
+
+void OptimizerTester::step_b () {
+  b = O->updateb(b, rosenbrock_grad(b));
+}
+
+
+// ---------------------------------------------------------------------------//
 // ACTIVATION FUNCTION TESTING
 // ---------------------------------------------------------------------------//
 

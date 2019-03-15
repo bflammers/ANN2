@@ -110,11 +110,11 @@ mat PseudoHuberLoss::grad(mat y, mat y_fit) {
 std::unique_ptr<Loss> LossFactory (List loss_param)
 {
   std::string type = as<std::string>(loss_param["type"]);
-  if      (type == "log")          return std::unique_ptr<LogLoss>(new LogLoss());
-  else if (type == "squared")      return std::unique_ptr<SquaredLoss>(new SquaredLoss());
-  else if (type == "absolute")     return std::unique_ptr<AbsoluteLoss>(new AbsoluteLoss());
-  else if (type == "huber")        return std::unique_ptr<HuberLoss>(new HuberLoss(loss_param));
-  else if (type == "pseudo-huber") return std::unique_ptr<PseudoHuberLoss>(new PseudoHuberLoss(loss_param));
-  else                             return NULL;
+  if      (type == "log")          return std::unique_ptr<Loss>(new LogLoss());
+  else if (type == "squared")      return std::unique_ptr<Loss>(new SquaredLoss());
+  else if (type == "absolute")     return std::unique_ptr<Loss>(new AbsoluteLoss());
+  else if (type == "huber")        return std::unique_ptr<Loss>(new HuberLoss(loss_param));
+  else if (type == "pseudo-huber") return std::unique_ptr<Loss>(new PseudoHuberLoss(loss_param));
+  else stop("loss.type not implemented");
 }
 

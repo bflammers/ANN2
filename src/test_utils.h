@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 
 // Include needed header files
+#include "Optimizer.h"
 #include "Activations.h"
 #include "Loss.h"
 
@@ -26,6 +27,32 @@ arma::mat RNG_uniform(int n_rows, int n_cols, double min_val = 0.0,
 
 // Binomial Random Matrix Generator
 arma::mat RNG_bernoulli(int n_rows, int n_cols, double p = 0.5);
+
+// ---------------------------------------------------------------------------//
+// OPTIMIZER TESTING
+// ---------------------------------------------------------------------------//
+
+class OptimizerTester 
+{
+private:
+  double abs_tol;
+  
+public:
+  arma::mat W;
+  arma::vec b;
+  std::unique_ptr<Optimizer> O;
+  
+  OptimizerTester (std::string optim_type, double abs_tol_);
+  
+  double rosenbrock_eval(arma::mat params);
+  double rosenbrock_eval(arma::vec params);
+  arma::mat rosenbrock_grad(arma::mat params);
+  arma::vec rosenbrock_grad(arma::vec params);
+  
+  void step_W ();
+  void step_b ();
+  
+};
 
 // ---------------------------------------------------------------------------//
 // FUNCTION TESTING

@@ -22,6 +22,87 @@ using namespace arma;
 // OPTIMIZERS
 // ---------------------------------------------------------------------------//
 
+// Tests for optimizers
+context("OPTIMIZERS") {
+  
+  double abs_tol = 1e-4;
+  
+  // SGD optimizer
+  test_that("the SGD optimizer works correctly") {
+    
+    // Construct optimizer tester
+    OptimizerTester SGDTester("sgd", abs_tol);
+    
+    for (int i; i < 50000; i++) {
+      SGDTester.step_W();
+      SGDTester.step_b();
+    }
+    
+    mat W = SGDTester.W;
+    vec b = SGDTester.b;
+    
+    // Run tests
+    expect_true( std::abs(SGDTester.rosenbrock_eval(W)) < abs_tol );
+    expect_true( std::abs(SGDTester.rosenbrock_eval(b)) < abs_tol );
+    double x = W(0,0), y = W(0,1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+    x = b(0), y = b(1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+  }
+  
+  // RMSprop Loss
+  test_that("the RMSprop optimizer works correctly") {
+    
+    // Construct optimizer tester
+    OptimizerTester RMSPropTester("rmsprop", abs_tol);
+    
+    for (int i; i < 50000; i++) {
+      RMSPropTester.step_W();
+      RMSPropTester.step_b();
+    }
+    
+    mat W = RMSPropTester.W;
+    vec b = RMSPropTester.b;
+    
+    // Run tests
+    expect_true( std::abs(RMSPropTester.rosenbrock_eval(W)) < abs_tol );
+    expect_true( std::abs(RMSPropTester.rosenbrock_eval(b)) < abs_tol );
+    double x = W(0,0), y = W(0,1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+    x = b(0), y = b(1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+  }
+  
+  // Adam optimizer
+  test_that("the ADAM optimizer works correctly") {
+    
+    // Construct optimizer tester
+    OptimizerTester AdamTester("adam", abs_tol);
+    
+    for (int i; i < 50000; i++) {
+      AdamTester.step_W();
+      AdamTester.step_b();
+    }
+    
+    mat W = AdamTester.W;
+    vec b = AdamTester.b;
+    
+    // Run tests
+    expect_true( std::abs(AdamTester.rosenbrock_eval(W)) < abs_tol );
+    expect_true( std::abs(AdamTester.rosenbrock_eval(b)) < abs_tol );
+    double x = W(0,0), y = W(0,1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+    x = b(0), y = b(1);
+    expect_true( std::abs(x-1) < abs_tol );
+    expect_true( std::abs(y-1) < abs_tol );
+  }
+}
+
 // ---------------------------------------------------------------------------//
 // LOSS FUNCTIONS
 // ---------------------------------------------------------------------------//

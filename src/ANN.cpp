@@ -72,6 +72,15 @@ mat ANN::backwardPass (mat y, mat y_fit)
   return E;
 }
 
+// Update pass through the network 
+// Invokes the update() method for all layers in the network
+void ANN::updatePass ()
+{
+  for(it = layers.begin(); it != layers.end(); ++it) {
+    it->update();
+  }
+}
+
 // Method to make a partial forward pass
 // This is useful for calculating the hidden layer representation for a given
 // input matrix but also for going from a given hidden layer representation
@@ -149,9 +158,12 @@ void ANN::train (List data, List train_param)
       // Forward pass
       mat yb_fit = forwardPass(Xb);
       
-      // Backward pass, also includes update
+      // Backward pass, calculates gradients wrt. weights and biases
       // Returns a Armadillo matrix. This is only used for gradient checking
-      mat _ =backwardPass(yb, yb_fit);
+      mat _ = backwardPass(yb, yb_fit);
+      
+      // Update parameters
+      updatePass();
       
       // Track loss on scaled data
       double batch_loss = accu( L->eval(yb, yb_fit) ) / yb.n_rows;
@@ -262,7 +274,7 @@ mat ANN::scale_X(mat X, bool inverse)
   return scaler_X.scale(X);
 }
 
-// Method for scaling X, exposed to R level
+// Method for scaling y, exposed to R level
 mat ANN::scale_y(mat y, bool inverse)
 {
   if (inverse) {

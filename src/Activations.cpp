@@ -182,6 +182,6 @@ std::unique_ptr<Activation> ActivationFactory (List activ_param) {
   else if (type == "softmax") return std::unique_ptr<Activation>(new SoftMaxActivation());
   else if (type == "ramp")    return std::unique_ptr<Activation>(new RampActivation());
   else if (type == "step")    return std::unique_ptr<Activation>(new StepActivation(activ_param));
-  else                        return NULL;
+  else stop("activ.type not implemented");
 }
 
