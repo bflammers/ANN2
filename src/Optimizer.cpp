@@ -187,10 +187,10 @@ vec Adam::updateb(vec b, vec db) {
 
 std::unique_ptr<Optimizer> OptimizerFactory (mat W_templ, mat b_templ, List optim_param) {
   std::string type = as<std::string>(optim_param["type"]);
-  if    (type == "sgd")     return std::unique_ptr<Optimizer>(new SGD(W_templ, b_templ, optim_param));
-  if    (type == "rmsprop") return std::unique_ptr<Optimizer>(new RMSprop(W_templ, b_templ, optim_param));
-  if    (type == "adam")    return std::unique_ptr<Optimizer>(new Adam(W_templ, b_templ, optim_param));
-  else                      return NULL;
+  if      (type == "sgd")     return std::unique_ptr<Optimizer>(new SGD(W_templ, b_templ, optim_param));
+  else if (type == "rmsprop") return std::unique_ptr<Optimizer>(new RMSprop(W_templ, b_templ, optim_param));
+  else if (type == "adam")    return std::unique_ptr<Optimizer>(new Adam(W_templ, b_templ, optim_param));
+  else stop("optim.type not implemented");
 }
 
 

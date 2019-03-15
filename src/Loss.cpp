@@ -115,6 +115,6 @@ std::unique_ptr<Loss> LossFactory (List loss_param)
   else if (type == "absolute")     return std::unique_ptr<AbsoluteLoss>(new AbsoluteLoss());
   else if (type == "huber")        return std::unique_ptr<HuberLoss>(new HuberLoss(loss_param));
   else if (type == "pseudo-huber") return std::unique_ptr<PseudoHuberLoss>(new PseudoHuberLoss(loss_param));
-  else                             return NULL;
+  else stop("loss.type not implemented");
 }
 
