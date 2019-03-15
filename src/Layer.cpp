@@ -54,12 +54,13 @@ mat Layer::forward (mat X)
 mat Layer::backward (mat E) 
 {
   /* This method propagated the errors backward through the network
-   * Furthermore, the gradients wrt. the weights and biases are calculated
-   * and used for updating the weight matrix and bias vector using the optimizer
+   * Furthermore, the gradients wrt. the weights and biases are calculated.
+   * These are used in method update() for updating the weight matrix and bias 
+   * vector using the optimizer
    */
   
   // Determine batch size for calculating average gradient over batch
-  int batch_size = A_prev.n_cols;
+  batch_size = A_prev.n_cols;
   
   // Determine Error matrix (gradient with respect to Z = W * A_prev + b * iota)
   // This matrix is used to determine both the gradient wrt. W and b
@@ -71,20 +72,25 @@ mat Layer::backward (mat E)
   // Determine average gradient matrix wrt. the weights by matrix multiplication with 
   // the previous activation (or input matrix, in case of the first hidden layer)
   // A = g(W * A_prev + b * iota) --> dL/dW = A_prev * g'(W * A_prev + b * iota)
-  mat dW = A_prev * D / batch_size;
-  
-  // Update W, batch_size needed for scaling the regularization term
-  W = O->updateW(W, dW, batch_size);
+  dW = A_prev * D / batch_size;
   
   // Determine average gradient matrix wrt. the biases 
   // A = g(W * A_prev + b * iota) --> dL/db = iota * g'(W * A_prev + b * iota)
-  vec db = sum(D, 0).t() / batch_size;
-  
-  // Update b
-  b = O->updateb(b, db);
+  db = sum(D, 0).t() / batch_size;
   
   // Propagate errors further backwards
   return D * W;
+}
+
+// Update method - updates weights and biases using the optimizer
+// Should be called after call to backward()
+void Layer::update() 
+{
+  // Update weigths, batch_size needed for scaling the regularization term
+  W = O->updateW(W, dW, batch_size);
+  
+  // Update biases
+  b = O->updateb(b, db);
 }
 
 // Print methods - currently only used by ANN::print()

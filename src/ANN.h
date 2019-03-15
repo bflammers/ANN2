@@ -48,9 +48,10 @@ public:
   ANN(Rcpp::List data_, Rcpp::List net_param_, Rcpp::List loss_param_, 
       Rcpp::List activ_param_, Rcpp::List optim_param_);
   
-  // Forward and backward pass
+  // Forward, backward and update pass
   arma::mat forwardPass (arma::mat X);
   arma::mat backwardPass (arma::mat y, arma::mat y_fit);
+  void updatePass ();
   
   // Partial forward, used to get hidden layer representation
   arma::mat partialForward (arma::mat X, int i_start, int i_stop);
