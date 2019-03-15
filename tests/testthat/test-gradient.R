@@ -41,10 +41,10 @@ calcGradients <- function(X, y, regression, ...) {
   # Prepare targets for regression/classification
   if (regression) {
     y <- as.matrix(y)
-    y <- NN$Rcpp_ANN$scale_y(y, TRUE)
   } else {
     y <- 1 * outer(y, NN$Rcpp_ANN$getMeta()$y_names, '==')
   }
+  y <- NN$Rcpp_ANN$scale_y(y, FALSE)
   
   # Prepare features - same for regression and classification
   X <- as.matrix(X)
@@ -95,7 +95,7 @@ relCompare <- function(observed, expected, tolerance) {
   check_vec <- (rel_diff < tolerance)
   
   # Check for edge case: both gradient elements zero
-  check_vec[max_elem < 1e-14] <- TRUE # Both element approx zero
+  check_vec[max_elem < 1e-8] <- TRUE # Both element close to zero
   
   # Pass check if all numerical grads are equal to their analytical counterparts
   return ( all(check_vec) )
