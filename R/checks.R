@@ -332,9 +332,9 @@ setLossParams <- function(loss.type, huber.delta, meta) {
     stop('Do not use loss.type "log" for regression', call. = FALSE)
   }
   
-  # (WARN) use log loss for classification
+  # (ERROR) use log loss for classification
   if ( !meta$regression && loss.type != 'log' ) {
-    warning('loss.type "log" recommended for classification', call. = FALSE)
+    stop('Use loss.type "log" for classification', call. = FALSE)
   }
   
   # Checks on parameters specific to huber and pseudo-huber
