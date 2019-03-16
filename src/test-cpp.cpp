@@ -25,7 +25,8 @@ using namespace arma;
 // Tests for optimizers
 context("OPTIMIZERS") {
   
-  double abs_tol = 1e-4;
+  double abs_tol = 1e-3;
+  int n_steps = 1e5;
   
   // SGD optimizer
   test_that("the SGD optimizer works correctly") {
@@ -33,7 +34,7 @@ context("OPTIMIZERS") {
     // Construct optimizer tester
     OptimizerTester SGDTester("sgd", abs_tol);
     
-    for (int i; i < 50000; i++) {
+    for (int i; i < n_steps; i++) {
       SGDTester.step_W();
       SGDTester.step_b();
     }
@@ -58,7 +59,7 @@ context("OPTIMIZERS") {
     // Construct optimizer tester
     OptimizerTester RMSPropTester("rmsprop", abs_tol);
     
-    for (int i; i < 50000; i++) {
+    for (int i; i < n_steps; i++) {
       RMSPropTester.step_W();
       RMSPropTester.step_b();
     }
@@ -83,7 +84,7 @@ context("OPTIMIZERS") {
     // Construct optimizer tester
     OptimizerTester AdamTester("adam", abs_tol);
     
-    for (int i; i < 50000; i++) {
+    for (int i; i < n_steps; i++) {
       AdamTester.step_W();
       AdamTester.step_b();
     }
@@ -121,14 +122,14 @@ context("LOSS") {
 
     // Construct activation tester and matrix with random numbers
     LossTester LogTester("log", rel_tol_smooth, abs_tol);
-    mat y = RNG_bernoulli(n_rows, n_cols);
-    mat y_fit = RNG_uniform(n_rows, n_cols, 0.0, 1.0);
 
     // Run tests
-    // Gradient check for log loss function will not work because it is 
-    // implemented for use with the Softmax function. 
-    // expect_true( LogTester.grad_check(y, y_fit) );
+    // No gradient check for log loss function because it is implemented only 
+    // for use with the Softmax function. The implementation of grad() is not 
+    // the elementwise derivative of the eval() method
     expect_true( LogTester.eval_check(1, 1, 0) );
+    expect_true( LogTester.eval_check(0, 1, 0) );
+    expect_true( LogTester.eval_check(1, .5, 0.6931472) );
   }
   
   // SQUARED Loss
@@ -261,7 +262,9 @@ context("ACTIVATIONS") {
     mat A = RNG_uniform(n_rows, n_cols, -2.0, 2.0);
 
     // Run tests
-    expect_true( SoftmaxTester.grad_check(A, true) );
+    // No gradient check for Softmax because it is implemented only for use with 
+    // the log loss function. The implementation of grad() is not the 
+    // elementwise derivative of the eval() method
     rowvec row_sums = sum(SoftmaxTester.g->eval(A), 0);
     expect_true( approx_equal(row_sums, onesvec, "absdiff", abs_tol) );
     expect_true( SoftmaxTester.eval_check(10, 1) );
@@ -306,6 +309,8 @@ context("UTILS - Scaler class") {
   
   int n_rows = 32;
   int n_cols = 4;
+  double rel_tol = 1e-4;
+  double abs_tol = 1e-7;
   
   rowvec zerovec = zeros<rowvec>(n_cols);
   rowvec onesvec = ones<rowvec>(n_cols);
@@ -326,10 +331,10 @@ context("UTILS - Scaler class") {
     Scaler s(A, true);
     mat sA = s.scale(A);
     mat uA = s.unscale(sA);
-    expect_false( approx_equal(sA, A, "both", 0.00001, 0.001) );
-    expect_true( approx_equal(uA, A, "both", 0.00001, 0.001) );
-    expect_true( approx_equal(mean(sA), zerovec, "absdiff", 0.00001) );
-    expect_true( approx_equal(stddev(sA), onesvec, "absdiff", 0.00001) );
+    expect_false( approx_equal(sA, A, "both", abs_tol, rel_tol) );
+    expect_true( approx_equal(uA, A, "both", abs_tol, rel_tol) );
+    expect_true( approx_equal(mean(sA), zerovec, "absdiff", abs_tol) );
+    expect_true( approx_equal(stddev(sA), onesvec, "absdiff", abs_tol) );
     expect_true( sA.size() == A.size() );
     expect_true( uA.size() == A.size() );
   }

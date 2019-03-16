@@ -78,7 +78,7 @@ OptimizerTester::OptimizerTester (std::string optim_type, double abs_tol_)
                                   Named("adam_beta1") = 0.9,
                                   Named("adam_beta2") = 0.999,
                                   Named("rmsprop_decay") = 0.9,
-                                  Named("sgd_momentum") = 0.9);
+                                  Named("sgd_momentum") = 0.99);
   
   O = OptimizerFactory(W, b, optim_param);
   O->n_train = 1;

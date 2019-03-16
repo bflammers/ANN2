@@ -1,31 +1,13 @@
-# See http://cs231n.github.io/neural-networks-3/#sanitycheck
 
-# library(ANN2)
+# See http://cs231n.github.io/neural-networks-3/#gradcheck
 
 # Function to calculate numerical and analytical gradient
 calcGradients <- function(X, y, regression, ...) {
-  
-  # # Set data and relative tolerance for equality check
-  # data <- iris[sample(nrow(iris), size = 4),]
-  # X = data[,1:4]
-  # y = data[,5]
-  # regression <- FALSE
   
   # Set epsilon (for calculating numerical gradient), determine dimensions
   epsilon <- 1e-5
   n_rows <- nrow(X)
   n_cols <- ncol(X)
-  
-  # NN <- neuralnetwork(X = X, 
-  #                     y = y, 
-  #                     standardize = TRUE,
-  #                     regression = regression,
-  #                     batch.size = n_rows,
-  #                     val.prop = 0, 
-  #                     n.epochs = 1000,
-  #                     verbose = FALSE, 
-  #                     activ.functions = "tanh", 
-  #                     hidden.layers = c(10,10))
   
   # Construct NN
   NN <- neuralnetwork(X = X, 
@@ -101,11 +83,6 @@ relCompare <- function(observed, expected, tolerance) {
   return ( all(check_vec) )
 }
 
-# data <- iris[sample(nrow(iris), size = 8),]
-# grads <- calcGradients(X = data[,1:3], y = data[,4], hidden.layers = 10,
-#                        activ.functions = "linear", regression = TRUE,
-#                        loss.type = 'squared')
-
 context("Full gradient check for regression")
 
 ## ACTIVATION FUNCTIONS
@@ -129,12 +106,14 @@ test_that("the full gradient is correct for all loss functions",
 
   }
   
-  # Run tests
-  expect_error(gradCheck("log",         rel_tol_smooth)) # Throws error
+  # Run tests on gradient
   expect_true(gradCheck("squared",      rel_tol_smooth))
   expect_true(gradCheck("absolute",     rel_tol_kinks))
   expect_true(gradCheck("huber",        rel_tol_kinks))
   expect_true(gradCheck("pseudo-huber", rel_tol_kinks))
+  
+  # Check for error when log loss for regression task
+  expect_error(gradCheck("log",         rel_tol_smooth))
   
 })
 
@@ -159,7 +138,7 @@ test_that("the full gradient is correct for all activation functions",
     
   }
   
-  # Run tests
+  # Run tests on gradient
   expect_true(gradCheck("tanh",    rel_tol_smooth))
   expect_true(gradCheck("sigmoid", rel_tol_smooth))
   expect_true(gradCheck("linear",  rel_tol_smooth))
@@ -169,35 +148,44 @@ test_that("the full gradient is correct for all activation functions",
   
 })
 
-# 
-# context("Full gradient check for classification")
-# 
-# test_that("the full gradient is correct for all activation functions",
-# {
-#   # Set data and relative tolerance for equality check
-#   data <- iris[sample(nrow(iris), size = 4),]
-#   rel_tol_smooth <- 1e-7
-#   rel_tol_kinks <- 1e-4
-#   
-#   # Function to check gradient for current cases
-#   gradCheck <- function(activ.functions, rel_tol) {
-#     grads <- calcGradients(X = data[,1:4], 
-#                            y = data[,5],
-#                            hidden.layers = c(20,20,20),
-#                            activ.functions = activ.functions, 
-#                            regression = FALSE,
-#                            loss.type = 'log')
-#     return( relCompare(grads$analytic, grads$numeric, rel_tol) )
-#     
-#   }
-#   
-#   # Run tests
-#   expect_true(gradCheck("tanh",    rel_tol_smooth))
-#   expect_true(gradCheck("sigmoid", rel_tol_smooth))
-#   expect_true(gradCheck("linear",  rel_tol_smooth))
-#   expect_true(gradCheck("ramp",    rel_tol_kinks))
-#   expect_true(gradCheck("step",    rel_tol_kinks))
-#   expect_true(gradCheck("relu",    rel_tol_kinks))
-# })
+
+context("Full gradient check for classification")
+
+test_that("the full gradient is correct for all activation functions",
+{
+  # Set data and relative tolerance for equality check
+  data <- iris[sample(nrow(iris), size = 4),]
+  rel_tol_smooth <- 1e-7
+  rel_tol_kinks <- 1e-4
+
+  # Function to check gradient for current cases
+  gradCheck <- function(activ.functions, rel_tol) {
+    grads <- calcGradients(X = data[,1:4],
+                           y = data[,5],
+                           hidden.layers = c(20,20,20),
+                           activ.functions = activ.functions,
+                           regression = FALSE,
+                           loss.type = 'log')
+    return( relCompare(grads$analytic, grads$numeric, rel_tol) )
+
+  }
+
+  # Run tests on gradients
+  expect_true(gradCheck("tanh",    rel_tol_smooth))
+  expect_true(gradCheck("sigmoid", rel_tol_smooth))
+  expect_true(gradCheck("linear",  rel_tol_smooth))
+  expect_true(gradCheck("ramp",    rel_tol_kinks))
+  expect_true(gradCheck("step",    rel_tol_kinks))
+  expect_true(gradCheck("relu",    rel_tol_kinks))
+  
+  # Check for error when not using log loss for classification task
+  expect_error( neuralnetwork(X = iris[,1:4], 
+                              y = iris[,5],
+                              hidden.layers = c(20,20,20), 
+                              regression = FALSE, 
+                              loss.type = "squared", 
+                              val.prop = 0,
+                              verbose = FALSE) )
+})
 
 
