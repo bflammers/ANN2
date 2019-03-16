@@ -27,7 +27,9 @@ mat LogLoss::eval(mat y, mat y_fit) {
 mat LogLoss::grad(mat y, mat y_fit) { 
   y_fit = clamp(y_fit, 1e-15, 1-1e-15);
   // Only for use with Softmax activation function!
-  // Error is thrown for classification with another loss function
+  // This is not the elementwise derivative of the log loss function (this would
+  // be -y/y_fit ) but the derivative wrt the inputs to the softmax function. 
+  // Error is thrown for classification with another loss function!!
   // See: https://peterroelants.github.io/posts/cross-entropy-softmax/
   return y_fit - y; 
 }

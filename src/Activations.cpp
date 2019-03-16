@@ -108,8 +108,15 @@ mat SoftMaxActivation::eval(mat X)
 // Derivative softmax
 mat SoftMaxActivation::grad(mat X) 
 { 
-  // reuse A from .eval()
-  return A % (1 - A);
+  // This is not the elementwise derivative of the eval() method, as is the case
+  // for the other activation functions. However, this leads to a correct 
+  // gradient when used with log loss (and only with log loss)!! This is because
+  // the derivative of the loss function wrt the inputs to the softmax is 
+  // completely implemented in the Log loss class. 
+  // Therefore, the softmax activation is only to be used with log loss!! 
+  // Error should be thrown if this is not the case.
+  // See https://peterroelants.github.io/posts/cross-entropy-softmax/ for info
+  return X.ones(); 
 }
 
 // ---------------------------------------------------------------------------//
