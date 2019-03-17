@@ -112,9 +112,6 @@ test_that("the full gradient is correct for all loss functions",
   expect_true(gradCheck("huber",        rel_tol_kinks))
   expect_true(gradCheck("pseudo-huber", rel_tol_kinks))
   
-  # Check for error when log loss for regression task
-  expect_error(gradCheck("log",         rel_tol_smooth))
-  
 })
 
 ## ACTIVATION FUNCTIONS
@@ -162,7 +159,7 @@ test_that("the full gradient is correct for all activation functions",
   gradCheck <- function(activ.functions, rel_tol) {
     grads <- calcGradients(X = data[,1:4],
                            y = data[,5],
-                           hidden.layers = c(20,20,20),
+                           hidden.layers = c(10, 10),
                            activ.functions = activ.functions,
                            regression = FALSE,
                            loss.type = 'log')
@@ -178,14 +175,6 @@ test_that("the full gradient is correct for all activation functions",
   expect_true(gradCheck("step",    rel_tol_kinks))
   expect_true(gradCheck("relu",    rel_tol_kinks))
   
-  # Check for error when not using log loss for classification task
-  expect_error( neuralnetwork(X = iris[,1:4], 
-                              y = iris[,5],
-                              hidden.layers = c(20,20,20), 
-                              regression = FALSE, 
-                              loss.type = "squared", 
-                              val.prop = 0,
-                              verbose = FALSE) )
 })
 
 
