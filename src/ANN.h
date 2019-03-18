@@ -48,18 +48,16 @@ public:
   ANN(Rcpp::List data_, Rcpp::List net_param_, Rcpp::List loss_param_, 
       Rcpp::List activ_param_, Rcpp::List optim_param_);
   
-  // Forward and backward pass
+  // Forward, backward and update pass
   arma::mat forwardPass (arma::mat X);
-  void backwardPass (arma::mat y, arma::mat y_fit);
+  arma::mat backwardPass (arma::mat y, arma::mat y_fit);
+  void updatePass ();
   
   // Partial forward, used to get hidden layer representation
   arma::mat partialForward (arma::mat X, int i_start, int i_stop);
   
   // Predict method - calls forwardPass() after scaling
   arma::mat predict (arma::mat X);
-  
-  // Evaluates loss for a given input matrix
-  double evalLoss(arma::mat y, arma::mat X);
   
   // Train the network
   void train (Rcpp::List data, Rcpp::List train_param);
@@ -71,6 +69,12 @@ public:
   Rcpp::List getTrainHistory ();
   Rcpp::List getMeta();
   Rcpp::List getParams();
+  
+  // Evaluate loss elementwise
+  arma::mat evalLoss(arma::mat y, arma::mat y_fit);
+  
+  arma::mat scale_y(arma::mat y, bool inverse = false);
+  arma::mat scale_X(arma::mat X, bool inverse = false);
   
   // Methods used to read/write the network to/from file
   // These methods make a call to the serialize() method
@@ -100,6 +104,11 @@ RCPP_MODULE(ANN) {
     .method( "read", &ANN::read)
     .method( "getMeta", &ANN::getMeta)
     .method( "getParams", &ANN::getParams)
+    .method( "forwardPass", &ANN::forwardPass)
+    .method( "backwardPass", &ANN::backwardPass)
+    .method( "evalLoss", &ANN::evalLoss)
+    .method( "scale_X", &ANN::scale_X)
+    .method( "scale_y", &ANN::scale_y)
   ;
 }
 

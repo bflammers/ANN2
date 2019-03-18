@@ -14,6 +14,9 @@ class Layer
 {
 private:
   arma::mat A_prev, Z;
+  int batch_size;
+  arma::mat dW;
+  arma::vec db;
   
 public:
   arma::mat W;
@@ -22,10 +25,12 @@ public:
   std::unique_ptr<Activation> g;
   std::unique_ptr<Optimizer> O;
   
-  Layer ();
-  Layer(int nodes_in_, int nodes_out_, Rcpp::List activ_param_, Rcpp::List optim_param_);
+  Layer (); // Needed for serialization
+  Layer(int nodes_in_, int nodes_out_, Rcpp::List activ_param_, 
+        Rcpp::List optim_param_);
   arma::mat forward (arma::mat X);
   arma::mat backward (arma::mat E);
+  void update();
   std::string print();
 
   // Serialize

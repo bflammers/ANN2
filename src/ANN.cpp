@@ -62,11 +62,22 @@ mat ANN::forwardPass (mat X)
 // Forward pass through the network 
 // Error matrix E is propagated backwards through the network
 // Layer member method backward() also performs parameter updates
-void ANN::backwardPass (mat y, mat y_fit) 
+mat ANN::backwardPass (mat y, mat y_fit) 
 {
   mat E = L->grad(y, y_fit);
   for(rit = layers.rbegin(); rit != layers.rend(); ++rit) {
     E = rit->backward(E);
+  }
+  // Return error matrix. This is only used for gradient checking
+  return E;
+}
+
+// Update pass through the network 
+// Invokes the update() method for all layers in the network
+void ANN::updatePass ()
+{
+  for(it = layers.begin(); it != layers.end(); ++it) {
+    it->update();
   }
 }
 
@@ -111,14 +122,6 @@ mat ANN::predict (mat X)
   return y_pred;
 }
 
-// Evaluate loss, input should be scaled data
-double ANN::evalLoss(mat y, mat X)
-{
-  mat y_fit = forwardPass(X);
-  double loss_val = accu( L->eval(y, y_fit) );
-  return loss_val;
-}
-
 // Train the network!
 void ANN::train (List data, List train_param)
 {
@@ -155,13 +158,25 @@ void ANN::train (List data, List train_param)
       // Forward pass
       mat yb_fit = forwardPass(Xb);
       
-      // Backward pass, also includes update
-      backwardPass(yb, yb_fit);
+      // Backward pass, calculates gradients wrt. weights and biases
+      // Returns a Armadillo matrix. This is only used for gradient checking
+      mat _ = backwardPass(yb, yb_fit);
+      
+      // Update parameters
+      updatePass();
       
       // Track loss on scaled data
-      double batch_loss = L->eval(yb, yb_fit);
-      double val_loss = (sampler.validate) ? evalLoss(sampler.get_yv(), 
-                         sampler.get_Xv()) : 0;
+      double batch_loss = accu( L->eval(yb, yb_fit) ) / yb.n_rows;
+      
+      // Track validation loss on scaled data
+      double val_loss = 0;
+      if (sampler.validate) {
+        mat y_val_fit = forwardPass(sampler.get_Xv());
+        val_loss = accu( L->eval(sampler.get_yv(), y_val_fit) );
+        val_loss /= y_val_fit.n_rows;
+      } 
+      
+      // Add loss to tracker
       tracker.track(epoch, batch_loss, val_loss);
       
       // Check for interrupt
@@ -242,6 +257,30 @@ List ANN::getParams()
   }
   return List::create(Named("weights") = weights,
                       Named("biases") = biases);
+}
+
+// Method to evaluate the loss function - exposed & used for gradient checking
+mat ANN::evalLoss(mat y, mat y_fit) 
+{
+  return L->eval(y, y_fit);
+}
+
+// Method for scaling X, exposed to R level
+mat ANN::scale_X(mat X, bool inverse) 
+{
+  if (inverse) {
+    return scaler_X.unscale(X);
+  }
+  return scaler_X.scale(X);
+}
+
+// Method for scaling y, exposed to R level
+mat ANN::scale_y(mat y, bool inverse)
+{
+  if (inverse) {
+    return scaler_y.unscale(y);
+  }
+  return scaler_y.scale(y);
 }
 
 void ANN::write (const char* fileName) {

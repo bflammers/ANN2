@@ -20,21 +20,26 @@
 #' number of hidden layers in the network is implicitly defined by the length of
 #' this vector. Set \code{hidden.layers} to \code{NA} for a network with no hidden 
 #' layers
-#' @param regression logical indicating regression or classification
+#' @param regression logical indicating regression or classification. In case of 
+#' TRUE (regression), the activation function in the last hidden layer will be the 
+#' linear activation function (identity function). In case of FALSE (classification), 
+#' the activation function in the last hidden layer will be the softmax, and the 
+#' log loss function should be used. 
 #' @param standardize logical indicating if X and Y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
 #' @param loss.type which loss function should be used. Options are "log",
-#' "squared", "absolute", "huber" and "pseudo-huber"
+#' "squared", "absolute", "huber" and "pseudo-huber". The log loss function should 
+#' be used for classification (regression = FALSE), and ONLY for classification.
 #' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
 #' @param activ.functions character vector of activation functions to be used in 
 #' each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
 #' 'ramp' and 'step'. Should be either the size of the number of hidden layers
-#' or equal to one. If a single avtivation type is specified, this type will be 
+#' or equal to one. If a single activation type is specified, this type will be 
 #' broadcasted across the hidden layers. 
 #' @param step.H number of steps of the step activation function. Only applicable 
-#' if activ.functions includes 'step'
+#' if activ.functions includes 'step'.
 #' @param step.k parameter controlling the smoothness of the step activation 
 #' function. Larger values lead to a less smooth step function. Only applicable 
 #' if activ.functions includes 'step'.
@@ -51,16 +56,16 @@
 #' used. Set to zero for no momentum, otherwise a value between zero and one.
 #' @param rmsprop.decay level of decay in the rms term. Controls the strength
 #' of the exponential decay of the squared gradients in the term that scales the
-#' gradient before the parameter update. Common values are 0.9, 0.99 and 0.999
+#' gradient before the parameter update. Common values are 0.9, 0.99 and 0.999.
 #' @param adam.beta1 level of decay in the first moment estimate (the mean). 
-#' The recommended value is 0.9
+#' The recommended value is 0.9.
 #' @param adam.beta2 level of decay in the second moment estimate (the uncentered
-#' variance). The recommended value is 0.999
-#' @param n.epochs the number of epochs to train. This parameter largely determines
-#' the training time (one epoch is a single iteration through the training data).
+#' variance). The recommended value is 0.999.
+#' @param n.epochs the number of epochs to train. One epoch is a single iteration 
+#' through the training data.
 #' @param batch.size the number of observations to use in each batch. Batch learning
 #' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+#' batches might not result in optimal learning, see Efficient Backprop by LeCun 
 #' for details.
 #' @param drop.last logical. Only applicable if the size of the training set is not 
 #' perfectly devisible by the batch size. Determines if the last chosen observations
@@ -163,14 +168,14 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' @param standardize logical indicating if X and Y should be standardized before
 #' training the network. Recommended to leave at \code{TRUE} for faster
 #' convergence.
-#' @param loss.type which loss function should be used. Options are "log",
-#' "squared", "absolute", "huber" and "pseudo-huber"
+#' @param loss.type which loss function should be used. Options are "squared", 
+#' "absolute", "huber" and "pseudo-huber"
 #' @param huber.delta used only in case of loss functions "huber" and "pseudo-huber".
 #' This parameter controls the cut-off point between quadratic and absolute loss.
 #' @param activ.functions character vector of activation functions to be used in 
 #' each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
 #' 'ramp' and 'step'. Should be either the size of the number of hidden layers
-#' or equal to one. If a single avtivation type is specified, this type will be 
+#' or equal to one. If a single activation type is specified, this type will be 
 #' broadcasted across the hidden layers. 
 #' @param step.H number of steps of the step activation function. Only applicable 
 #' if activ.functions includes 'step'
@@ -195,11 +200,11 @@ neuralnetwork <- function(X, y, hidden.layers, regression = FALSE,
 #' The recommended value is 0.9
 #' @param adam.beta2 level of decay in the second moment estimate (the uncentered
 #' variance). The recommended value is 0.999
-#' @param n.epochs the number of epochs to train. This parameter largely determines
-#' the training time (one epoch is a single iteration through the training data).
+#' @param n.epochs the number of epochs to train. One epoch is a single iteration 
+#' through the training data.
 #' @param batch.size the number of observations to use in each batch. Batch learning
 #' is computationally faster than stochastic gradient descent. However, large
-#' batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+#' batches might not result in optimal learning, see Efficient Backprop by LeCun 
 #' for details.
 #' @param drop.last logical. Only applicable if the size of the training set is not
 #' perfectly devisible by the batch size. Determines if the last chosen observations
@@ -405,7 +410,7 @@ reconstruct <- function(object, X) {
   
   # Make reconstruction, calculate the anomaly scores
   fit <- object$Rcpp_ANN$predict(X)
-  colnames(fit) <- meta$names
+  colnames(fit) <- meta$y_names
   err <- rowSums( (fit - X)^2 ) / meta$n_out
   
   # Construct function output
@@ -611,6 +616,11 @@ decode.ANN <- function(object, compressed, compression.layer = NULL, ...) {
     if ( sum( hidden_layers[compression.layer] == hidden_layers) > 1 ) {
       stop('Ambiguous compression layer, specify compression.layer', call. = FALSE)
     } 
+  }
+  
+  # (ERROR) incorrect number of columns of input data
+  if ( ncol(X) != hidden_layers[compression.layer] ) {
+    stop('Input data incorrect number of columns', call. = FALSE)
   }
   
   # Predict and set column names

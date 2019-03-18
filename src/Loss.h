@@ -13,7 +13,7 @@
 class Loss {
 public: 
   std::string type;
-  virtual double eval(arma::mat y, arma::mat y_fit) = 0;
+  virtual arma::mat eval(arma::mat y, arma::mat y_fit) = 0;
   virtual arma::mat grad(arma::mat y, arma::mat y_fit) = 0;
 };
 
@@ -25,7 +25,7 @@ class LogLoss : public Loss
 {
 public:
   LogLoss ();
-  double eval (arma::mat y, arma::mat y_fit);
+  arma::mat eval (arma::mat y, arma::mat y_fit);
   arma::mat grad (arma::mat y, arma::mat y_fit);
   
   template<class Archive>
@@ -47,7 +47,7 @@ class SquaredLoss : public Loss
 {
 public:
   SquaredLoss ();
-  double eval(arma::mat y, arma::mat y_fit);
+  arma::mat eval(arma::mat y, arma::mat y_fit);
   arma::mat grad(arma::mat y, arma::mat y_fit);
   
   template<class Archive>
@@ -68,7 +68,7 @@ class AbsoluteLoss : public Loss
 {
 public:
   AbsoluteLoss ();
-  double eval(arma::mat y, arma::mat y_fit);
+  arma::mat eval(arma::mat y, arma::mat y_fit);
   arma::mat grad(arma::mat y, arma::mat y_fit);
   
   template<class Archive>
@@ -92,7 +92,7 @@ private:
 public:
   HuberLoss();
   HuberLoss(Rcpp::List loss_param_);
-  double eval(arma::mat y, arma::mat y_fit);
+  arma::mat eval(arma::mat y, arma::mat y_fit);
   arma::mat grad(arma::mat y, arma::mat y_fit);
   
   template<class Archive>
@@ -116,7 +116,7 @@ private:
 public:
   PseudoHuberLoss();
   PseudoHuberLoss(Rcpp::List loss_param_);
-  double eval(arma::mat y, arma::mat y_fit);
+  arma::mat eval(arma::mat y, arma::mat y_fit);
   arma::mat grad(arma::mat y, arma::mat y_fit);
   
   template<class Archive>

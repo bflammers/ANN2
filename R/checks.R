@@ -275,7 +275,7 @@ setOptimParams <- function(optim.type, learn.rates, L1, L2, sgd.momentum,
     }
     
     # (ERROR) adam.beta2 incorrect value
-    if ( adam.beta1 >= 2 || adam.beta2 <= 0 ) {
+    if ( adam.beta2 >= 1 || adam.beta2 <= 0 ) {
       stop('adam.beta2 should be between zero and one', call. = FALSE)
     }
     
@@ -332,9 +332,9 @@ setLossParams <- function(loss.type, huber.delta, meta) {
     stop('Do not use loss.type "log" for regression', call. = FALSE)
   }
   
-  # (WARN) use log loss for classification
+  # (ERROR) use log loss for classification
   if ( !meta$regression && loss.type != 'log' ) {
-    warning('loss.type "log" recommended for classification', call. = FALSE)
+    stop('Use loss.type "log" for classification', call. = FALSE)
   }
   
   # Checks on parameters specific to huber and pseudo-huber
