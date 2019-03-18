@@ -61,7 +61,7 @@ public:
 class ActivationTester 
 {
 private:
-  double rel_tol, abs_tol;
+  double abs_tol, rel_tol;
   
 public:
   std::unique_ptr<Activation> g;
@@ -74,7 +74,7 @@ public:
 class LossTester 
 {
 private:
-  double rel_tol, abs_tol;
+  double abs_tol, rel_tol;
   
 public:
   std::unique_ptr<Loss> L;
