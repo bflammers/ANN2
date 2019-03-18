@@ -24,8 +24,8 @@ layers}
 training the network. Recommended to leave at \code{TRUE} for faster
 convergence.}
 
-\item{loss.type}{which loss function should be used. Options are "log",
-"quadratic", "absolute", "huber" and "pseudo-huber"}
+\item{loss.type}{which loss function should be used. Options are "squared", 
+"absolute", "huber" and "pseudo-huber"}
 
 \item{huber.delta}{used only in case of loss functions "huber" and "pseudo-huber".
 This parameter controls the cut-off point between quadratic and absolute loss.}
@@ -33,7 +33,7 @@ This parameter controls the cut-off point between quadratic and absolute loss.}
 \item{activ.functions}{character vector of activation functions to be used in 
 each hidden layer. Possible options are 'tanh', 'sigmoid', 'relu', 'linear', 
 'ramp' and 'step'. Should be either the size of the number of hidden layers
-or equal to one. If a single avtivation type is specified, this type will be 
+or equal to one. If a single activation type is specified, this type will be 
 broadcasted across the hidden layers.}
 
 \item{step.H}{number of steps of the step activation function. Only applicable 
@@ -69,12 +69,12 @@ The recommended value is 0.9}
 \item{adam.beta2}{level of decay in the second moment estimate (the uncentered
 variance). The recommended value is 0.999}
 
-\item{n.epochs}{the number of epochs to train. This parameter largely determines
-the training time (one epoch is a single iteration through the training data).}
+\item{n.epochs}{the number of epochs to train. One epoch is a single iteration 
+through the training data.}
 
 \item{batch.size}{the number of observations to use in each batch. Batch learning
 is computationally faster than stochastic gradient descent. However, large
-batches might not result in optimal learning, see Efficient Backprop by Le Cun 
+batches might not result in optimal learning, see Efficient Backprop by LeCun 
 for details.}
 
 \item{drop.last}{logical. Only applicable if the size of the training set is not
