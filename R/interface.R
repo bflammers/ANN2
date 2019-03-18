@@ -405,7 +405,7 @@ reconstruct <- function(object, X) {
   
   # Make reconstruction, calculate the anomaly scores
   fit <- object$Rcpp_ANN$predict(X)
-  colnames(fit) <- meta$names
+  colnames(fit) <- meta$y_names
   err <- rowSums( (fit - X)^2 ) / meta$n_out
   
   # Construct function output
