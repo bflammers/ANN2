@@ -275,7 +275,7 @@ setOptimParams <- function(optim.type, learn.rates, L1, L2, sgd.momentum,
     }
     
     # (ERROR) adam.beta2 incorrect value
-    if ( adam.beta1 >= 2 || adam.beta2 <= 0 ) {
+    if ( adam.beta2 >= 1 || adam.beta2 <= 0 ) {
       stop('adam.beta2 should be between zero and one', call. = FALSE)
     }
     
