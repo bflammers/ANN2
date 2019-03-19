@@ -16,10 +16,11 @@ using namespace arma;
 context("Tests for optimizers") {
   
   double abs_tol = 1e-3;
-  int n_steps = 1e5;
   
   // SGD optimizer
   test_that("the SGD optimizer works correctly") {
+    
+    int n_steps = 100000;
     
     // Construct optimizer tester
     OptimizerTester SGDTester("sgd", abs_tol);
@@ -44,10 +45,13 @@ context("Tests for optimizers") {
     expect_true( std::abs(W_y-1) < abs_tol );
     expect_true( std::abs(b_x-1) < abs_tol );
     expect_true( std::abs(b_y-1) < abs_tol );
+    
   }
   
   // RMSprop Loss
   test_that("the RMSprop optimizer works correctly") {
+    
+    int n_steps = 100000;
     
     // Construct optimizer tester
     OptimizerTester RMSPropTester("rmsprop", abs_tol);
@@ -72,10 +76,13 @@ context("Tests for optimizers") {
     expect_true( std::abs(W_y-1) < abs_tol );
     expect_true( std::abs(b_x-1) < abs_tol );
     expect_true( std::abs(b_y-1) < abs_tol );
+    
   }
   
   // Adam optimizer
   test_that("the ADAM optimizer works correctly") {
+    
+    int n_steps = 100000;
     
     // Construct optimizer tester
     OptimizerTester AdamTester("adam", abs_tol);
@@ -100,5 +107,6 @@ context("Tests for optimizers") {
     expect_true( std::abs(W_y-1) < abs_tol );
     expect_true( std::abs(b_x-1) < abs_tol );
     expect_true( std::abs(b_y-1) < abs_tol );
+    
   }
 }
