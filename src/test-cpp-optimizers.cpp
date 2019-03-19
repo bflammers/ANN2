@@ -31,9 +31,11 @@ context("Tests for optimizers") {
     
     // Get x, y values from OptimizerTester object
     mat W = SGDTester.W;
-    double W_x = W(0,0), W_y = W(0,1);
+    double W_x = W(0,0);
+    double W_y = W(0,1);
     vec b = SGDTester.b;
-    double b_x = b(0), b_y = b(1);
+    double b_x = b(0);
+    double b_y = b(1);
     
     // Run tests
     expect_true( std::abs(SGDTester.rosenbrock_eval(W)) < abs_tol );
@@ -57,9 +59,11 @@ context("Tests for optimizers") {
     
     // Get x, y values from OptimizerTester object
     mat W = RMSPropTester.W;
-    double W_x = W(0,0), W_y = W(0,1);
+    double W_x = W(0,0);
+    double W_y = W(0,1);
     vec b = RMSPropTester.b;
-    double b_x = b(0), b_y = b(1);
+    double b_x = b(0);
+    double b_y = b(1);
     
     // Run tests
     expect_true( std::abs(RMSPropTester.rosenbrock_eval(W)) < abs_tol );
@@ -83,9 +87,11 @@ context("Tests for optimizers") {
     
     // Get x, y values from OptimizerTester object
     mat W = AdamTester.W;
-    double W_x = W(0,0), W_y = W(0,1);
+    double W_x = W(0,0);
+    double W_y = W(0,1);
     vec b = AdamTester.b;
-    double b_x = b(0), b_y = b(1);
+    double b_x = b(0);
+    double b_y = b(1);
     
     // Run tests
     expect_true( std::abs(AdamTester.rosenbrock_eval(W)) < abs_tol );
