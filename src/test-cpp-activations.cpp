@@ -15,8 +15,8 @@ using namespace arma;
 // Tests for Activation functions
 context("Tests for activation functions") {
   
-  int n_rows = 4;  // No of classes since t(X) is propagated through network
-  int n_cols = 32; // No of observations
+  int n_rows = 3; // No of classes since t(X) is propagated through network
+  int n_cols = 4; // No of observations
   double rel_tol_kinks = 1e-4;
   double rel_tol_smooth = 1e-7;
   double abs_tol = 1e-7;

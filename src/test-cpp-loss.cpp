@@ -15,8 +15,8 @@ using namespace arma;
 // Tests for Loss functions
 context("Tests for loss functions") {
 
-  int n_rows = 8; // No of observations
-  int n_cols = 4;  // No of classes
+  int n_rows = 4; // No of observations
+  int n_cols = 3; // No of classes
   double rel_tol_kinks = 1e-4;
   double rel_tol_smooth = 1e-7;
   double abs_tol = 1e-7;

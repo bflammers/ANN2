@@ -1,3 +1,4 @@
+
 context("Serializing and deserializing")
 
 test_that("the NN is correctly written to and read from disk",

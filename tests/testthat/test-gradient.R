@@ -98,7 +98,7 @@ test_that("the full gradient is correct for all loss functions",
   gradCheck <- function(loss.type, rel_tol) {
     grads <- calcGradients(X = data[,1:3], 
                            y = data[,4],
-                           hidden.layers = c(10,10),
+                           hidden.layers = c(5,5),
                            activ.functions = "tanh", 
                            regression = TRUE,
                            loss.type = loss.type)
@@ -107,6 +107,9 @@ test_that("the full gradient is correct for all loss functions",
   }
   
   # Run tests on gradient
+  # The gradient checks sometimes fail by chance (especially with functions 
+  # that contain kinks such as the ramp, step and relu) so do not run on CRAN
+  skip_on_cran() 
   expect_true(gradCheck("squared",      rel_tol_smooth))
   expect_true(gradCheck("absolute",     rel_tol_kinks))
   expect_true(gradCheck("huber",        rel_tol_kinks))
@@ -127,7 +130,7 @@ test_that("the full gradient is correct for all activation functions",
   gradCheck <- function(activ.functions, rel_tol) {
     grads <- calcGradients(X = data[,1:3], 
                            y = data[,4],
-                           hidden.layers = c(10,10),
+                           hidden.layers = c(5,5),
                            activ.functions = activ.functions, 
                            regression = TRUE,
                            loss.type = 'squared')
@@ -136,6 +139,9 @@ test_that("the full gradient is correct for all activation functions",
   }
   
   # Run tests on gradient
+  # The gradient checks sometimes fail by chance (especially with functions 
+  # that contain kinks such as the ramp, step and relu) so do not run on CRAN
+  skip_on_cran() 
   expect_true(gradCheck("tanh",    rel_tol_smooth))
   expect_true(gradCheck("sigmoid", rel_tol_smooth))
   expect_true(gradCheck("linear",  rel_tol_smooth))
@@ -159,7 +165,7 @@ test_that("the full gradient is correct for all activation functions",
   gradCheck <- function(activ.functions, rel_tol) {
     grads <- calcGradients(X = data[,1:4],
                            y = data[,5],
-                           hidden.layers = c(10, 10),
+                           hidden.layers = c(5, 5),
                            activ.functions = activ.functions,
                            regression = FALSE,
                            loss.type = 'log')
@@ -168,6 +174,9 @@ test_that("the full gradient is correct for all activation functions",
   }
 
   # Run tests on gradients
+  # The gradient checks sometimes fail by chance (especially with functions 
+  # that contain kinks such as the ramp, step and relu) so do not run on CRAN
+  skip_on_cran() 
   expect_true(gradCheck("tanh",    rel_tol_smooth))
   expect_true(gradCheck("sigmoid", rel_tol_smooth))
   expect_true(gradCheck("linear",  rel_tol_smooth))
