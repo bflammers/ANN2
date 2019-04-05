@@ -34,15 +34,12 @@ arma::mat RNG_bernoulli(int n_rows, int n_cols, double p = 0.5);
 
 class OptimizerTester 
 {
-private:
-  double abs_tol;
-  
 public:
   arma::mat W;
   arma::vec b;
   std::unique_ptr<Optimizer> O;
   
-  OptimizerTester (std::string optim_type, double abs_tol_);
+  OptimizerTester (std::string optim_type);
   
   double rosenbrock_eval(arma::mat params);
   double rosenbrock_eval(arma::vec params);

@@ -22,7 +22,7 @@ context("Tests for optimizers") {
   test_that("the SGD optimizer works correctly") {
     
     // Construct optimizer tester
-    OptimizerTester SGDTester("sgd", abs_tol);
+    OptimizerTester SGDTester("sgd");
     
     // Perform update steps
     for (int i = 0; i < n_steps; i++) {
@@ -52,7 +52,7 @@ context("Tests for optimizers") {
   test_that("the RMSprop optimizer works correctly") {
     
     // Construct optimizer tester
-    OptimizerTester RMSPropTester("rmsprop", abs_tol);
+    OptimizerTester RMSPropTester("rmsprop");
     
     // Perform update steps
     for (int i = 0; i < n_steps; i++) {
@@ -82,7 +82,7 @@ context("Tests for optimizers") {
   test_that("the ADAM optimizer works correctly") {
     
     // Construct optimizer tester
-    OptimizerTester AdamTester("adam", abs_tol);
+    OptimizerTester AdamTester("adam");
     
     // Perform update steps
     for (int i = 0; i < n_steps; i++) {

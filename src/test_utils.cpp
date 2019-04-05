@@ -65,8 +65,7 @@ vec OptimizerTester::rosenbrock_grad(vec params) {
   return grad;
 }
 
-OptimizerTester::OptimizerTester (std::string optim_type, double abs_tol_) 
-  : abs_tol(abs_tol_) {
+OptimizerTester::OptimizerTester (std::string optim_type) {
   
   W = {{1.5, 1.5}};
   b = {1.5, 1.5};
