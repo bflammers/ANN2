@@ -4,6 +4,23 @@ language: R
 sudo: false
 cache: packages
 
+matrix:
+  include:
+    - r: oldrel
+      os: linux
+      dist: trusty
+      sudo: false
+    - r: release
+      os: linux
+      dist: trusty
+      sudo: false
+    - r: devel
+      os: linux
+      dist: trusty
+      sudo: false
+    - r: release
+      os: osx
+
 r_packages:
   - covr
 
