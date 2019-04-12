@@ -42,7 +42,7 @@ AE <- autoencoder(X = X,
 
 test_that("the neuralnetwork() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   expect_s3_class(NN_regr, 'ANN')
   expect_s3_class(NN_class, 'ANN')
@@ -99,7 +99,7 @@ test_that("the neuralnetwork() function works correctly",
 
 test_that("the autoencoder() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   expect_s3_class(AE, 'ANN')
   expect_s4_class(AE$Rcpp_ANN, 'Rcpp_ANN')
@@ -119,7 +119,7 @@ test_that("the autoencoder() function works correctly",
   
 test_that("the predict() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   y_regr_pred <- predict(NN_regr, X)
   y_class_pred <- predict(NN_class, X)
@@ -155,7 +155,7 @@ test_that("the predict() function works correctly",
 
 test_that("the train() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   n_epoch <- 25
   
@@ -181,7 +181,7 @@ test_that("the train() function works correctly",
 
 test_that("the reconstruct() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   expect_error(reconstruct(NN_class, X))
   expect_error(reconstruct(NN_regr, X))
@@ -205,7 +205,7 @@ callAE <- function(hidden_layers) {
 
 test_that("the encode() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   expect_equal( dim(X_enc), c(n_rows, AE_dims[2]) )
   expect_equal( colnames(X_enc), paste0('node_', 1:AE_dims[2]) )
@@ -218,7 +218,7 @@ test_that("the encode() function works correctly",
 
 test_that("the decode() function works correctly",
 {
-  skip_on_cran()
+  skip_on_os("mac")
   
   expect_equal( dim(X_dec), dim(X) )
   expect_equal( colnames(X_dec), X_names )
