@@ -19,6 +19,9 @@ matrix:
       sudo: false
     - r: release
       os: osx
+      env:
+        global:
+          - NOT_CRAN=FALSE
 
 r_packages:
   - covr
