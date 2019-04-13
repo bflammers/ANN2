@@ -3,8 +3,6 @@ context("Serializing and deserializing")
 
 test_that("the NN is correctly written to and read from disk",
 {
-  skip_on_os("mac")
-  
   # Construct network
   wNN <- neuralnetwork(X = iris[,1:4], 
                        y = iris$Species, 

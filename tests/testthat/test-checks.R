@@ -3,8 +3,7 @@ context("Test checks on user input")
 
 test_that("the checks for neuralnetwork() work correctly",
 {
-  skip_on_os("mac")
-  
+
   nnCall <- function(...) {
     
     default_args <- list(
@@ -67,7 +66,6 @@ test_that("the checks for neuralnetwork() work correctly",
 
 test_that("the checks for autoencoder() work correctly",
 {
-  skip_on_os("mac")
   
   aeCall <- function(...) {
     

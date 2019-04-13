@@ -22,8 +22,6 @@ AE <- autoencoder(X = X,
 
 test_that("the plot.ANN() function works correctly",
 {
-  skip_on_os("mac")
-  
   p_NN <- plot(NN) 
   p_AE <- plot(AE) 
   
@@ -47,8 +45,6 @@ test_that("the plot.ANN() function works correctly",
 
 test_that("the reconstruction_plot.ANN() function works correctly",
 {
-  skip_on_os("mac")
-  
   expect_error(reconstruction_plot(NN, X = X) )
   expect_error(reconstruction_plot(AE) )
   
@@ -68,8 +64,6 @@ test_that("the reconstruction_plot.ANN() function works correctly",
 
 test_that("the compression_plot.ANN() function works correctly",
 {
-  skip_on_os("mac")
-  
   expect_error(compression_plot(AE) )
   
   p_AE <- compression_plot(AE, X = X) 
