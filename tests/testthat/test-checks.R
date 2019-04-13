@@ -1,10 +1,9 @@
 
-
 context("Test checks on user input")
 
 test_that("the checks for neuralnetwork() work correctly",
 {
-  
+
   nnCall <- function(...) {
     
     default_args <- list(

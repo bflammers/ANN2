@@ -88,6 +88,7 @@ context("Full gradient check for regression")
 ## ACTIVATION FUNCTIONS
 test_that("the full gradient is correct for all loss functions",
 {
+  skip_on_cran()
   
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),  1:4]
@@ -109,7 +110,6 @@ test_that("the full gradient is correct for all loss functions",
   # Run tests on gradient
   # The gradient checks sometimes fail by chance (especially with functions 
   # that contain kinks such as the ramp, step and relu) so do not run on CRAN
-  skip_on_cran() 
   expect_true(gradCheck("squared",      rel_tol_smooth))
   expect_true(gradCheck("absolute",     rel_tol_kinks))
   expect_true(gradCheck("huber",        rel_tol_kinks))
@@ -120,6 +120,7 @@ test_that("the full gradient is correct for all loss functions",
 ## ACTIVATION FUNCTIONS
 test_that("the full gradient is correct for all activation functions",
 {
+  skip_on_cran()
   
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),  1:4]
@@ -141,7 +142,6 @@ test_that("the full gradient is correct for all activation functions",
   # Run tests on gradient
   # The gradient checks sometimes fail by chance (especially with functions 
   # that contain kinks such as the ramp, step and relu) so do not run on CRAN
-  skip_on_cran() 
   expect_true(gradCheck("tanh",    rel_tol_smooth))
   expect_true(gradCheck("sigmoid", rel_tol_smooth))
   expect_true(gradCheck("linear",  rel_tol_smooth))
@@ -156,6 +156,8 @@ context("Full gradient check for classification")
 
 test_that("the full gradient is correct for all activation functions",
 {
+  skip_on_cran()
+  
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),]
   rel_tol_smooth <- 1e-7
@@ -176,7 +178,6 @@ test_that("the full gradient is correct for all activation functions",
   # Run tests on gradients
   # The gradient checks sometimes fail by chance (especially with functions 
   # that contain kinks such as the ramp, step and relu) so do not run on CRAN
-  skip_on_cran() 
   expect_true(gradCheck("tanh",    rel_tol_smooth))
   expect_true(gradCheck("sigmoid", rel_tol_smooth))
   expect_true(gradCheck("linear",  rel_tol_smooth))
