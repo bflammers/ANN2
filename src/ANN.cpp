@@ -1,4 +1,3 @@
-// [[Rcpp::depends(Rcereal)]]
 // [[Rcpp::depends(RcppArmadillo)]]
 
 #include <RcppArmadillo.h>
