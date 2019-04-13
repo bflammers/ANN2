@@ -17,8 +17,8 @@ matrix:
       os: linux
       dist: trusty
       sudo: false
-    - r: release
-      os: osx
+    # - r: release
+    #   os: osx
 
 r_packages:
   - covr
