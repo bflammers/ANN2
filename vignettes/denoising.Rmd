@@ -1,0 +1,68 @@
+---
+title: "Denoising timeseries with ANN2"
+author: "Bart Lammers"
+date: "2020-01-04"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Denoising timeseries with ANN2}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r message=FALSE}
+library(ANN2)
+library(dplyr)
+```
+
+Function to generate random time series with the following optional characteristics:
+
+* Peaks
+* Trend
+* Seasonality
+
+```{r}
+generate_ts <- function(n, n_peaks=5, trend=TRUE, seasonality=TRUE) {
+  
+  df <- data.frame(t = 1:n, peaks = 0, ts = rnorm(n, sd = 0.3))
+  
+  if (trend) {
+    df$ts <- cumsum(df$ts)
+  }
+  
+  if (seasonality) {
+    df$ts <- df$ts + 2 * sin(df$t / 10) + sin (df$t / 20 + 1)
+  }
+  
+  if (n_peaks > 0) {
+    idx_start <- sample(df$t, size = 1)
+    idx_stop <- min(n, idx_start + 50 * n_peaks)
+    idx_peaks <- sample(idx_start:idx_stop, size=n_peaks)
+    
+    df$ts[idx_peaks] <- df$ts[idx_peaks] + runif(-30, 30, n=n_peaks)
+    df$peaks <- df$t %in% idx_peaks
+  }
+  
+  return( df )
+}
+
+# Generate timeseries and plot
+df <- generate_ts(1825, n_peaks = 3, trend = TRUE)
+plot(df$t, df$ts, type = 'l')
+```
+
+
+
+```{r}
+lag_ts <- function(df, n_lags) {
+  
+  if (n_lags == 0) {
+    return (df)
+  }
+  
+  for (lag in 1:n_lags) {
+    df[paste0('ts_lag', lag)] <- dplyr::lag(df$ts, n = lag)
+  }
+  
+  return( df %>% na.omit() )
+}
+```

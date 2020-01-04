@@ -1,10 +1,10 @@
 ---
-title: "Neural networks with ANN2"
+title: "Anomaly detection with ANN2"
 author: "Bart Lammers"
 date: "2020-01-04"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Neural networks with ANN2}
+  %\VignetteIndexEntry{Anomaly detection with ANN2}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
