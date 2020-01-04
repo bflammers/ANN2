@@ -25,5 +25,6 @@ SystemRequirements: C++11
 Imports: Rcpp (>= 0.12.18), reshape2 (>= 1.4.3), ggplot2 (>= 3.0.0), 
     viridisLite (>= 0.3.0), methods
 LinkingTo: Rcpp, RcppArmadillo, testthat
-Suggests: testthat
+Suggests: testthat, knitr, rmarkdown
+VignetteBuilder: knitr
 RoxygenNote: 6.1.1
