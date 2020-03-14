@@ -17,7 +17,7 @@ Description: Training of neural networks for classification and regression tasks
     options for optimization algorithms are RMSprop, Adam and SGD with momentum.
     The package contains a vectorized C++ implementation that facilitates 
     fast training through mini-batch learning.
-License: GPL (>= 3)
+License: GPL (>= 3) | file LICENCE
 URL: https://github.com/bflammers/ANN2
 Encoding: UTF-8
 LazyData: true
