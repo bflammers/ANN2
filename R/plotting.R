@@ -90,7 +90,7 @@ reconstruction_plot.ANN <- function(object, X, colors = NULL, ...) {
   values  <- apply( dim_combinations, 2, function(dc)  X[,dc] )
   recs    <- apply( dim_combinations, 2, function(dc) rX[,dc] )
   dims    <- matrix( dim_names[rep(dim_combinations, each = n_row)], ncol = 2)
-  df_plot <- data.frame(dims, values, recs)
+  df_plot <- data.frame(dims, values, recs, stringsAsFactors = TRUE)
   colnames(df_plot) <- c('x_dim', 'y_dim', 'x_val', 'y_val', 'x_rec', 'y_rec')
   
   # Create data.frame for x and y values seperately in order to create the 
@@ -168,7 +168,7 @@ compression_plot.ANN <- function(object, X, colors = NULL, jitter = FALSE, ...) 
   dim_combinations <- as.matrix( expand.grid(seq_len(n_col), seq_len(n_col)) )
   compr   <- apply( dim_combinations, 2, function(dc) cX[,dc] )
   dims    <- matrix( dim_names[rep(dim_combinations, each = n_row)], ncol = 2)
-  df_plot <- data.frame(dims, compr)
+  df_plot <- data.frame(dims, compr, stringsAsFactors = TRUE)
   colnames(df_plot) <- c('x_dim', 'y_dim', 'x_compr', 'y_compr')
   
   if ( !is.null(colors) || !all(is.na(colors)) ) {
