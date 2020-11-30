@@ -12,6 +12,7 @@
 
 class Loss {
 public: 
+  virtual ~Loss() {};
   std::string type;
   virtual arma::mat eval(arma::mat y, arma::mat y_fit) = 0;
   virtual arma::mat grad(arma::mat y, arma::mat y_fit) = 0;

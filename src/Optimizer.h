@@ -15,6 +15,7 @@
 
 class Optimizer {
 public:
+  virtual ~Optimizer () {};
   int n_train;
   std::string type;
   virtual arma::mat updateW(arma::mat W, arma::mat dW, int batch_size) = 0;

@@ -14,6 +14,7 @@
 
 class Activation {
 public: 
+  virtual ~Activation () {};
   std::string type;
   virtual arma::mat eval(arma::mat X) = 0;
   virtual arma::mat grad(arma::mat X) = 0;
