@@ -7,12 +7,12 @@
 using namespace Rcpp;
 
 
-RcppExport SEXP run_testthat_tests();
+RcppExport SEXP run_testthat_tests(SEXP);
 RcppExport SEXP _rcpp_module_boot_ANN();
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rcpp_module_boot_ANN", (DL_FUNC) &_rcpp_module_boot_ANN, 0},
-    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 0},
+    {"run_testthat_tests", (DL_FUNC) &run_testthat_tests, 1},
     {NULL, NULL, 0}
 };
 
