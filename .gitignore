@@ -8,3 +8,4 @@
 *.o
 *.gcno
 .Rproj.user
+.DS_Store
