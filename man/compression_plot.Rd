@@ -7,8 +7,7 @@
 \usage{
 compression_plot(object, ...)
 
-\method{compression_plot}{ANN}(object, X, colors = NULL,
-  jitter = FALSE, ...)
+\method{compression_plot}{ANN}(object, X, colors = NULL, jitter = FALSE, ...)
 }
 \arguments{
 \item{object}{autoencoder object of class \code{ANN}}

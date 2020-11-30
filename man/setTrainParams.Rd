@@ -4,8 +4,7 @@
 \alias{setTrainParams}
 \title{Check user input related to training}
 \usage{
-setTrainParams(n.epochs, batch.size, val.prop, drop.last, random.seed,
-  data)
+setTrainParams(n.epochs, batch.size, val.prop, drop.last, random.seed, data)
 }
 \description{
 Set training parameters

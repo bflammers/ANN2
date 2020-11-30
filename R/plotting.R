@@ -1,14 +1,13 @@
 
 #' @title Plot training and validation loss
 #' @description \code{plot} Generate plots of the loss against epochs
-#' @details A genereric function for training neural nets
+#' @details A generic function for plot loss of neural net
 #' @method plot ANN
 #' @param x Object of class \code{ANN}
 #' @param max.points Maximum number of points to plot, set to NA, NULL or Inf to
 #' include all points in the plot
 #' @param ... further arguments to be passed to plot
 #' @return Plots
-#' @method plot ANN
 #' @export
 plot.ANN <- function(x, max.points = 1000, ...) {
   

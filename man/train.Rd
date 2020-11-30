@@ -4,8 +4,16 @@
 \alias{train}
 \title{Continue training of a Neural Network}
 \usage{
-train(object, X, y = NULL, n.epochs = 100, batch.size = 32,
-  drop.last = TRUE, val.prop = 0.1, random.seed = NULL)
+train(
+  object,
+  X,
+  y = NULL,
+  n.epochs = 100,
+  batch.size = 32,
+  drop.last = TRUE,
+  val.prop = 0.1,
+  random.seed = NULL
+)
 }
 \arguments{
 \item{object}{object of class \code{ANN} produced by \code{neuralnetwork()} 
