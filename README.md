@@ -21,7 +21,7 @@ ANN2 has the following features:
 * Loss functions: log, squared, absolute, huber, pseudo-huber
 * Regularization: L1, L2
 * Optimizers: sgd, sgd w/ momentum, RMSprop, ADAM
-* Ploting functions for visualizing encodings, reconstructions and loss (training and validation)
+* Plotting functions for visualizing encodings, reconstructions and loss (training and validation)
 * Helper functions for predicting, reconstructing, encoding and decoding
 * Reading and writing the trained model from / to disk
 * Access to model parameters and low-level Rcpp module methods
