@@ -4,14 +4,32 @@
 \alias{neuralnetwork}
 \title{Train a Neural Network}
 \usage{
-neuralnetwork(X, y, hidden.layers, regression = FALSE,
-  standardize = TRUE, loss.type = "log", huber.delta = 1,
-  activ.functions = "tanh", step.H = 5, step.k = 100,
-  optim.type = "sgd", learn.rates = 1e-04, L1 = 0, L2 = 0,
-  sgd.momentum = 0.9, rmsprop.decay = 0.9, adam.beta1 = 0.9,
-  adam.beta2 = 0.999, n.epochs = 100, batch.size = 32,
-  drop.last = TRUE, val.prop = 0.1, verbose = TRUE,
-  random.seed = NULL)
+neuralnetwork(
+  X,
+  y,
+  hidden.layers,
+  regression = FALSE,
+  standardize = TRUE,
+  loss.type = "log",
+  huber.delta = 1,
+  activ.functions = "tanh",
+  step.H = 5,
+  step.k = 100,
+  optim.type = "sgd",
+  learn.rates = 1e-04,
+  L1 = 0,
+  L2 = 0,
+  sgd.momentum = 0.9,
+  rmsprop.decay = 0.9,
+  adam.beta1 = 0.9,
+  adam.beta2 = 0.999,
+  n.epochs = 100,
+  batch.size = 32,
+  drop.last = TRUE,
+  val.prop = 0.1,
+  verbose = TRUE,
+  random.seed = NULL
+)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}

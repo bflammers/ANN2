@@ -15,6 +15,7 @@
 
 class Optimizer {
 public:
+  virtual ~Optimizer () {};
   int n_train;
   std::string type;
   virtual arma::mat updateW(arma::mat W, arma::mat dW, int batch_size) = 0;
@@ -59,8 +60,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(SGD);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, SGD);
+CEREAL_REGISTER_TYPE(SGD)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, SGD)
 
 // ---------------------------------------------------------------------------//
 // RMSprop optimizer
@@ -100,8 +101,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(RMSprop);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, RMSprop);
+CEREAL_REGISTER_TYPE(RMSprop)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, RMSprop)
 
 // ---------------------------------------------------------------------------//
 // Adam optimizer
@@ -146,8 +147,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(Adam);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, Adam);
+CEREAL_REGISTER_TYPE(Adam)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Optimizer, Adam)
 
 // ---------------------------------------------------------------------------//
 // Optimizer factory 

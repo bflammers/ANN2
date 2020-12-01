@@ -21,5 +21,5 @@ Plots
 \code{plot} Generate plots of the loss against epochs
 }
 \details{
-A genereric function for training neural nets
+A generic function for plot loss of neural net
 }

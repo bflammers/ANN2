@@ -4,13 +4,30 @@
 \alias{autoencoder}
 \title{Train an Autoencoding Neural Network}
 \usage{
-autoencoder(X, hidden.layers, standardize = TRUE,
-  loss.type = "squared", huber.delta = 1, activ.functions = "tanh",
-  step.H = 5, step.k = 100, optim.type = "sgd",
-  learn.rates = 1e-04, L1 = 0, L2 = 0, sgd.momentum = 0.9,
-  rmsprop.decay = 0.9, adam.beta1 = 0.9, adam.beta2 = 0.999,
-  n.epochs = 100, batch.size = 32, drop.last = TRUE,
-  val.prop = 0.1, verbose = TRUE, random.seed = NULL)
+autoencoder(
+  X,
+  hidden.layers,
+  standardize = TRUE,
+  loss.type = "squared",
+  huber.delta = 1,
+  activ.functions = "tanh",
+  step.H = 5,
+  step.k = 100,
+  optim.type = "sgd",
+  learn.rates = 1e-04,
+  L1 = 0,
+  L2 = 0,
+  sgd.momentum = 0.9,
+  rmsprop.decay = 0.9,
+  adam.beta1 = 0.9,
+  adam.beta2 = 0.999,
+  n.epochs = 100,
+  batch.size = 32,
+  drop.last = TRUE,
+  val.prop = 0.1,
+  verbose = TRUE,
+  random.seed = NULL
+)
 }
 \arguments{
 \item{X}{matrix with explanatory variables}

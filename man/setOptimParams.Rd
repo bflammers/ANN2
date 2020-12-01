@@ -4,8 +4,17 @@
 \alias{setOptimParams}
 \title{Check user input related to optimizer}
 \usage{
-setOptimParams(optim.type, learn.rates, L1, L2, sgd.momentum,
-  rmsprop.decay, adam.beta1, adam.beta2, meta)
+setOptimParams(
+  optim.type,
+  learn.rates,
+  L1,
+  L2,
+  sgd.momentum,
+  rmsprop.decay,
+  adam.beta1,
+  adam.beta2,
+  meta
+)
 }
 \description{
 Set and check optimizer parameter list
