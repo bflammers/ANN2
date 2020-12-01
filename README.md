@@ -90,9 +90,6 @@ AE <- autoencoder(X = X_train,
                   optim.type = 'adam',
                   n.epochs = 5000)
 
-# Plot original points (grey) and reconstructions (colored)
-reconstruction_plot(AE, X_train)
-
 # Reconstruct test data
 reconstruct(AE, X_test)
 
@@ -106,6 +103,9 @@ reconstruct(AE, X_test)
 # 
 # $anomaly_scores
 # [1]  398.926431  247.238111   11.613522    0.134633 1029.806121
+
+# Plot original points (grey) and reconstructions (colored) for training data
+reconstruction_plot(AE, X_train)
 ```
 
 ![](man/images/ae_reconstruction_plot.png)
