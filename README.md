@@ -9,9 +9,13 @@
 
 Artificial Neural Networks package for R 
 
-This package allows to train neural networks for classification and regression tasks, as well as autoencoders for anomaly detection. Several helper and plotting functions are included for improved usability and understanding what the model does. ANN2 contains a vectorized neural net implementation in C++ that facilitates fast training through mini-batch gradient descent.
+This package allows to train neural networks for classification and regression tasks, as well as autoencoders for anomaly detection. Several helper and plotting functions are included for improved usability and understanding what the model does. 
 
-ANN2 contains the following features:
+ANN2 contains a vectorized neural net implementation in C++ that facilitates fast training through mini-batch gradient descent.
+
+## Features
+
+ANN2 has the following features:
 * Easy to use interface - defining and training neural nets with a single function call!
 * Activation functions: tanh, sigmoid, relu, linear, ramp, step
 * Loss functions: log, squared, absolute, huber, pseudo-huber
