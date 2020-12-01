@@ -44,8 +44,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(TanhActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, TanhActivation);
+CEREAL_REGISTER_TYPE(TanhActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, TanhActivation)
 
 // ---------------------------------------------------------------------------//
 // Sigmoid activation class
@@ -71,8 +71,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(SigmoidActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, SigmoidActivation);
+CEREAL_REGISTER_TYPE(SigmoidActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, SigmoidActivation)
 
 // ---------------------------------------------------------------------------//
 // Rectifier activation class
@@ -96,8 +96,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(ReluActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, ReluActivation);
+CEREAL_REGISTER_TYPE(ReluActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, ReluActivation)
 
 // ---------------------------------------------------------------------------//
 // Linear activation class
@@ -121,8 +121,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(LinearActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, LinearActivation);
+CEREAL_REGISTER_TYPE(LinearActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, LinearActivation)
 
 // ---------------------------------------------------------------------------//
 // Softmax activation class
@@ -148,8 +148,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(SoftMaxActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, SoftMaxActivation);
+CEREAL_REGISTER_TYPE(SoftMaxActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, SoftMaxActivation)
 
 // ---------------------------------------------------------------------------//
 // Step function activation class
@@ -191,8 +191,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(StepActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, StepActivation);
+CEREAL_REGISTER_TYPE(StepActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, StepActivation)
 
 // ---------------------------------------------------------------------------//
 // Ramp function activation class
@@ -216,8 +216,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(RampActivation);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, RampActivation);
+CEREAL_REGISTER_TYPE(RampActivation)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, RampActivation)
 
 // ---------------------------------------------------------------------------//
 // Activation factory

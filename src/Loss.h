@@ -36,8 +36,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(LogLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, LogLoss);
+CEREAL_REGISTER_TYPE(LogLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, LogLoss)
 
 
 // ---------------------------------------------------------------------------//
@@ -58,8 +58,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(SquaredLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, SquaredLoss);
+CEREAL_REGISTER_TYPE(SquaredLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, SquaredLoss)
 
 // ---------------------------------------------------------------------------//
 // Absolute loss class
@@ -79,8 +79,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(AbsoluteLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, AbsoluteLoss);
+CEREAL_REGISTER_TYPE(AbsoluteLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, AbsoluteLoss)
 
 // ---------------------------------------------------------------------------//
 // Huber loss class
@@ -103,8 +103,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(HuberLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, HuberLoss);
+CEREAL_REGISTER_TYPE(HuberLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, HuberLoss)
 
 // ---------------------------------------------------------------------------//
 // Pseudo-Huber loss class
@@ -127,8 +127,8 @@ public:
 };
 
 // Register class for serialization
-CEREAL_REGISTER_TYPE(PseudoHuberLoss);
-CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, PseudoHuberLoss);
+CEREAL_REGISTER_TYPE(PseudoHuberLoss)
+CEREAL_REGISTER_POLYMORPHIC_RELATION(Loss, PseudoHuberLoss)
 
 // ---------------------------------------------------------------------------//
 // Loss factory
