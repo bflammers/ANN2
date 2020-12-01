@@ -3,3 +3,5 @@
 ^\.Rproj\.user$
 .github
 .covrignore
+man/images
+man/README_example.R
