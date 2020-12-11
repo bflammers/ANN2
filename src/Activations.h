@@ -158,7 +158,7 @@ CEREAL_REGISTER_POLYMORPHIC_RELATION(Activation, SoftMaxActivation)
 class StepActivation : public Activation
 {
 private:
-  int H; 
+  double H; 
   double k;
   arma::vec seqH;
   arma::mat::iterator mit;

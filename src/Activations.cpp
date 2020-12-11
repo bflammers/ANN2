@@ -131,27 +131,29 @@ StepActivation::StepActivation (List activ_param_)
   : H ( activ_param_["step_H"] ), 
     k ( activ_param_["step_k"] ) {
   type = "step"; 
-  seqH = linspace(1, (H - 1), (H - 1))/ H;
 }
 
 // Evaluate stepfunction
 mat StepActivation::eval(mat X) 
 {
-  mat A = X;
-  for(mit = A.begin(); mit!=A.end(); mit++){
-    (*mit) = sum( tanh( k * ((*mit) - seqH) ) );
+  mat A = zeros<mat>(size(X));
+  
+  for (int i=1; i!=H; i++) {
+    A += tanh( k * ( X - i/H ));
   }
-  return 0.5 + A / ( 2 * (H - 1) );
+  return 0.5 + 1 / ( 2 * (H - 1) ) * A;
 }
 
 // Derivative stepfunction
 mat StepActivation::grad(mat X) 
 {
-  mat gA = X;
-  for(mit = gA.begin(); mit!=gA.end(); mit++){
-    (*mit) = sum(1 - pow( tanh(k * ((*mit) - seqH)), 2) );
+  mat gA = zeros<mat>(size(X));
+  
+  for (int i=1; i!=H; i++) {
+    gA += 1 - square( tanh( k * ( X - i/H ) ) );
   }
-  return k * gA / ( 2 * (H-1) );
+  
+  return k / ( 2 * (H-1) ) * gA;
 }
 
 // ---------------------------------------------------------------------------//
