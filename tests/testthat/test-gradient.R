@@ -93,7 +93,7 @@ test_that("the full gradient is correct for all loss functions",
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),  1:4]
   rel_tol_smooth <- 1e-7
-  rel_tol_kinks <- 1e-4
+  rel_tol_kinks <- 1e-5
   
   # Function to check gradient for current cases
   gradCheck <- function(loss.type, rel_tol) {
@@ -125,13 +125,13 @@ test_that("the full gradient is correct for all activation functions",
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),  1:4]
   rel_tol_smooth <- 1e-7
-  rel_tol_kinks <- 1e-4
+  rel_tol_kinks <- 1e-5
   
   # Function to check gradient for current cases
   gradCheck <- function(activ.functions, rel_tol) {
     grads <- calcGradients(X = data[,1:3], 
                            y = data[,4],
-                           hidden.layers = c(5,5),
+                           hidden.layers = c(5),
                            activ.functions = activ.functions, 
                            regression = TRUE,
                            loss.type = 'squared')
@@ -161,13 +161,13 @@ test_that("the full gradient is correct for all activation functions",
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),]
   rel_tol_smooth <- 1e-7
-  rel_tol_kinks <- 1e-4
+  rel_tol_kinks <- 1e-5
 
   # Function to check gradient for current cases
   gradCheck <- function(activ.functions, rel_tol) {
     grads <- calcGradients(X = data[,1:4],
                            y = data[,5],
-                           hidden.layers = c(5, 5),
+                           hidden.layers = c(5),
                            activ.functions = activ.functions,
                            regression = FALSE,
                            loss.type = 'log')

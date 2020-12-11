@@ -1,5 +1,5 @@
 
-# ANN2
+# :zap: ANN2
 
 [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) 
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2) 
@@ -13,7 +13,7 @@ This package allows to train neural networks for classification and regression t
 
 ANN2 contains a vectorized neural net implementation in C++ that facilitates fast training through mini-batch gradient descent.
 
-## Features
+## :fire: Features
 
 ANN2 has the following features:
 * Easy to use interface - defining and training neural nets with a single function call!
@@ -21,12 +21,12 @@ ANN2 has the following features:
 * Loss functions: log, squared, absolute, huber, pseudo-huber
 * Regularization: L1, L2
 * Optimizers: sgd, sgd w/ momentum, RMSprop, ADAM
-* Ploting functions for visualizing encodings, reconstructions and loss (training and validation)
+* Plotting functions for visualizing encodings, reconstructions and loss (training and validation)
 * Helper functions for predicting, reconstructing, encoding and decoding
 * Reading and writing the trained model from / to disk
 * Access to model parameters and low-level Rcpp module methods
 
-## Usage
+## :hammer_and_wrench: Usage
 
 Defining and training a multilayer neural network with ANN2 is done using a single function call to either: 
 * `neuralnetwork()` - for a multilayer neural net for classification or regression,
