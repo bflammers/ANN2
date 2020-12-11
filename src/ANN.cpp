@@ -60,7 +60,6 @@ mat ANN::forwardPass (mat X)
 
 // Forward pass through the network 
 // Error matrix E is propagated backwards through the network
-// Layer member method backward() also performs parameter updates
 mat ANN::backwardPass (mat y, mat y_fit) 
 {
   mat E = L->grad(y, y_fit);
