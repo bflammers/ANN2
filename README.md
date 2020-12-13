@@ -1,6 +1,7 @@
 
 # :zap: ANN2
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8aff5bb4c6cc44e1b0a8e3dc4c6d9be0)](https://app.codacy.com/gh/bflammers/ANN2?utm_source=github.com&utm_medium=referral&utm_content=bflammers/ANN2&utm_campaign=Badge_Grade)
 [![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) 
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2) 
 ![Monthly downloads](https://cranlogs.r-pkg.org/badges/ANN2)
