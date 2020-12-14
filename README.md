@@ -31,8 +31,8 @@ ANN2 has the following features:
 
 Defining and training a multilayer neural network with ANN2 is done using a single function call to either:
 
-- `neuralnetwork()` - for a multilayer neural net for classification or regression,
-- `autoencoder()` - for an autoencoding neural network that is trained to reconstruct its inputs.
+-   `neuralnetwork()` - for a multilayer neural net for classification or regression,
+-   `autoencoder()` - for an autoencoding neural network that is trained to reconstruct its inputs.
 
 Below are two examples with minimal code snippets that show how to use these functions.
 
