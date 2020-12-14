@@ -17,15 +17,15 @@ ANN2 contains a vectorized neural net implementation in C++ that facilitates fas
 
 ANN2 has the following features:
 
-- Easy to use interface - defining and training neural nets with a single function call!
-- Activation functions: tanh, sigmoid, relu, linear, ramp, step
-- Loss functions: log, squared, absolute, huber, pseudo-huber
-- Regularization: L1, L2
-- Optimizers: sgd, sgd w/ momentum, RMSprop, ADAM
-- Plotting functions for visualizing encodings, reconstructions and loss (training and validation)
-- Helper functions for predicting, reconstructing, encoding and decoding
-- Reading and writing the trained model from / to disk
-- Access to model parameters and low-level Rcpp module methods
+-   Easy to use interface - defining and training neural nets with a single function call!
+-   Activation functions: tanh, sigmoid, relu, linear, ramp, step
+-   Loss functions: log, squared, absolute, huber, pseudo-huber
+-   Regularization: L1, L2
+-   Optimizers: sgd, sgd w/ momentum, RMSprop, ADAM
+-   Plotting functions for visualizing encodings, reconstructions and loss (training and validation)
+-   Helper functions for predicting, reconstructing, encoding and decoding
+-   Reading and writing the trained model from / to disk
+-   Access to model parameters and low-level Rcpp module methods
 
 ## :hammer_and_wrench: Usage
 
