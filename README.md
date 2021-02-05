@@ -84,6 +84,8 @@ You can interact with the resulting `ANN` object using methods `plot()`, `print(
 The `autoencoder()` function allows to train an autoencoding neural network. In the next example we'll train an autoencoder of dimension 4 x 10 x 2 x 10 x 4 on the USArrests data set. The middle hidden layer acts as a bottleneck that forces the autoencoder to only retain structural variation and discard random variation. By denoting data points that are poorly reconstructed (high reconstruction error) as aberant, we exploit this denoising property for anomaly detection.
 
 ```r
+library(ANN2)
+
 # Prepare test and train sets
 random_idx <- sample(1:nrow(USArrests), size = 45)
 X_train    <- USArrests[random_idx,]
@@ -110,7 +112,7 @@ reconstruct(AE, X_test)
 # $anomaly_scores
 # [1]  398.926431  247.238111   11.613522    0.134633 1029.806121
 
-# Plot original points (grey) and reconstructions (colored) for training data
+# Plot original points (colored) and reconstructions (grey) for training data
 reconstruction_plot(AE, X_train)
 ```
 
