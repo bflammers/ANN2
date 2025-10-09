@@ -1,4 +1,6 @@
 
+#' @importFrom rlang .data
+#'
 #' @title Plot training and validation loss
 #' @description \code{plot} Generate plots of the loss against epochs
 #' @details A generic function for plot loss of neural net
@@ -11,7 +13,7 @@
 #' @export
 plot.ANN <- function(x, max.points = 1000, ...) {
   
-  if ( class(x)!='ANN' ) {
+  if ( !inherits(x, 'ANN') ) {
     stop('Object not of class ANN', call. = FALSE)
   }
   
@@ -47,7 +49,7 @@ plot.ANN <- function(x, max.points = 1000, ...) {
   
   # Return plot
   ggplot(data = df_melt) + 
-    geom_path(aes_string(x = 'x', y = 'y', color = 'variable')) + 
+    geom_path(aes(x = .data$x, y = .data$y, color = .data$variable)) +
     labs(x = 'Epoch', y = 'Loss') + 
     scale_color_manual(name = NULL, values = c('Training' = viridis_cols[1], 
                                                'Validation' = viridis_cols[2]))
@@ -116,10 +118,10 @@ reconstruction_plot.ANN <- function(object, X, colors = NULL, ...) {
   # Create and return plot
   ggplot(data = df_plot) +
     geom_path(data = df_lin, 
-              aes_string(x = 'value.x', y = 'value.y', group = 'obs'), 
+              aes(x = .data$value.x, y = .data$value.y, group = .data$obs),
               color = 'darkgrey') +
-    geom_point(aes_string(x = 'x_rec', y = 'y_rec'), color = 'darkgrey') +
-    geom_point(aes_string(x = 'x_val', y = 'y_val', color = 'col')) +
+    geom_point(aes(x = .data$x_rec, y = .data$y_rec), color = 'darkgrey') +
+    geom_point(aes(x = .data$x_val, y = .data$y_val, color = .data$col)) +
     facet_grid(y_dim ~ x_dim, scales = "free") + 
     labs(x = NULL, y = NULL) + 
     gg_color
@@ -175,12 +177,12 @@ compression_plot.ANN <- function(object, X, colors = NULL, jitter = FALSE, ...) 
     gg_color    <- scale_color_viridis_d(name = NULL)
   } else {
     df_plot$col <- 'a'
-    gg_color    <- scale_color_viridis_d(guide = FALSE)
+    gg_color    <- scale_color_viridis_d(guide = "none")
   }
   
   # Create and return plot
   ggplot(data = df_plot) +
-    geom_point(aes_string(x = 'x_compr', y = 'y_compr', color = 'col')) +
+    geom_point(aes(x = .data$x_compr, y = .data$y_compr, color = .data$col)) +
     facet_grid(y_dim ~ x_dim, scales = "free") + 
     labs(x = NULL, y = NULL) + 
     gg_color

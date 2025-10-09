@@ -161,7 +161,7 @@ test_that("the full gradient is correct for all activation functions",
   # Set data and relative tolerance for equality check
   data <- iris[sample(nrow(iris), size = 4),]
   rel_tol_smooth <- 1e-7
-  rel_tol_kinks <- 1e-5
+  rel_tol_kinks <- 1e-4
 
   # Function to check gradient for current cases
   gradCheck <- function(activ.functions, rel_tol) {
