@@ -1,8 +1,7 @@
 # :zap: ANN2
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8aff5bb4c6cc44e1b0a8e3dc4c6d9be0)](https://app.codacy.com/gh/bflammers/ANN2?utm_source=github.com&utm_medium=referral&utm_content=bflammers/ANN2&utm_campaign=Badge_Grade)
-[![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2)
+[![Licence](https://img.shields.io/badge/licence-GPL--3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.en.html) 
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/ANN2)](https://cran.r-project.org/package=ANN2) 
 ![Monthly downloads](https://cranlogs.r-pkg.org/badges/ANN2)
 ![R CMD check](https://github.com/bflammers/ANN2/workflows/R-CMD-check/badge.svg)
 [![codecov](https://codecov.io/gh/bflammers/ANN2/branch/dev/graph/badge.svg)](https://codecov.io/gh/bflammers/ANN2)
@@ -26,6 +25,19 @@ ANN2 has the following features:
 -   Helper functions for predicting, reconstructing, encoding and decoding
 -   Reading and writing the trained model from / to disk
 -   Access to model parameters and low-level Rcpp module methods
+=======
+* Easy to use interface - defining and training neural nets with a single function call!
+* Activation functions: tanh, sigmoid, relu, linear, ramp, step
+* Loss functions: log, squared, absolute, huber, pseudo-huber
+* Regularization: L1, L2
+* Optimizers: sgd, sgd w/ momentum, RMSprop, ADAM
+* Plotting functions for visualizing encodings, reconstructions and loss (training and validation)
+* Helper functions for predicting, reconstructing, encoding and decoding
+* Reading and writing the trained model from / to disk
+* Access to model parameters and low-level Rcpp module methods
+
+## :hammer_and_wrench: Usage
+>>>>>>> 910f3855841191e84ef3252180273e3864dd7f00
 
 ## :hammer_and_wrench: Usage
 
